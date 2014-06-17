@@ -23,7 +23,7 @@ _MESSAGES_REGISTRY = {}
 def register_messenger_objects(*messengers):
     """Registers (configures) messengers.
 
-    :param messengers: MessengerBase heirs instances.
+    :param MessageBase messengers: MessengerBase heirs instances.
     """
     global _MESSENGERS_REGISTRY
 
@@ -44,7 +44,7 @@ def get_registered_messenger_objects():
 def get_registered_messenger_object(messenger):
     """Returns registered (configured) messenger by alias,
 
-    :param messenger: string - messenger alias
+    :param str messenger: messenger alias
     :return: MessengerBase heirs instances.
     :rtype: MessengerBase
     """
@@ -57,7 +57,7 @@ def get_registered_messenger_object(messenger):
 def register_message_types(*message_types):
     """Registers message types (classes).
 
-    :param message_types: MessageBase heir classes.
+    :param MessageBase message_types: MessageBase heir classes.
     """
     global _MESSAGES_REGISTRY
 
@@ -77,7 +77,7 @@ def get_registered_message_types():
 def get_registered_message_type(message_type):
     """Returns registered message type (class) by alias,
 
-    :param message_type: string - message type alias
+    :param str message_type: message type alias
     :return: MessageBase heirs instances.
     :rtype: MessageBase
     """
@@ -90,7 +90,7 @@ def get_registered_message_type(message_type):
 def import_app_sitemessage_module(app):
     """Returns a submodule of a given app
 
-    :param app: string - application name
+    :param str app: application name
     :return: submodule or None
     :rtype: module or None
     """
@@ -144,7 +144,7 @@ class MessengerBase(object):
     def get_alias(cls):
         """Returns messenger alias.
 
-        :return: string
+        :return: str
         :rtype: str
         """
         if cls.alias is None:
@@ -166,8 +166,8 @@ class MessengerBase(object):
         Heirs may override this to deduce address from `recipient` data
         (e.g. to get address from Django User model instance).
 
-        :param recipient: object
-        :return: string
+        :param object recipient: any object passed to `recipients()`
+        :return: str
         :rtype: str
         """
         return recipient
@@ -176,7 +176,7 @@ class MessengerBase(object):
     def _structure_recipients_data(cls, recipients):
         """Converts recipients data into a list of Recipient objects.
 
-        :param recipients: list of objects
+        :param list recipients: list of objects
         :return: list of Recipient
         :rtype: list
         """
@@ -208,7 +208,7 @@ class MessengerBase(object):
 
         Should be used within send().
 
-        :param dispatch: Dispatch
+        :param Dispatch dispatch: a Dispatch
         """
         self._st['pending'].append(dispatch)
 
@@ -217,7 +217,7 @@ class MessengerBase(object):
 
         Should be used within send().
 
-        :param dispatch: Dispatch
+        :param Dispatch dispatch: a Dispatch
         """
         self._st['sent'].append(dispatch)
 
@@ -227,9 +227,9 @@ class MessengerBase(object):
 
         Should be used within send().
 
-        :param dispatch: Dispatch
-        :param error_log: string - error message
-        :param message_cls: MessageBase heir
+        :param Dispatch dispatch: a Dispatch
+        :param str error_log: error message
+        :param MessageBase message_cls: MessageBase heir
         """
         if message_cls.send_retry_limit is not None and (dispatch.retry_count + 1) >= message_cls.send_retry_limit:
             self.mark_failed(dispatch, error_log)
@@ -244,8 +244,8 @@ class MessengerBase(object):
 
         Should be used within send().
 
-        :param dispatch: Dispatch
-        :param error_log: string - error message
+        :param Dispatch dispatch: a Dispatch
+        :param str error_log: str - error message
         """
         dispatch.error_log = error_log
         self._st['failed'].append(dispatch)
@@ -265,9 +265,9 @@ class MessengerBase(object):
     def _process_messages(self, messages, ignore_unknown_message_types=False):
         """Performs message processing.
 
-        :param messages: dict - indexed by message id dict with messages data
-        :param ignore_unknown_message_types: bool - whether to silence exceptions
-        :raises: UnknownMessageTypeError
+        :param dict messages: indexed by message id dict with messages data
+        :param bool ignore_unknown_message_types: whether to silence exceptions
+        :raises UnknownMessageTypeError:
         """
         self._init_delivery_statuses_dict()
         self.before_send()
@@ -306,9 +306,9 @@ class MessengerBase(object):
     def send(self, message_cls, message_model, dispatch_models):
         """Main send method must be implement by all heirs.
 
-        :param message_cls: class - a MessageBase heir
-        :param message_model: Message - message model
-        :param dispatch_models: list - Dispatch models for this Message
+        :param MessageBase message_cls: a MessageBase heir
+        :param Message message_model: message model
+        :param list dispatch_models: Dispatch models for this Message
         """
         raise NotImplementedError(self.__class__.__name__ + ' must implement `send()`.')
 
@@ -348,8 +348,8 @@ class MessageBase(object):
     def __init__(self, context=None, template_path=None):
         """Initializes a message.
 
-        :param context: dict - data to be used for message rendering (e.g. in templates)
-        :param template_path: string - template path
+        :param dict, str context: data to be used for message rendering (e.g. in templates)
+        :param str template_path: template path
         """
         context_base = {
             'tpl': None,  # Template path to use
@@ -365,7 +365,7 @@ class MessageBase(object):
     def get_alias(cls):
         """Returns message type alias.
 
-        :return: string
+        :return: str
         :rtype: str
         """
         if cls.alias is None:
@@ -387,8 +387,8 @@ class MessageBase(object):
         """Schedules message for a delivery.
         Puts message data into DB.
 
-        :param recipients: list - of Recipient
-        :param sender: object - Django User model heir instance
+        :param list recipients: of Recipient
+        :param User sender: Django User model heir instance
         :return: a tuple with message model and a list of dispatch models.
         :rtype: tuple
         """
@@ -403,9 +403,9 @@ class MessageBase(object):
         2. `template` field of message class;
         3. deduced from message, messenger data and `template_ext` message type field (e.g. `sitemessage/plain_smtp.txt`).
 
-        :param message:
-        :param messenger:
-        :return: string
+        :param Message message: Message model
+        :param MessengerBase messenger: a MessengerBase heir
+        :return: str
         :rtype: str
         """
         template = message.context.get('tpl', None)
@@ -426,10 +426,10 @@ class MessageBase(object):
 
         Otherwise `text` field from message context is used as message contents.
 
-        :param message: Message - model instance
-        :param messenger: MessengerBase - heir instance
-        :param dispatch: Dispatch - model instance to consider context from
-        :return: string
+        :param Message message: model instance
+        :param MessengerBase messenger: MessengerBase heir instance
+        :param Dispatch dispatch: model instance to consider context from
+        :return: str
         :rtype: str
         """
         #todo add dispatch data to context?
@@ -443,9 +443,9 @@ class MessageBase(object):
 
         NOTE: updates `base_context` inplace.
 
-        :param base_context: dict - context dict to update
-        :param str_or_dict: str or dict - text representing a message, or a dict to be placed into message context.
-        :param template_path: string - template path to be used for message rendering
+        :param dict base_context: context dict to update
+        :param dict, str str_or_dict: text representing a message, or a dict to be placed into message context.
+        :param str template_path: template path to be used for message rendering
         """
         if isinstance(str_or_dict, dict):
             base_context.update(str_or_dict)
@@ -462,7 +462,7 @@ class MessageBase(object):
     def prepare_dispatches(cls, message):
         """Creates Dispatch models for a given message and return them.
 
-        :param message: Message - model instance
+        :param Message message: Message model instance
         :return: list of created Dispatch models
         :rtype: list
         """
@@ -475,7 +475,7 @@ class MessageBase(object):
 
         Method should be implemented by a heir to allow `prepare_dispatches()`.
 
-        :param message: Message - model instance
+        :param Message message: Message model instance
         :return: list of Recipient
         :rtype: list
         """

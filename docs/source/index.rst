@@ -28,7 +28,7 @@ Requirements
 ------------
 
 1. Python 2.7+, 3.2+
-2. Django 1.4
+2. Django 1.4+
 
 
 

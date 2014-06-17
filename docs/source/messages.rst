@@ -7,6 +7,13 @@ Messages
 You can either use builtin classes or define your own.
 
 
+Helper functions
+----------------
+
+.. automodule:: sitemessage.utils
+    :members: register_message_types, get_registered_message_types, get_registered_message_type
+
+
 Builtin message types
 ---------------------
 
@@ -15,14 +22,6 @@ Builtin message types are available from **sitemessage.messages**:
 
 .. automodule:: sitemessage.messages
    :members:
-
-
-
-Helper functions
-----------------
-
-.. autoclass:: sitemessage.utils
-    :members: register_message_types, get_registered_message_types, get_registered_message_type
 
 
 User defined message types

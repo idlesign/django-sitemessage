@@ -5,10 +5,10 @@ from .toolbox import schedule_messages, recipients
 def schedule_email(message, to, subject=None, sender=None):
     '''Schedules an email message for delivery.
 
-    :param message: str or dict: use str for simple text email; dict - to compile email from a template (default: `sitemessage/email_html_smtp.html`).
-    :param to: list - recipients addresses or Django User model heir instances
-    :param subject: string - email subject
-    :param sender: User - model heir instance
+    :param dict, str message: str or dict: use str for simple text email; dict - to compile email from a template (default: `sitemessage/email_html_smtp.html`).
+    :param list to: recipients addresses or Django User model heir instances
+    :param str subject: email subject
+    :param User sender: User model heir instance
     '''
     if isinstance(message, dict):
         message_cls = EmailHtmlMessage
@@ -20,8 +20,8 @@ def schedule_email(message, to, subject=None, sender=None):
 def schedule_jabber_message(message, to, sender=None):
     '''Schedules an email message for delivery.
 
-    :param message: str - text to send.
-    :param to: list - recipients addresses or Django User model heir instances
-    :param sender: User - model heir instance
+    :param str message: text to send.
+    :param list to: recipients addresses or Django User model heir instances
+    :param User sender: User model heir instance
     '''
     schedule_messages(message, recipients('xmppsleek', to), sender=sender)

@@ -66,7 +66,7 @@ Scheduling messages
 Sending messages
 ----------------
 
-Scheduled messages are normally sent with the help of `sitemessage_send_scheduled` Django management command, that
+Scheduled messages are normally sent with the help of **sitemessage_send_scheduled** management command, that
 could be issued from wherever you like (cron, Celery, etc.)::
 
     ./manage.py sitemessage_send_scheduled

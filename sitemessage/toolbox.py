@@ -13,8 +13,8 @@ import_project_sitemessage_modules()
 def recipients(messenger, addresses):
     """Structures recipients data.
 
-    :param messenger: MessengerBase heir
-    :param addresses: list - recipients addresses or Django User model heir instances (NOTE: if supported by a messenger)
+    :param MessageBase messenger: MessengerBase heir
+    :param list addresses: recipients addresses or Django User model heir instances (NOTE: if supported by a messenger)
     :return: list of Recipient
     :rtype: list
     """
@@ -26,9 +26,9 @@ def recipients(messenger, addresses):
 def schedule_messages(messages, recipients=None, sender=None):
     """Sends a message(s).
 
-    :param messages: str or MessageBase heir or list - use str to create PlainTextMessage.
-    :param recipients: list - recipients addresses or Django User model heir instances
-    :param sender: User - model heir instance
+    :param MessageBase, str, list messages: str or MessageBase heir or list - use str to create PlainTextMessage.
+    :param list recipients: recipients addresses or Django User model heir instances
+    :param User sender: User model heir instance
     :return: list of tuples - (message_model, dispatches_models)
     :rtype: list
     """
@@ -47,10 +47,10 @@ def schedule_messages(messages, recipients=None, sender=None):
 def send_scheduled_messages(ignore_unknown_messengers=False, ignore_unknown_message_types=False):
     """Sends scheduled messages.
 
-    :param ignore_unknown_messengers: bool - to silence UnknownMessengerError
-    :param ignore_unknown_message_types: bool - to silence UnknownMessageTypeError
-    :raises: UnknownMessengerError
-    :raises: UnknownMessageTypeError
+    :param bool ignore_unknown_messengers: to silence UnknownMessengerError
+    :param bool ignore_unknown_message_types: to silence UnknownMessageTypeError
+    :raises UnknownMessengerError:
+    :raises UnknownMessageTypeError:
     """
     dispatches_by_messengers = Dispatch.group_by_messengers(Dispatch.get_unsent())
 

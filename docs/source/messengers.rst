@@ -10,7 +10,7 @@ You can either use builtin classes or define your own.
 Helper functions
 ----------------
 
-.. autoclass:: sitemessage.utils
+.. automodule:: sitemessage.utils
     :members: register_messenger_objects, get_registered_messenger_objects, get_registered_messenger_object
 
 
@@ -22,7 +22,6 @@ Builtin messengers are available from **sitemessage.messengers**:
 
 .. automodule:: sitemessage.messengers
    :members:
-
 
 
 User defined messengers

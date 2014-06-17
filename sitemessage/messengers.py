@@ -21,14 +21,14 @@ class SMTPMessenger(MessengerBase):
     def __init__(self, from_email=None, login=None, password=None, host=None, port=None, use_tls=None, use_ssl=None, debug=False):
         """Configures messenger.
 
-        :param from_email: string - e-mail address to send messages from
-        :param login: string - login to log into SMTP server
-        :param password: string - password to log into SMTP server
-        :param host: string - SMTP server host
-        :param port: int - SMTP server port
-        :param use_tls: bool - whether to use TLS
-        :param use_ssl: bool - whether to use SSL
-        :param debug: bool - whether to switch smtplib into debug mode.
+        :param str from_email: e-mail address to send messages from
+        :param str login: login to log into SMTP server
+        :param str password: password to log into SMTP server
+        :param str host: string - SMTP server host
+        :param int port:  SMTP server port
+        :param bool use_tls: whether to use TLS
+        :param bool use_ssl: whether to use SSL
+        :param bool debug: whether to switch smtplib into debug mode.
         """
         import smtplib
 
@@ -119,12 +119,12 @@ class XMPPSleekMessenger(MessengerBase):
     def __init__(self, from_jid, password, host='localhost', port=5222, use_tls=True, use_ssl=False):
         """Configures messenger.
 
-        :param from_jid: string - jabber ID to send messages from
-        :param password: string - password to log into XMPP server
-        :param host: string - XMPP server host
-        :param port: int - XMPP server port
-        :param use_tls: bool - whether to use TLS
-        :param use_ssl: bool - whether to use SSL
+        :param str from_jid: Jabber ID to send messages from
+        :param str password: password to log into XMPP server
+        :param str host: XMPP server host
+        :param int port: XMPP server port
+        :param bool use_tls: whether to use TLS
+        :param bool use_ssl: whether to use SSL
         :return:
         """
         import sleekxmpp
