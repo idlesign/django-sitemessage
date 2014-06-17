@@ -1,0 +1,157 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-06-17 19:15+0700\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: messengers.py:94
+msgid "No Subject"
+msgstr ""
+
+#: models.py:34
+#, python-format
+msgid "Value `%r` is not a valid context."
+msgstr ""
+
+#: models.py:43 models.py:96 models.py:180
+msgid "Time created"
+msgstr ""
+
+#: models.py:44
+msgid "Sender"
+msgstr ""
+
+#: models.py:45
+msgid "Message class"
+msgstr ""
+
+#: models.py:45
+msgid "Message logic class identifier."
+msgstr ""
+
+#: models.py:46
+msgid "Message context"
+msgstr ""
+
+#: models.py:47
+msgid "Dispatches ready"
+msgstr ""
+
+#: models.py:47
+msgid ""
+"Indicates whether dispatches for this message are already formed and ready "
+"to delivery."
+msgstr ""
+
+#: models.py:64 models.py:98
+msgid "Message"
+msgstr ""
+
+#: models.py:65
+msgid "Messages"
+msgstr ""
+
+#: models.py:80
+msgid "Pending"
+msgstr ""
+
+#: models.py:81
+msgid "Sent"
+msgstr ""
+
+#: models.py:82
+msgid "Error"
+msgstr ""
+
+#: models.py:83
+msgid "Failed"
+msgstr ""
+
+#: models.py:90
+msgid "Unread"
+msgstr ""
+
+#: models.py:91
+msgid "Read"
+msgstr ""
+
+#: models.py:97
+msgid "Time dispatched"
+msgstr ""
+
+#: models.py:97
+msgid "Time of the last delivery attempt."
+msgstr ""
+
+#: models.py:99
+msgid "Messenger"
+msgstr ""
+
+#: models.py:99
+msgid "Messenger class identifier."
+msgstr ""
+
+#: models.py:100
+msgid "Recipient"
+msgstr ""
+
+#: models.py:101
+msgid "Address"
+msgstr ""
+
+#: models.py:101
+msgid "Recipient address."
+msgstr ""
+
+#: models.py:102
+msgid "Retry count"
+msgstr ""
+
+#: models.py:102
+msgid "A number of delivery retries has already been made."
+msgstr ""
+
+#: models.py:103
+msgid "Message cache"
+msgstr ""
+
+#: models.py:104
+msgid "Dispatch status"
+msgstr ""
+
+#: models.py:105
+msgid "Read status"
+msgstr ""
+
+#: models.py:170 models.py:181
+msgid "Dispatch"
+msgstr ""
+
+#: models.py:171
+msgid "Dispatches"
+msgstr ""
+
+#: models.py:182
+msgid "Text"
+msgstr ""
+
+#: models.py:185
+msgid "Dispatch error"
+msgstr ""
+
+#: models.py:186
+msgid "Dispatch errors"
+msgstr ""
