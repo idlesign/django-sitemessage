@@ -23,7 +23,17 @@ from sitemessage import VERSION
 # This is used to mock certain modules.
 # It helps to build docs in environments where those modules are not available.
 # E.g. it could be useful for http://readthedocs.org/
-MODULES_TO_MOCK = ['django']
+MODULES_TO_MOCK = [
+    'django',
+    'django.conf',
+    'django.contrib.auth',
+    'django.contrib.auth.models',
+    'django.utils',
+    'django.utils.importlib',
+    'django.utils.module_loading',
+    'django.utils.translation',
+    'django.template.loader',
+]
 
 
 class ModuleMock(object):
