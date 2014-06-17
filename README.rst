@@ -12,7 +12,7 @@ https://github.com/idlesign/django-sitemessage
 Description
 -----------
 
-*Reusable application for Django introducing a message delivery framework*
+*Reusable application for Django introducing a message delivery framework.*
 
 
 Schedule and send messages with several easy steps, using concepts of:

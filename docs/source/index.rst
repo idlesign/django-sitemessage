@@ -7,7 +7,7 @@ https://github.com/idlesign/django-sitemessage
 Description
 -----------
 
-*Reusable application for Django introducing a message delivery framework*
+*Reusable application for Django introducing a message delivery framework.*
 
 
 Schedule and send messages with several easy steps, using concepts of:
@@ -29,6 +29,8 @@ Requirements
 
 1. Python 2.7+, 3.2+
 2. Django 1.4+
+3. South 0.7.1+ for Django (required for version upgrades)
+4. SleekXMPP (required to send messages to Jabber)
 
 
 
