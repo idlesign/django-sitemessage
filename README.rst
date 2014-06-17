@@ -24,33 +24,33 @@ Schedule and send messages with several easy steps, using concepts of:
 
 1. Configure messengers for your project (create `sitemessages.py` in one of your apps):
 
-    .. code-block:: python
+.. code-block:: python
 
-        from sitemessage.utils import register_messenger_objects
-        from sitemessage.messengers import SMTPMessenger
+    from sitemessage.utils import register_messenger_objects
+    from sitemessage.messengers import SMTPMessenger
 
-        register_messenger_objects(
-            # Here we register only one messenger to deliver emails.
-            SMTPMessenger('user1@host.com', 'user1', 'user1password', host='smtp.host.com', use_tls=True)
-        )
+    register_messenger_objects(
+        # Here we register only one messenger to deliver emails.
+        SMTPMessenger('user1@host.com', 'user1', 'user1password', host='smtp.host.com', use_tls=True)
+    )
 
 
 2. Schedule messages for delivery when and where needed (e.g. in a view):
 
-    .. code-block:: python
+.. code-block:: python
 
-        from sitemessage.schortcuts import schedule_email
+    from sitemessage.schortcuts import schedule_email
 
-        def send_mail_view(request):
-            ...
+    def send_mail_view(request):
+        ...
 
-            # Suppose `user_model` is a recipient Django User model instance.
-            user1_model = ...
+        # Suppose `user_model` is a recipient Django User model instance.
+        user1_model = ...
 
-            # We pass `request.user` into `sender` to keep track of senders.
-            schedule_email('Message from sitemessage.', [user1_model, 'user2@host.com'], sender=request.user)
+        # We pass `request.user` into `sender` to keep track of senders.
+        schedule_email('Message from sitemessage.', [user1_model, 'user2@host.com'], sender=request.user)
 
-            ...
+        ...
 
 
 3. Periodically run Django management command from wherever you like (cli, cron, Celery, etc.):
