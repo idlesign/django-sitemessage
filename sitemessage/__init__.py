@@ -1,1 +1,3 @@
-VERSION = (0, 1, 0)
+VERSION = (0, 2, 0)
+
+# TODO Think over an approach to messages localization.

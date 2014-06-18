@@ -1,6 +1,15 @@
 django-sitemessage changelog
 ============================
 
+v0.2.0
+------
++ Added message priorities support.
++ Added support for sending test messages.
++ Now dispatches creation updates `dispatches_ready` message property.
++ Now message templates may use data from 'message_model' and 'dispatch_model' variables.
++ Now message is cached for dispatches with errors.
+
+
 v0.1.0
 ------
 + Basic functionality.
