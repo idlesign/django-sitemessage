@@ -450,9 +450,13 @@ class MessageBase(object):
         :return: str
         :rtype: str
         """
-        #todo add dispatch data to context?
         if message.context.get('use_tpl', False):
-            return render_to_string(cls.get_template(message, messenger), message.context)
+            context = message.context
+            context.update({
+                'message_model': message,
+                'dispatch_model': dispatch
+            })
+            return render_to_string(cls.get_template(message, messenger), context)
         return message.context[cls.SIMPLE_TEXT_ID]
 
     @classmethod

@@ -84,7 +84,15 @@ Now, as long as our message type uses a temple, let's create it (`mymessages/mym
     </html>
 
 
-After that you can schedule and send messages of that type as usual:
+.. note::
+
+    Message model data is available in templates under **message_model** variable.
+
+    Message dispatch data is available in templates under **dispatch_model** variable.
+
+
+
+After that you can schedule and send messages of you new type as usual:
 
 .. code-block:: python
 
