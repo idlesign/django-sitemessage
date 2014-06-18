@@ -179,7 +179,9 @@ class Dispatch(models.Model):
             if objects:
                 cls.objects.bulk_create(objects)
 
-            #todo update ready flag
+            if not message_model.dispatches_ready:
+                message_model.dispatches_ready = True
+                message_model.save()
 
         return objects
 
