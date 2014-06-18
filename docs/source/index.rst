@@ -68,4 +68,4 @@ Also
 ----
 
 If the application is not what you want for messaging with Django, you might be interested in considering
-other choices at https://www.djangopackages.com/grids/g/messaging/
+other choices at https://www.djangopackages.com/grids/g/email/ or https://www.djangopackages.com/grids/g/messaging/
