@@ -24,6 +24,18 @@ Builtin messengers are available from **sitemessage.messengers**:
    :members:
 
 
+Sending test messages
+---------------------
+
+After a messenger is configured you can try whether it works properly using its **send_test_message** method:
+
+.. code-block:: python
+
+    msgr = SMTPMessenger('user1@host.com', 'user1', 'user1password', host='smtp.host.com', use_tls=True)
+    msgr.send_test_message('user1@host.com', 'This is a test message')
+
+
+
 User defined messengers
 -----------------------
 

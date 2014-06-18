@@ -6,6 +6,7 @@ except ImportError:
     from django.contrib.auth.models import User as USER_MODEL
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
+from django.utils.html import strip_tags
 
 from .utils import MessengerBase
 from .exceptions import MessengerWarmupException
@@ -54,6 +55,9 @@ class SMTPMessenger(MessengerBase):
             recipient = recipient.email
         return recipient
 
+    def _test_message(self, to, text):
+        return self._send_message(self._build_message(to, text, mtype='html'))
+
     def before_send(self):
         try:
             self.smtp = self.lib.SMTP(self.host, self.port)
@@ -75,32 +79,44 @@ class SMTPMessenger(MessengerBase):
     def after_send(self):
         self.smtp.quit()
 
-    def build_message(self, message_model, dispatch_model):
+    def _build_message(self, to, text, subject=None, mtype=None):
         """Constructs a MIME message from message and dispatch models."""
         # TODO Maybe file attachments handling through `files` message_model context var.
-        mtype = message_model.context.get('type')
+
+        if subject is None:
+            subject = u'%s' % _('No Subject')
 
         if mtype == 'html':
             msg = self.mime_multipart()
             text_part = self.mime_multipart('alternative')
-            text_part.attach(self.mime_text(dispatch_model.message_cache, _charset='utf-8'))
-            text_part.attach(self.mime_text(dispatch_model.message_cache, 'html', _charset='utf-8'))
+            text_part.attach(self.mime_text(strip_tags(text), _charset='utf-8'))
+            text_part.attach(self.mime_text(text, 'html', _charset='utf-8'))
             msg.attach(text_part)
         else:
-            msg = self.mime_text(dispatch_model.message_cache, _charset='utf-8')
+            msg = self.mime_text(text, _charset='utf-8')
 
         msg['From'] = self.from_email
-        msg['To'] = dispatch_model.address
-        msg['Subject'] = message_model.context.get('subject', _('No Subject'))
+        msg['To'] = to
+        msg['Subject'] = subject
 
         return msg
+
+    def _send_message(self, msg):
+        return self.smtp.sendmail(msg['From'], msg['To'], msg.as_string())
 
     def send(self, message_cls, message_model, dispatch_models):
         if self._session_started:
             for dispatch_model in dispatch_models:
-                msg = self.build_message(message_model, dispatch_model)
+
+                msg = self._build_message(
+                    dispatch_model.address,
+                    dispatch_model.message_cache,
+                    message_model.context.get('subject'),
+                    message_model.context.get('type'),
+                )
+
                 try:
-                    refused = self.smtp.sendmail(msg['From'], msg['To'], msg.as_string())
+                    refused = self._send_message(msg)
                     if refused:
                         self.mark_failed(dispatch_model, '`%s` address is rejected by server' % msg['To'])
                         continue
@@ -138,6 +154,12 @@ class XMPPSleekMessenger(MessengerBase):
         self.use_tls = use_tls
         self.use_ssl = use_ssl
 
+    def _test_message(self, to, text):
+        return self._send_message(to, text)
+
+    def _send_message(self, to, text):
+        return self.xmpp.send_message(mfrom=self.from_jid, mto=to, mbody=text, mtype='chat')
+
     def before_send(self):
         def on_session_start(event):
             try:
@@ -163,7 +185,7 @@ class XMPPSleekMessenger(MessengerBase):
         if self._session_started:
             for dispatch_model in dispatch_models:
                 try:
-                    self.xmpp.send_message(mfrom=self.from_jid, mto=dispatch_model.address, mbody=dispatch_model.message_cache, mtype='chat')
+                    self._send_message(dispatch_model.address, dispatch_model.message_cache)
                     self.mark_sent(dispatch_model)
                 except Exception as e:
                     self.mark_error(dispatch_model, e, message_cls)

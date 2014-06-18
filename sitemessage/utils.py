@@ -154,9 +154,23 @@ class MessengerBase(object):
     def __str__(self):
         return self.__class__.get_alias()
 
-    def test_message(self):
-        '''Sends a test message using messengers settings.'''
-        # todo fo builtin messengers
+    def send_test_message(self, to, text):
+        """Sends a test message using messengers settings.
+
+        :param str to: an address to send test message to
+        :param str text: text to send
+        """
+        self.before_send()
+        result = self._test_message(to, text)
+        self.after_send()
+        return result
+
+    def _test_message(self, to, text):
+        """This method should be implemented by a heir to send a test message.
+        
+        :param str to: an address to send test message to
+        :param str text: text to send
+        """
         raise NotImplementedError(self.__class__.__name__ + ' must implement `test_message()`.')
 
     @classmethod
