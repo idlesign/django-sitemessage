@@ -12,6 +12,8 @@ from .utils import MessageBase, MessengerBase, Recipient, register_messenger_obj
 from .exceptions import MessengerWarmupException
 
 
+# TODO More tests, please %)
+
 WONDERLAND_DOMAIN = '@wonderland'
 
 
@@ -56,6 +58,7 @@ class TestMessage(MessageBase):
 class TestMessagePlain(PlainTextMessage):
 
     alias = 'testplain'
+    priority = 10
 
     @classmethod
     def calculate_recipients(cls, message):
@@ -113,10 +116,13 @@ class UtilityTest(unittest.TestCase):
         self.assertEqual(dispatches[1].address, 'colon%s' % WONDERLAND_DOMAIN)
 
     def test_send_scheduled_messages(self):
+        # This one won't count, as won't fit into message priority filter.
+        schedule_messages(TestMessagePlainDynamic('my_dyn_msg'), recipients('test_messenger', ('three', 'four')))
+
         msgr = get_registered_messenger_object('test_messenger')
         msg = TestMessagePlain('my_message')
         schedule_messages(msg, recipients(msgr, ('one', 'two')))
-        send_scheduled_messages()
+        send_scheduled_messages(priority=TestMessagePlain.priority)
         self.assertEqual(len(msgr.last_send['dispatch_models']), 2)
         self.assertEqual(msgr.last_send['message_model'].cls, 'testplain')
         self.assertEqual(msgr.last_send['message_cls'], TestMessagePlain)
@@ -139,6 +145,14 @@ class UtilityTest(unittest.TestCase):
         model, _ = schedule_messages(msg)[0]
         self.assertEqual(model.cls, msg.get_alias())
         self.assertEqual(model.context, msg.get_context())
+        self.assertEqual(model.priority, TestMessagePlain.priority)
+        self.assertFalse(model.dispatches_ready)
+
+        msg = TestMessagePlain('schedule_func')
+        model, _ = schedule_messages(msg, priority=33)[0]
+        self.assertEqual(model.cls, msg.get_alias())
+        self.assertEqual(model.context, msg.get_context())
+        self.assertEqual(model.priority, 33)
         self.assertFalse(model.dispatches_ready)
 
         user = User()
@@ -181,10 +195,11 @@ class MessageModelTest(unittest.TestCase):
     def test_create(self):
         user = User(username='u')
 
-        m, _ = Message.create('some', {'abc': 'abc'}, sender=user)
+        m, _ = Message.create('some', {'abc': 'abc'}, sender=user, priority=22)
         self.assertEqual(m.cls, 'some')
         self.assertEqual(m.context, {'abc': 'abc'})
         self.assertEqual(m.sender, user)
+        self.assertEqual(m.priority, 22)
         self.assertFalse(m.dispatches_ready)
 
         ctx = {'a': 'a', 'b': 'b'}

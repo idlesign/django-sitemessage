@@ -325,6 +325,9 @@ class MessageBase(object):
     # Message type alias to address it from different places, Should rather be quite unique %)
     alias = None
 
+    # Number describing message priority. Can be overridden by `priority` provided with schedule_messages().
+    priority = None
+
     # This flag is used to optimize template compilation process.
     # If True template will be compiled for every dispatch (and dispatch data will be available in it)
     # instead of just once per message.
@@ -383,16 +386,17 @@ class MessageBase(object):
         """
         return self.context
 
-    def schedule(self, recipients=None, sender=None):
+    def schedule(self, recipients=None, sender=None, priority=None):
         """Schedules message for a delivery.
         Puts message data into DB.
 
         :param list recipients: of Recipient
         :param User sender: Django User model heir instance
+        :param int priority: number describing message priority
         :return: a tuple with message model and a list of dispatch models.
         :rtype: tuple
         """
-        self._message_model, self._dispatch_models = Message.create(self.get_alias(), self.get_context(), recipients=recipients, sender=sender)
+        self._message_model, self._dispatch_models = Message.create(self.get_alias(), self.get_context(), recipients=recipients, sender=sender, priority=priority)
         return self._message_model, self._dispatch_models
 
     @classmethod

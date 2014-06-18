@@ -85,3 +85,5 @@ Nevertheless you can directly use **sitemessage.toolbox.send_scheduled_messages*
     # with unknown message types or for which messengers are not configured won't be sent):
     send_scheduled_messages(ignore_unknown_messengers=True, ignore_unknown_message_types=True)
 
+    # To send only message with a certain priority use `priority` argument.
+    send_scheduled_messages(priority=10)

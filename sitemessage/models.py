@@ -44,6 +44,7 @@ class Message(models.Model):
     sender = models.ForeignKey(USER_MODEL, verbose_name=_('Sender'), null=True, blank=True)
     cls = models.CharField(_('Message class'), max_length=250, help_text=_('Message logic class identifier.'), db_index=True)
     context = ContextField(_('Message context'))
+    priority = models.PositiveIntegerField(_('Priority'), help_text=_('Number describing message sending priority. Messages with different priorities can be sent with different periodicity.'), default=0, db_index=True)
     dispatches_ready = models.BooleanField(_('Dispatches ready'), db_index=True, default=False, help_text=_('Indicates whether dispatches for this message are already formed and ready to delivery.'))
 
     @classmethod
@@ -51,11 +52,22 @@ class Message(models.Model):
         return cls.objects.filter(dispatches_ready=False).all()
 
     @classmethod
-    def create(cls, message_class, context, recipients=None, sender=None):
+    def create(cls, message_class, context, recipients=None, sender=None, priority=None):
         dispatches_ready = False
         if recipients is not None:
             dispatches_ready = True
-        message_model = cls(cls=message_class, context=context, sender=sender, dispatches_ready=dispatches_ready)
+
+        msg_kwargs = {
+            'cls': message_class,
+            'context': context,
+            'sender': sender,
+            'dispatches_ready': dispatches_ready
+        }
+
+        if priority is not None:
+            msg_kwargs['priority'] = priority
+
+        message_model = cls(**msg_kwargs)
         message_model.save()
         dispatch_models = Dispatch.create(message_model, recipients)
         return message_model, dispatch_models
@@ -142,8 +154,13 @@ class Dispatch(models.Model):
         return by_messengers
 
     @classmethod
-    def get_unsent(cls):
-        return cls.objects.select_related('message').filter(dispatch_status__in=(cls.DISPATCH_STATUS_PENDING, cls.DISPATCH_STATUS_ERROR)).order_by('-message__time_created').all()
+    def get_unsent(cls, priority=None):
+        filter_kwargs = {
+            'dispatch_status__in': (cls.DISPATCH_STATUS_PENDING, cls.DISPATCH_STATUS_ERROR)
+        }
+        if priority is not None:
+            filter_kwargs['message__priority'] = priority
+        return cls.objects.select_related('message').filter(**filter_kwargs).order_by('-message__time_created').all()
 
     @classmethod
     def get_unread(cls):
