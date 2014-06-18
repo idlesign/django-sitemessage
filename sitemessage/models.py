@@ -120,6 +120,8 @@ class Dispatch(models.Model):
     def log_dispatches_errors(cls, dispatches):
         entries = []
         for dispatch in dispatches:
+            # Saving message cache for further usage.
+            dispatch.save()
             entries = cls(dispatch=dispatch, error_log=dispatch.error_log)
         cls.objects.bulk_create(entries)
 

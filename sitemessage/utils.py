@@ -304,7 +304,6 @@ class MessengerBase(object):
                         message_type_cache = message_cls.compile(message_model, self)
 
                     dispatch.message_cache = message_type_cache or message_cls.compile(message_model, self, dispatch=dispatch)
-                    # todo save message cache for dispatches with errors
 
             self.send(message_cls, message_model, dispatch_models)
 
