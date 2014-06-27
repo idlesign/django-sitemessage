@@ -21,6 +21,7 @@ Currently supported messengers:
 
 1. SMTP;
 2. XMPP (requires ``sleekxmpp`` module).
+3. Twitter (requires ``twitter`` module).
 
 
 
@@ -30,7 +31,6 @@ Requirements
 1. Python 2.7+, 3.2+
 2. Django 1.4+
 3. South 0.7.1+ for Django (required for version upgrades)
-4. SleekXMPP (required to send messages to Jabber)
 
 
 
@@ -69,4 +69,4 @@ Also
 ----
 
 If the application is not what you want for messaging with Django, you might be interested in considering
-other choices at https://www.djangopackages.com/grids/g/email/ or https://www.djangopackages.com/grids/g/messaging/
+other choices at https://www.djangopackages.com/grids/g/email/ or, maybe https://www.djangopackages.com/grids/g/messaging/

@@ -21,7 +21,8 @@ Quickstart
     .. code-block:: python
 
         from sitemessage.utils import register_messenger_objects
-        from sitemessage.messengers import SMTPMessenger, XMPPSleekMessenger
+        from sitemessage.messengers.smtp import SMTPMessenger
+        from sitemessage.messengers.xmpp import XMPPSleekMessenger
 
         # We register two messengers to deliver emails and jabber messages.
         register_messenger_objects(

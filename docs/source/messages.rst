@@ -10,8 +10,18 @@ You can either use builtin classes or define your own.
 Helper functions
 ----------------
 
-.. automodule:: sitemessage.utils
-    :members: register_message_types, get_registered_message_types, get_registered_message_type
+* **sitemessage.utils.register_message_types(\*message_types)**
+
+  Registers message types (classes).
+
+* **get_registered_message_types()**
+
+  Returns registered message types dict indexed by their aliases.
+
+* **get_registered_message_type(message_type)**
+
+  Returns registered message type (class) by alias,
+
 
 
 Builtin message types
@@ -19,9 +29,12 @@ Builtin message types
 
 Builtin message types are available from **sitemessage.messages**:
 
+* **sitemessage.messages.PlainTextMessage**
 
-.. automodule:: sitemessage.messages
-   :members:
+* **sitemessage.messages.EmailTextMessage**
+
+* **sitemessage.messages.EmailHtmlMessage**
+
 
 
 User defined message types

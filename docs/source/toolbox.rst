@@ -13,7 +13,8 @@ so that they could be passed into message scheduling functions:
 .. code-block:: python
 
     from sitemessage.toolbox import recipients
-    from sitemessage.messengers import SMTPMessenger, XMPPSleekMessenger
+    from sitemessage.messengers.smtp import SMTPMessenger
+    from sitemessage.messengers.xmpp import XMPPSleekMessenger
 
     # The first argument could be Messenger alias:
     my_smtp_recipients = recipients('smtp', ['user1@host.com', 'user2@host.com']),

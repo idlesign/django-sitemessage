@@ -17,7 +17,7 @@ Description
 
 Schedule and send messages with several easy steps, using concepts of:
 
-* **Messengers** - clients for various protocols (smtp, jabber, etc.);
+* **Messengers** - clients for various protocols (smtp, jabber, twitter, etc.);
 
 * **Message Types** - message classes exposing message composition logic (plain text, html, etc.).
 
@@ -27,7 +27,7 @@ Schedule and send messages with several easy steps, using concepts of:
 .. code-block:: python
 
     from sitemessage.utils import register_messenger_objects
-    from sitemessage.messengers import SMTPMessenger
+    from sitemessage.messengers.smtp import SMTPMessenger
 
     register_messenger_objects(
         # Here we register only one messenger to deliver emails.

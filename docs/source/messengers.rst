@@ -10,8 +10,18 @@ You can either use builtin classes or define your own.
 Helper functions
 ----------------
 
-.. automodule:: sitemessage.utils
-    :members: register_messenger_objects, get_registered_messenger_objects, get_registered_messenger_object
+* **sitemessage.utils.register_messenger_objects(\*messengers)**
+
+  Registers (configures) messengers.
+
+* **sitemessage.utils.get_registered_messenger_objects()**
+
+  Returns registered (configured) messengers dict indexed by messenger aliases.
+
+* **sitemessage.utils.get_registered_messenger_object(messenger)**
+
+  Returns registered (configured) messenger by alias,
+
 
 
 Builtin messengers
@@ -20,8 +30,12 @@ Builtin messengers
 Builtin messengers are available from **sitemessage.messengers**:
 
 
-.. automodule:: sitemessage.messengers
-   :members:
+* **sitemessage.messengers.smtp.SMTPMessenger**
+
+* **sitemessage.messengers.xmpp.XMPPSleekMessenger**
+
+* **sitemessage.messengers.twitter.TwitterMessenger**
+
 
 
 Sending test messages
@@ -30,6 +44,8 @@ Sending test messages
 After a messenger is configured you can try whether it works properly using its **send_test_message** method:
 
 .. code-block:: python
+
+    from sitemessage.messengers.smtp import SMTPMessenger
 
     msgr = SMTPMessenger('user1@host.com', 'user1', 'user1password', host='smtp.host.com', use_tls=True)
     msgr.send_test_message('user1@host.com', 'This is a test message')
