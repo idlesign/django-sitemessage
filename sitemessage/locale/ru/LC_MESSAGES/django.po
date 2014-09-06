@@ -1,0 +1,179 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Translators:
+# Igor Starikov <idlesign@yandex.ru>, 2014
+msgid ""
+msgstr ""
+"Project-Id-Version: django-sitemessage\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-09-06 21:42+0700\n"
+"PO-Revision-Date: 2014-09-06 21:44+0700\n"
+"Last-Translator: Igor 'idle sign' Starikov <idlesign@yandex.ru>\n"
+"Language-Team: Russian (http://www.transifex.com/projects/p/django-"
+"sitemessage/language/ru/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ru\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Poedit 1.5.4\n"
+
+#: config.py:9
+msgid "Messaging"
+msgstr "Корреспонденция"
+
+#: models.py:34
+#, python-format
+msgid "Value `%r` is not a valid context."
+msgstr "Значение `%r` не может быть использовано в качестве контекста."
+
+#: models.py:43 models.py:108 models.py:201
+msgid "Time created"
+msgstr "Время создания"
+
+#: models.py:44
+msgid "Sender"
+msgstr "Отправитель"
+
+#: models.py:45
+msgid "Message class"
+msgstr "Класс сообщения"
+
+#: models.py:45
+msgid "Message logic class identifier."
+msgstr "Идентификатор класса сообщения, описывающего логику работы с ним."
+
+#: models.py:46
+msgid "Message context"
+msgstr "Контекст сообщения"
+
+#: models.py:47
+msgid "Priority"
+msgstr "Приоритет"
+
+#: models.py:47
+msgid ""
+"Number describing message sending priority. Messages with different "
+"priorities can be sent with different periodicity."
+msgstr ""
+"Число, описывающее приоритет отправки. Сообщения с различным приоритетом "
+"могут отправляться с разной периодичностью."
+
+#: models.py:48
+msgid "Dispatches ready"
+msgstr "Депеши готовы"
+
+#: models.py:48
+msgid ""
+"Indicates whether dispatches for this message are already formed and ready "
+"to delivery."
+msgstr ""
+"Указывает на то, что для данного сообщения депеши сформированы и готовы к "
+"отправке."
+
+#: models.py:76 models.py:110
+msgid "Message"
+msgstr "Сообщение"
+
+#: models.py:77
+msgid "Messages"
+msgstr "Сообщения"
+
+#: models.py:92
+msgid "Pending"
+msgstr "Ожидает"
+
+#: models.py:93
+msgid "Sent"
+msgstr "Отправлена"
+
+#: models.py:94
+msgid "Error"
+msgstr "Ошибка"
+
+#: models.py:95
+msgid "Failed"
+msgstr "Провал"
+
+#: models.py:102
+msgid "Unread"
+msgstr "Не прочитано"
+
+#: models.py:103
+msgid "Read"
+msgstr "Прочитано"
+
+#: models.py:109
+msgid "Time dispatched"
+msgstr "Время отправки"
+
+#: models.py:109
+msgid "Time of the last delivery attempt."
+msgstr "Время последней попытки доставки."
+
+#: models.py:111
+msgid "Messenger"
+msgstr "Средство доставки"
+
+#: models.py:111
+msgid "Messenger class identifier."
+msgstr "Идентификатор класса средства доставки."
+
+#: models.py:112
+msgid "Recipient"
+msgstr "Получатель"
+
+#: models.py:113
+msgid "Address"
+msgstr "Адрес"
+
+#: models.py:113
+msgid "Recipient address."
+msgstr "Адрес получателя."
+
+#: models.py:114
+msgid "Retry count"
+msgstr "Счетчик попыток"
+
+#: models.py:114
+msgid "A number of delivery retries has already been made."
+msgstr "Число предпринятых попыток доставки."
+
+#: models.py:115
+msgid "Message cache"
+msgstr "Кеш сообщения"
+
+#: models.py:116
+msgid "Dispatch status"
+msgstr "Статус депеши"
+
+#: models.py:117
+msgid "Read status"
+msgstr "Статус прочтения"
+
+#: models.py:191 models.py:202
+msgid "Dispatch"
+msgstr "Депеша"
+
+#: models.py:192
+msgid "Dispatches"
+msgstr "Депеши"
+
+#: models.py:203
+msgid "Text"
+msgstr "Текст"
+
+#: models.py:206
+msgid "Dispatch error"
+msgstr "Ошибка доставки"
+
+#: models.py:207
+msgid "Dispatch errors"
+msgstr "Ошибки доставки"
+
+#: messengers/smtp.py:81
+msgid "No Subject"
+msgstr "Без темы"
