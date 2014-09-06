@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-06-17 19:15+0700\n"
+"POT-Creation-Date: 2014-09-06 21:10+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,16 +17,12 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: messengers.py:94
-msgid "No Subject"
-msgstr ""
-
 #: models.py:34
 #, python-format
 msgid "Value `%r` is not a valid context."
 msgstr ""
 
-#: models.py:43 models.py:96 models.py:180
+#: models.py:43 models.py:108 models.py:201
 msgid "Time created"
 msgstr ""
 
@@ -47,111 +43,125 @@ msgid "Message context"
 msgstr ""
 
 #: models.py:47
-msgid "Dispatches ready"
+msgid "Priority"
 msgstr ""
 
 #: models.py:47
+msgid ""
+"Number describing message sending priority. Messages with different "
+"priorities can be sent with different periodicity."
+msgstr ""
+
+#: models.py:48
+msgid "Dispatches ready"
+msgstr ""
+
+#: models.py:48
 msgid ""
 "Indicates whether dispatches for this message are already formed and ready "
 "to delivery."
 msgstr ""
 
-#: models.py:64 models.py:98
+#: models.py:76 models.py:110
 msgid "Message"
 msgstr ""
 
-#: models.py:65
+#: models.py:77
 msgid "Messages"
 msgstr ""
 
-#: models.py:80
+#: models.py:92
 msgid "Pending"
 msgstr ""
 
-#: models.py:81
+#: models.py:93
 msgid "Sent"
 msgstr ""
 
-#: models.py:82
+#: models.py:94
 msgid "Error"
 msgstr ""
 
-#: models.py:83
+#: models.py:95
 msgid "Failed"
 msgstr ""
 
-#: models.py:90
+#: models.py:102
 msgid "Unread"
 msgstr ""
 
-#: models.py:91
+#: models.py:103
 msgid "Read"
 msgstr ""
 
-#: models.py:97
+#: models.py:109
 msgid "Time dispatched"
 msgstr ""
 
-#: models.py:97
+#: models.py:109
 msgid "Time of the last delivery attempt."
 msgstr ""
 
-#: models.py:99
+#: models.py:111
 msgid "Messenger"
 msgstr ""
 
-#: models.py:99
+#: models.py:111
 msgid "Messenger class identifier."
 msgstr ""
 
-#: models.py:100
+#: models.py:112
 msgid "Recipient"
 msgstr ""
 
-#: models.py:101
+#: models.py:113
 msgid "Address"
 msgstr ""
 
-#: models.py:101
+#: models.py:113
 msgid "Recipient address."
 msgstr ""
 
-#: models.py:102
+#: models.py:114
 msgid "Retry count"
 msgstr ""
 
-#: models.py:102
+#: models.py:114
 msgid "A number of delivery retries has already been made."
 msgstr ""
 
-#: models.py:103
+#: models.py:115
 msgid "Message cache"
 msgstr ""
 
-#: models.py:104
+#: models.py:116
 msgid "Dispatch status"
 msgstr ""
 
-#: models.py:105
+#: models.py:117
 msgid "Read status"
 msgstr ""
 
-#: models.py:170 models.py:181
+#: models.py:191 models.py:202
 msgid "Dispatch"
 msgstr ""
 
-#: models.py:171
+#: models.py:192
 msgid "Dispatches"
 msgstr ""
 
-#: models.py:182
+#: models.py:203
 msgid "Text"
 msgstr ""
 
-#: models.py:185
+#: models.py:206
 msgid "Dispatch error"
 msgstr ""
 
-#: models.py:186
+#: models.py:207
 msgid "Dispatch errors"
+msgstr ""
+
+#: messengers/smtp.py:81
+msgid "No Subject"
 msgstr ""
