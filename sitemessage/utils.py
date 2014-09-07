@@ -1,11 +1,5 @@
 from collections import namedtuple, defaultdict
 
-try:
-    from django.contrib.auth import get_user_model
-    USER_MODEL = get_user_model()
-except ImportError:
-    # Django 1.4 fallback.
-    from django.contrib.auth.models import User as USER_MODEL
 from django.utils.importlib import import_module
 from django.utils.module_loading import module_has_submodule
 from django.template.loader import render_to_string
@@ -233,6 +227,13 @@ class MessengerBase(object):
         :return: list of Recipient
         :rtype: list
         """
+        try:  # That's all due Django 1.7 apps loading.
+            from django.contrib.auth import get_user_model
+            USER_MODEL = get_user_model()
+        except ImportError:
+            # Django 1.4 fallback.
+            from django.contrib.auth.models import User as USER_MODEL
+
         if not is_iterable(recipients):
             recipients = (recipients,)
 

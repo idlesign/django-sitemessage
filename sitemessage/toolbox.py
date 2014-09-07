@@ -1,3 +1,4 @@
+from django import VERSION
 from django.utils import six
 
 from .models import Message, Dispatch
@@ -7,8 +8,9 @@ from .exceptions import UnknownMessengerError
 from .messages import PlainTextMessage
 
 
-# Trying import sitemessage settings files from project apps.
-import_project_sitemessage_modules()
+if VERSION < (1, 7, 0):
+    # Trying import sitemessage settings files from project apps.
+    import_project_sitemessage_modules()
 
 
 def recipients(messenger, addresses):
