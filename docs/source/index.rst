@@ -46,6 +46,7 @@ Table of Contents
     messengers
     exceptions
     prioritizing
+    apps
 
 
 Get involved into django-sitemessage

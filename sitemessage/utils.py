@@ -1,4 +1,4 @@
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 
 try:
     from django.contrib.auth import get_user_model
@@ -18,6 +18,45 @@ from .exceptions import UnknownMessageTypeError, UnknownMessengerError
 
 _MESSENGERS_REGISTRY = {}
 _MESSAGES_REGISTRY = {}
+
+_MESSAGES_FOR_APPS = defaultdict(dict)
+
+
+def get_message_type_for_app(app_name, default_message_type_alias):
+    """Returns a registered message type object for a given application.
+
+    Supposed to be used by reusable applications authors,
+    to get message type objects which may be overridden by project authors
+    using `override_message_type_for_app`.
+
+    :param str app_name:
+    :param str default_message_type_alias:
+    :return: a message type object overridden is so, or the default
+    :rtype: MessageBase
+    """
+    message_type = default_message_type_alias
+    try:
+        message_type = _MESSAGES_FOR_APPS[app_name][message_type]
+    except KeyError:
+        pass
+    return get_registered_message_type(message_type)
+
+
+def override_message_type_for_app(app_name, app_message_type_alias, new_message_type_alias):
+    """Overrides a given message type used by a certain application with another one.
+
+    Intended for projects authors, who need to customize messaging behaviour
+    of a certain thirdparty app (supporting this feature).
+    To be used in conjunction with `get_message_type_for_app`.
+
+    :param str app_name:
+    :param str app_message_type_alias:
+    :param str new_message_type_alias:
+    :return:
+    """
+    global _MESSAGES_FOR_APPS
+
+    _MESSAGES_FOR_APPS[app_name][app_message_type_alias] = new_message_type_alias
 
 
 def register_messenger_objects(*messengers):

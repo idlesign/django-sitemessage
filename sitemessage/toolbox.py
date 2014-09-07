@@ -1,7 +1,8 @@
 from django.utils import six
 
 from .models import Message, Dispatch
-from .utils import is_iterable, get_registered_messenger_object, get_registered_message_type, import_project_sitemessage_modules
+from .utils import is_iterable, get_registered_messenger_object, get_registered_message_type, \
+    import_project_sitemessage_modules, get_message_type_for_app, override_message_type_for_app
 from .exceptions import UnknownMessengerError
 from .messages import PlainTextMessage
 
