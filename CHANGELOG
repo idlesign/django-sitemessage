@@ -2,6 +2,12 @@ django-sitemessage changelog
 ============================
 
 
+v0.4.1
+------
+* Fixed `sitemessage_send_scheduled` command failure on Django 1.7.
+* Now `time_dispatched` field value is timezone-aware.
+
+
 v0.4.0
 ------
 + Django 1.7 ready.
