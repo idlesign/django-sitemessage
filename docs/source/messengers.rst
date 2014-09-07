@@ -32,7 +32,15 @@ Builtin messengers are available from **sitemessage.messengers**:
 
 * **sitemessage.messengers.smtp.SMTPMessenger**
 
+.. warning::
+
+    Uses Python's built-in ``smtplib``.
+
 * **sitemessage.messengers.xmpp.XMPPSleekMessenger**
+
+.. warning::
+
+    Requires ``sleekxmpp`` package.
 
 .. code-block:: python
 
@@ -43,6 +51,10 @@ Builtin messengers are available from **sitemessage.messengers**:
 
 
 * **sitemessage.messengers.twitter.TwitterMessenger**
+
+.. warning::
+
+    Requires ``twitter`` package.
 
 .. code-block:: python
 
