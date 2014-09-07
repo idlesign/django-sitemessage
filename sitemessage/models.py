@@ -1,9 +1,8 @@
 import json
 
-from datetime import datetime
-
 from django.core import exceptions
 from django.db import models
+from django.utils import timezone
 from django.utils.six import with_metaclass
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import python_2_unicode_compatible
@@ -136,7 +135,7 @@ class Dispatch(models.Model):
         for kwarg_name, status in filter_kwargs_map.items():
             if kwargs[kwarg_name]:
                 update_kwargs = {
-                    'time_dispatched': datetime.now(),
+                    'time_dispatched': timezone.now(),
                     'dispatch_status': status,
                     'retry_count': models.F('retry_count') + 1
                 }
