@@ -34,7 +34,25 @@ Builtin messengers are available from **sitemessage.messengers**:
 
 * **sitemessage.messengers.xmpp.XMPPSleekMessenger**
 
+.. code-block:: python
+
+    from sitemessage.toolbox import schedule_messages, recipients
+
+    # Sending jabber message.
+    schedule_messages('Hello there!', recipients('xmppsleek', 'somebody@example.ru'))
+
+
 * **sitemessage.messengers.twitter.TwitterMessenger**
+
+.. code-block:: python
+
+    from sitemessage.toolbox import schedule_messages, recipients
+
+    # Twitting example.
+    schedule_messages('My tweet.', recipients('twitter', ''))
+
+    # Tweet to somebody.
+    schedule_messages('Hey, that is my tweet for you.', recipients('twitter', 'idlesign'))
 
 
 
