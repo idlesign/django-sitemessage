@@ -1,6 +1,14 @@
 django-sitemessage changelog
 ============================
 
+
+v0.4.0
+------
++ Django 1.7 ready.
++ Added Russian loco.
++ Implemented get_message_type_for_app() and override_message_type_for_app().
+
+
 v0.3.0
 ------
 + Added Twitter messenger.
