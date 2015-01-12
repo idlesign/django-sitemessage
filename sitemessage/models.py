@@ -30,7 +30,8 @@ class ContextField(with_metaclass(models.SubfieldBase, models.TextField)):
         try:
             return json.loads(value)
         except ValueError:
-            raise exceptions.ValidationError(_('Value `%r` is not a valid context.') % value, code='invalid_context', params={'value': value},)
+            raise exceptions.ValidationError(_('Value `%r` is not a valid context.') % value,
+                                             code='invalid_context', params={'value': value},)
 
     def get_prep_value(self, value):
         return json.dumps(value)
@@ -41,10 +42,15 @@ class Message(models.Model):
 
     time_created = models.DateTimeField(_('Time created'), auto_now_add=True, editable=False)
     sender = models.ForeignKey(USER_MODEL, verbose_name=_('Sender'), null=True, blank=True)
-    cls = models.CharField(_('Message class'), max_length=250, help_text=_('Message logic class identifier.'), db_index=True)
+    cls = models.CharField(_('Message class'), max_length=250, db_index=True,
+                           help_text=_('Message logic class identifier.'))
     context = ContextField(_('Message context'))
-    priority = models.PositiveIntegerField(_('Priority'), help_text=_('Number describing message sending priority. Messages with different priorities can be sent with different periodicity.'), default=0, db_index=True)
-    dispatches_ready = models.BooleanField(_('Dispatches ready'), db_index=True, default=False, help_text=_('Indicates whether dispatches for this message are already formed and ready to delivery.'))
+    priority = models.PositiveIntegerField(_('Priority'), default=0, db_index=True,
+                                           help_text=_('Number describing message sending priority. Messages with '
+                                                       'different priorities can be sent with different periodicity.'))
+    dispatches_ready = models.BooleanField(_('Dispatches ready'), db_index=True, default=False,
+                                           help_text=_('Indicates whether dispatches for this message are already '
+                                                       'formed and ready to delivery.'))
 
     @classmethod
     def get_undispatched(cls):
@@ -105,15 +111,30 @@ class Dispatch(models.Model):
     error_log = None
 
     time_created = models.DateTimeField(_('Time created'), auto_now_add=True, editable=False)
-    time_dispatched = models.DateTimeField(_('Time dispatched'), help_text=_('Time of the last delivery attempt.'), editable=False, null=True, blank=True)
+    time_dispatched = models.DateTimeField(_('Time dispatched'), editable=False, null=True, blank=True,
+                                           help_text=_('Time of the last delivery attempt.'))
+
     message = models.ForeignKey(Message, verbose_name=_('Message'))
-    messenger = models.CharField(_('Messenger'), max_length=250, help_text=_('Messenger class identifier.'), db_index=True)
+    messenger = models.CharField(_('Messenger'), max_length=250, db_index=True,
+                                 help_text=_('Messenger class identifier.'))
+
     recipient = models.ForeignKey(USER_MODEL, verbose_name=_('Recipient'), null=True, blank=True)
     address = models.CharField(_('Address'), max_length=250, help_text=_('Recipient address.'))
-    retry_count = models.PositiveIntegerField(_('Retry count'), default=0, help_text=_('A number of delivery retries has already been made.'))
+    retry_count = models.PositiveIntegerField(_('Retry count'), default=0,
+                                              help_text=_('A number of delivery retries has already been made.'))
+
     message_cache = models.TextField(_('Message cache'), null=True, editable=False)
-    dispatch_status = models.PositiveIntegerField(_('Dispatch status'), choices=DISPATCH_STATUSES, default=DISPATCH_STATUS_PENDING)
+    dispatch_status = models.PositiveIntegerField(_('Dispatch status'), choices=DISPATCH_STATUSES,
+                                                  default=DISPATCH_STATUS_PENDING)
+
     read_status = models.PositiveIntegerField(_('Read status'), choices=READ_STATUSES, default=READ_STATUS_UNDREAD)
+
+    class Meta:
+        verbose_name = _('Dispatch')
+        verbose_name_plural = _('Dispatches')
+
+    def __str__(self):
+        return '%s [%s]' % (self.address, self.messenger)
 
     @classmethod
     def log_dispatches_errors(cls, dispatches):
@@ -185,13 +206,6 @@ class Dispatch(models.Model):
                 message_model.save()
 
         return objects
-
-    class Meta:
-        verbose_name = _('Dispatch')
-        verbose_name_plural = _('Dispatches')
-
-    def __str__(self):
-        return '%s [%s]' % (self.address, self.messenger)
 
 
 @python_2_unicode_compatible
