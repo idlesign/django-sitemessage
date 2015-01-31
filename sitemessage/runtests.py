@@ -6,9 +6,9 @@ from django.conf import settings, global_settings
 
 
 def main():
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-
-    app_name = os.path.dirname(__file__)
+    current_dir = os.path.dirname(__file__)
+    app_name = os.path.basename(current_dir)
+    sys.path.insert(0, os.path.join(current_dir, '..'))
 
     if not settings.configured:
         settings.configure(

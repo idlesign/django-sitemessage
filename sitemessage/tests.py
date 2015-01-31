@@ -4,7 +4,7 @@ from django.template.base import TemplateDoesNotExist
 from django.db.utils import IntegrityError
 
 from .messages import PlainTextMessage
-from .models import Message, Dispatch
+from .models import Message, Dispatch, Subscription, DispatchError
 from .toolbox import schedule_messages, recipients, send_scheduled_messages, prepare_dispatches
 from .utils import MessageBase, MessengerBase, Recipient, register_messenger_objects, \
     register_message_types, get_registered_messenger_objects, get_registered_messenger_object, \
@@ -60,10 +60,6 @@ class TestMessagePlain(PlainTextMessage):
     alias = 'testplain'
     priority = 10
 
-    @classmethod
-    def calculate_recipients(cls, message):
-        return recipients('test_messenger', ('fred', 'colon'))
-
 
 class TestMessagePlainDynamic(PlainTextMessage):
 
@@ -79,10 +75,16 @@ register_messenger_objects(TestMessenger('mylogin', 'mypassword'), BuggyMessenge
 register_message_types(PlainTextMessage, TestMessage, TestMessagePlain, TestMessagePlainDynamic)
 
 
-class UtilityTest(unittest.TestCase):
+class SitemessageTest(unittest.TestCase):
 
-    def setUp(self):
+    def tearDown(self):
+        User.objects.all().delete()
         Message.objects.all().delete()
+        Dispatch.objects.all().delete()
+        Subscription.objects.all().delete()
+
+
+class UtilityTest(SitemessageTest):
 
     def test_register_messengers(self):
         messenger = type('MyMessenger', (MessengerBase,), {})
@@ -110,10 +112,14 @@ class UtilityTest(unittest.TestCase):
 
     def test_prepare_undispatched(self):
         m, d = Message.create('testplain', {MessageBase.SIMPLE_TEXT_ID: 'abc'})
+
+        Subscription.create('fred', 'testplain', 'test_messenger')
+        Subscription.create('colon', 'testplain', 'test_messenger')
+
         dispatches = prepare_dispatches()
         self.assertEqual(len(dispatches), 2)
-        self.assertEqual(dispatches[0].address, 'fred%s' % WONDERLAND_DOMAIN)
-        self.assertEqual(dispatches[1].address, 'colon%s' % WONDERLAND_DOMAIN)
+        self.assertEqual(dispatches[0].address, 'fred')
+        self.assertEqual(dispatches[1].address, 'colon')
 
     def test_send_scheduled_messages(self):
         # This one won't count, as won't fit into message priority filter.
@@ -156,6 +162,7 @@ class UtilityTest(unittest.TestCase):
         self.assertFalse(model.dispatches_ready)
 
         user = User()
+        user.save()
 
         model, dispatch_models = schedule_messages('simple message', recipients('test_messenger', ('gogi', 'givi')), sender=user)[0]
 
@@ -169,7 +176,85 @@ class UtilityTest(unittest.TestCase):
         self.assertEqual(dispatch_models[0].messenger, 'test_messenger')
 
 
-class DispatchModelTest(unittest.TestCase):
+class SubscriptionModelTest(SitemessageTest):
+
+    def test_create(self):
+
+        s = Subscription.create('abc', 'message', 'messenger')
+
+        self.assertIsNotNone(s.time_created)
+        self.assertIsNone(s.recipient)
+        self.assertEqual(s.address, 'abc')
+        self.assertEqual(s.message_cls, 'message')
+        self.assertEqual(s.messenger_cls, 'messenger')
+
+        s = Subscription.create(1, 'message', 'messenger')
+
+        self.assertIsNotNone(s.time_created)
+        self.assertIsNone(s.address)
+        self.assertEqual(s.recipient_id, 1)
+        self.assertEqual(s.message_cls, 'message')
+        self.assertEqual(s.messenger_cls, 'messenger')
+
+    def test_cancel(self):
+
+        Subscription.create('abc', 'message', 'messenger')
+        Subscription.create('abc', 'message1', 'messenger')
+        Subscription.create('abc', 'message', 'messenger1')
+        self.assertEqual(
+            Subscription.objects.filter(address='abc').count(), 3
+        )
+
+        Subscription.cancel('abc', 'message', 'messenger')
+        self.assertEqual(
+            Subscription.objects.filter(address='abc').count(), 2
+        )
+
+        Subscription.create(1, 'message', 'messenger')
+        self.assertEqual(
+            Subscription.objects.filter(recipient=1).count(), 1
+        )
+
+        Subscription.cancel(1, 'message', 'messenger')
+        self.assertEqual(
+            Subscription.objects.filter(recipient=1).count(), 0
+        )
+
+    def test_get_for_user(self):
+        user = User()
+        user.save()
+
+        self.assertEqual(Subscription.get_for_user(user).count(), 0)
+
+        Subscription.create(user, 'message', 'messenger')
+
+        self.assertEqual(Subscription.get_for_user(user).count(), 1)
+
+    def test_get_for_message_cls(self):
+        self.assertEqual(Subscription.get_for_message_cls('mymsg').count(), 0)
+
+        Subscription.create('aaa', 'mymsg', 'messenger')
+        Subscription.create('bbb', 'mymsg', 'messenger2')
+
+        self.assertEqual(Subscription.get_for_message_cls('mymsg').count(), 2)
+
+    def test_str(self):
+        s = Subscription()
+        s.address = 'aaa'
+
+        self.assertIn('aaa', str(s))
+
+
+class DispatchErrorModelTest(SitemessageTest):
+
+    def test_str(self):
+        e = DispatchError()
+        e.dispatch_id = 444
+
+        self.assertIn('444', str(e))
+
+
+class DispatchModelTest(SitemessageTest):
 
     def test_create(self):
 
@@ -177,6 +262,7 @@ class DispatchModelTest(unittest.TestCase):
         message.save()
 
         user = User(username='u')
+        user.save()
 
         recipients_ = recipients('test_messenger', [user])
         recipients_ += recipients('buggy', 'idle')
@@ -189,11 +275,63 @@ class DispatchModelTest(unittest.TestCase):
         self.assertEqual(dispatches[0].messenger, 'test_messenger')
         self.assertEqual(dispatches[1].messenger, 'buggy')
 
+        dispatches = Dispatch.create(message, Recipient('msgr', None, 'address'))
+        self.assertEqual(len(dispatches), 1)
 
-class MessageModelTest(unittest.TestCase):
+    def test_log_dispatches_errors(self):
+
+        self.assertEqual(DispatchError.objects.count(), 0)
+
+        d1 = Dispatch(message_id=1)
+        d1.save()
+
+        d1.error_log = 'some_text'
+
+        Dispatch.log_dispatches_errors([d1])
+        self.assertEqual(DispatchError.objects.count(), 1)
+        self.assertEqual(DispatchError.objects.get(pk=1).error_log, 'some_text')
+
+    def test_get_unread(self):
+
+        d1 = Dispatch(message_id=1)
+        d1.save()
+
+        d2 = Dispatch(message_id=1)
+        d2.save()
+        self.assertEqual(Dispatch.get_unread().count(), 2)
+
+        d2.read_status = Dispatch.READ_STATUS_READ
+        d2.save()
+        self.assertEqual(Dispatch.get_unread().count(), 1)
+
+    def test_set_dispatches_statuses(self):
+
+        d = Dispatch(message_id=1)
+        d.save()
+
+        Dispatch.set_dispatches_statuses(**{'sent': [d]})
+        d_ = Dispatch.objects.get(pk=d.id)
+        self.assertEqual(d_.dispatch_status, Dispatch.DISPATCH_STATUS_SENT)
+        self.assertEqual(d_.retry_count, 1)
+
+        Dispatch.set_dispatches_statuses(**{'error': [d]})
+        d_ = Dispatch.objects.get(pk=d.id)
+        self.assertEqual(d_.dispatch_status, Dispatch.DISPATCH_STATUS_ERROR)
+        self.assertEqual(d_.retry_count, 2)
+
+
+    def test_str(self):
+        d = Dispatch()
+        d.address = 'tttt'
+
+        self.assertIn('tttt', str(d))
+
+
+class MessageModelTest(SitemessageTest):
 
     def test_create(self):
         user = User(username='u')
+        user.save()
 
         m, _ = Message.create('some', {'abc': 'abc'}, sender=user, priority=22)
         self.assertEqual(m.cls, 'some')
@@ -216,8 +354,19 @@ class MessageModelTest(unittest.TestCase):
         m2 = Message.objects.get(pk=m.pk)
         self.assertEquals(m2.context, {'a': 'a', 'b': 'b', 'c': 'c'})
 
+    def test_get_type(self):
+        m = Message(cls='test_message')
 
-class MessengerTest(unittest.TestCase):
+        self.assertIs(m.get_type(), TestMessage)
+
+    def test_str(self):
+        m = Message()
+        m.cls = 'aaa'
+
+        self.assertEqual(str(m), 'aaa')
+
+
+class MessengerTest(SitemessageTest):
 
     def test_init_params(self):
         messengers = get_registered_messenger_objects()
@@ -259,7 +408,7 @@ class MessengerTest(unittest.TestCase):
         self.assertRaises(Exception, m.send, 'a buggy message', recipiets_)
 
 
-class MessageTest(unittest.TestCase):
+class MessageTest(SitemessageTest):
 
     def test_alias(self):
         message = type('MyMessage', (MessageBase,), {'alias': 'myalias'})
@@ -291,6 +440,8 @@ class MessageTest(unittest.TestCase):
         self.assertIsNone(model.sender)
 
         user = User()
+        user.save()
+
         msg = TestMessagePlain('schedule2')
         model, _ = msg.schedule(sender=user)
         self.assertEqual(model.sender, user)
