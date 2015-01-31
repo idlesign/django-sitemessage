@@ -1,5 +1,6 @@
 from django import VERSION
 from django.utils import six
+from django.conf.urls import patterns, url
 
 from .models import Message, Dispatch
 from .utils import is_iterable, get_registered_messenger_object, get_registered_message_type, \
@@ -74,16 +75,48 @@ def send_scheduled_messages(priority=None, ignore_unknown_messengers=False, igno
 
 
 def prepare_dispatches():
-    """Created dispatches for messages without them.
-
-    It requires from a message type to implement `calculate_recipients()` method.
+    """Automatically creates dispatches for messages without them.
 
     :return: list of Dispatch
     :rtype: list
     """
     dispatches = []
-    undispatched = Message.get_undispatched()
-    for message_model in undispatched:
-        message_cls = get_registered_message_type(message_model.cls)
+    target_messages = Message.get_without_dispatches()
+
+    cache = {}
+
+    for message_model in target_messages:
+
+        if message_model.cls not in cache:
+            message_cls = get_registered_message_type(message_model.cls)
+            subscribers = message_cls.get_subscribers()
+            cache[message_model.cls] = (message_cls, subscribers)
+        else:
+            message_cls, subscribers = cache[message_model.cls]
+
         dispatches.extend(message_cls.prepare_dispatches(message_model))
+
     return dispatches
+
+
+def get_sitemessage_urls():
+    """Returns sitemessage urlpatterns, that can be attached to urlpatterns of a project:
+
+        # Example from urls.py.
+
+        from sitemessage.toolbox import get_sitemessage_urls
+
+        urlpatterns = patterns('',
+            # Your URL Patterns belongs here.
+
+        ) + get_sitemessage_urls()  # Now attaching additional URLs.
+
+    """
+    return patterns(
+        '',
+        url(
+            r'^messages/unsubscribe/(?P<message_id>\d+)/(?P<dispatch_id>\d+)/(?P<hashed>[^/]+)/$',
+            'sitemessage.views.unsubscribe',
+            name='sitemessage_unsubscribe'
+        )
+    )

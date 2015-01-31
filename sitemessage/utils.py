@@ -1,14 +1,20 @@
 from collections import namedtuple, defaultdict
 
+from django.core.urlresolvers import reverse, NoReverseMatch
+from django.utils.crypto import salted_hmac
+from django.utils import six
 from django.utils.importlib import import_module
 from django.utils.module_loading import module_has_submodule
+from django.shortcuts import redirect
 from django.template.loader import render_to_string
-from django.utils import six
 
-from sitemessage import settings
-from .models import Message, Dispatch
+from .settings import APP_MODULE_NAME
+from .models import Message, Dispatch, Subscription
 from .exceptions import UnknownMessageTypeError, UnknownMessengerError
+from .signals import sig_unsubscribe_success, sig_unsubscribe_failed
 
+
+APP_URLS_ATTACHED = None
 
 _MESSENGERS_REGISTRY = {}
 _MESSAGES_REGISTRY = {}
@@ -56,7 +62,7 @@ def override_message_type_for_app(app_name, app_message_type_alias, new_message_
 def register_messenger_objects(*messengers):
     """Registers (configures) messengers.
 
-    :param MessageBase messengers: MessengerBase heirs instances.
+    :param list messengers: MessengerBase heirs instances.
     """
     global _MESSENGERS_REGISTRY
 
@@ -90,7 +96,7 @@ def get_registered_messenger_object(messenger):
 def register_message_types(*message_types):
     """Registers message types (classes).
 
-    :param MessageBase message_types: MessageBase heir classes.
+    :param list message_types: MessageBase heir classes.
     """
     global _MESSAGES_REGISTRY
 
@@ -127,7 +133,7 @@ def import_app_sitemessage_module(app):
     :return: submodule or None
     :rtype: module or None
     """
-    module_name = settings.APP_MODULE_NAME
+    module_name = APP_MODULE_NAME
     module = import_module(app)
     try:
         sub_module = import_module('%s.%s' % (app, module_name))
@@ -340,10 +346,13 @@ class MessengerBase(object):
                 if not dispatch.message_cache:  # Create actual message text for further usage.
 
                     if message_type_cache is None and not message_cls.has_dynamic_context:
-                        # If a message class doesn't depend upon a dispatch data for message compilation, we'd compile a message just once.
+                        # If a message class doesn't depend upon a dispatch data for message compilation,
+                        # we'd compile a message just once.
                         message_type_cache = message_cls.compile(message_model, self)
 
-                    dispatch.message_cache = message_type_cache or message_cls.compile(message_model, self, dispatch=dispatch)
+                    dispatch.message_cache = message_type_cache or message_cls.compile(
+                        message_model, self, dispatch=dispatch
+                    )
 
             self.send(message_cls, message_model, dispatch_models)
 
@@ -373,7 +382,7 @@ class MessageBase(object):
     """
 
     # List of supported messengers (aliases).
-    supported_messengers = []  #todo think over, implement
+    supported_messengers = []  # todo think over, implement
 
     # Message type alias to address it from different places, Should rather be quite unique %)
     alias = None
@@ -390,7 +399,8 @@ class MessageBase(object):
     template_ext = 'tpl'
 
     # Path to the template to be used for message rendering.
-    # If not set, will be deduced from message, messenger data (e.g. `sitemessage/plain_smtp.txt`) and `template_ext` (see above).
+    # If not set, will be deduced from message, messenger data (e.g. `sitemessage/plain_smtp.txt`)
+    # and `template_ext` (see above).
     template = None
 
     # This limits the number of send attempts before message delivery considered failed.
@@ -449,8 +459,80 @@ class MessageBase(object):
         :return: a tuple with message model and a list of dispatch models.
         :rtype: tuple
         """
-        self._message_model, self._dispatch_models = Message.create(self.get_alias(), self.get_context(), recipients=recipients, sender=sender, priority=priority)
+        self._message_model, self._dispatch_models = Message.create(
+            self.get_alias(), self.get_context(), recipients=recipients, sender=sender, priority=priority
+        )
         return self._message_model, self._dispatch_models
+
+    @classmethod
+    def get_subscribers(cls):
+        """Returns a list of Recipient objects subscribed for this message type.
+
+        :return:
+        """
+        subscribers_raw = Subscription.get_for_message_cls(cls.alias)
+        subscribers = []
+
+        for subscriber in subscribers_raw:
+            subscribers.append(Recipient(subscriber.messenger_cls, subscriber.recipient, subscriber.address))
+
+        return subscribers
+
+    @classmethod
+    def get_dispatch_hash(cls, dispatch_id, message_id):
+        """Returns a hash string for validation purposes.
+
+        :param int dispatch_id:
+        :param int message_id:
+        :return:
+        """
+        return salted_hmac(dispatch_id, '%s|%s' % (message_id, dispatch_id)).hexdigest()
+
+    @classmethod
+    def get_unsubscribe_directive(cls, message_model, dispatch_model):
+        """Returns an unsubscribe directive (command, URL, etc.) string.
+
+        :param Message message_model:
+        :param Dispatch dispatch_model:
+        :return:
+        """
+        global APP_URLS_ATTACHED
+
+        url = ''
+        if APP_URLS_ATTACHED != False:  # sic!
+
+            hashed = cls.get_dispatch_hash(dispatch_model.id, message_model.id)
+
+            try:
+                url = reverse('sitemessage_unsubscribe', args=[message_model.id, dispatch_model.id, hashed])
+            except NoReverseMatch:
+                if APP_URLS_ATTACHED is None:
+                    APP_URLS_ATTACHED = False
+
+        return url
+
+    @classmethod
+    def handle_unsubscribe_request(cls, request, message, dispatch, hash_is_valid, redirect_to):
+        """Handles user subscription cancelling request.
+
+        :param Request request: Request instance
+        :param Message message: Message model instance
+        :param Dispatch dispatch: Dispatch model instance
+        :param bool hash_is_valid: Flag indicating that user supplied request signature is correct
+        :param str redirect_to: Redirection URL
+        :rtype: list
+        """
+
+        if hash_is_valid:
+            Subscription.remove(
+                cls.alias, dispatch.messenger, dispatch.recipient_id or dispatch.address
+            )
+            sig_unsubscribe_success.send(cls, request=request, message=message, dispatch=dispatch)
+
+        else:
+            sig_unsubscribe_failed.send(cls, request=request, message=message, dispatch=dispatch)
+
+        return redirect(redirect_to)
 
     @classmethod
     def get_template(cls, message, messenger):
@@ -458,7 +540,8 @@ class MessageBase(object):
 
         1. `tpl` field of message context;
         2. `template` field of message class;
-        3. deduced from message, messenger data and `template_ext` message type field (e.g. `sitemessage/plain_smtp.txt`).
+        3. deduced from message, messenger data and `template_ext` message type field
+           (e.g. `sitemessage/plain_smtp.txt`).
 
         :param Message message: Message model
         :param MessengerBase messenger: a MessengerBase heir
@@ -520,24 +603,12 @@ class MessageBase(object):
         base_context['tpl'] = template_path
 
     @classmethod
-    def prepare_dispatches(cls, message):
+    def prepare_dispatches(cls, message, recipients=None):
         """Creates Dispatch models for a given message and return them.
 
         :param Message message: Message model instance
+        :param list|None recipients: A list or Recipient objects
         :return: list of created Dispatch models
         :rtype: list
         """
-        recipients = cls.calculate_recipients(message)
-        return Dispatch.create(message, recipients)
-
-    @classmethod
-    def calculate_recipients(cls, message):
-        """Calculates recipients for a given model.
-
-        Method should be implemented by a heir to allow `prepare_dispatches()`.
-
-        :param Message message: Message model instance
-        :return: list of Recipient
-        :rtype: list
-        """
-        raise NotImplementedError(cls.__name__ + ' must implement `calculate_recipients()` to use automatic recipient calculation used by `prepare_dispatches()`.')
+        return Dispatch.create(message, recipients or cls.get_subscribers())

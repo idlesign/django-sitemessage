@@ -73,7 +73,7 @@ class SMTPMessenger(MessengerBase):
     def after_send(self):
         self.smtp.quit()
 
-    def _build_message(self, to, text, subject=None, mtype=None):
+    def _build_message(self, to, text, subject=None, mtype=None, unsubscribe_url=None):
         """Constructs a MIME message from message and dispatch models."""
         # TODO Maybe file attachments handling through `files` message_model context var.
 
@@ -93,6 +93,9 @@ class SMTPMessenger(MessengerBase):
         msg['To'] = to
         msg['Subject'] = subject
 
+        if unsubscribe_url:
+            msg['List-Unsubscribe'] = '<%s>' % unsubscribe_url
+
         return msg
 
     def _send_message(self, msg):
@@ -107,6 +110,7 @@ class SMTPMessenger(MessengerBase):
                     dispatch_model.message_cache,
                     message_model.context.get('subject'),
                     message_model.context.get('type'),
+                    message_cls.get_unsubscribe_directive(message_model, dispatch_model)
                 )
 
                 try:

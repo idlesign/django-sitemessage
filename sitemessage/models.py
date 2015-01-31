@@ -3,7 +3,7 @@ import json
 from django.core import exceptions
 from django.db import models
 from django.utils import timezone
-from django.utils.six import with_metaclass
+from django.utils.six import with_metaclass, string_types
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import python_2_unicode_compatible
 from django.conf import settings
@@ -52,8 +52,27 @@ class Message(models.Model):
                                            help_text=_('Indicates whether dispatches for this message are already '
                                                        'formed and ready to delivery.'))
 
+    class Meta:
+        verbose_name = _('Message')
+        verbose_name_plural = _('Messages')
+
+    def __str__(self):
+        return self.cls
+
+    def get_type(self):
+        """Returns message type (class) associated with the message.
+
+        :raises UnknownMessageTypeError:
+        """
+        from .toolbox import get_registered_message_type
+        return get_registered_message_type(self.cls)
+
     @classmethod
-    def get_undispatched(cls):
+    def get_without_dispatches(cls):
+        """Returns messages with no dispatches created.
+
+        :return:
+        """
         return cls.objects.filter(dispatches_ready=False).all()
 
     @classmethod
@@ -76,13 +95,6 @@ class Message(models.Model):
         message_model.save()
         dispatch_models = Dispatch.create(message_model, recipients)
         return message_model, dispatch_models
-
-    class Meta:
-        verbose_name = _('Message')
-        verbose_name_plural = _('Messages')
-
-    def __str__(self):
-        return self.cls
 
 
 @python_2_unicode_compatible
@@ -146,24 +158,35 @@ class Dispatch(models.Model):
         cls.objects.bulk_create(entries)
 
     @classmethod
-    def set_dispatches_statuses(cls, **kwargs):
-        filter_kwargs_map = {
+    def set_dispatches_statuses(cls, **statuses):
+        """Batch set dispatches delivery statuses using a [kwargs] dictionary
+        of dispatch lists indexed by statuses.
+
+        :param statuses:
+        :return:
+        """
+        kwarg_status_map = {
             'sent': cls.DISPATCH_STATUS_SENT,
             'error': cls.DISPATCH_STATUS_ERROR,
             'failed': cls.DISPATCH_STATUS_FAILED,
             'pending': cls.DISPATCH_STATUS_PENDING,
         }
-        for kwarg_name, status in filter_kwargs_map.items():
-            if kwargs[kwarg_name]:
+        for status_name, real_status in kwarg_status_map.items():
+            if statuses.get(status_name, False):
                 update_kwargs = {
                     'time_dispatched': timezone.now(),
-                    'dispatch_status': status,
+                    'dispatch_status': real_status,
                     'retry_count': models.F('retry_count') + 1
                 }
-                cls.objects.filter(id__in=[d.id for d in kwargs[kwarg_name]]).update(**update_kwargs)
+                cls.objects.filter(id__in=[d.id for d in statuses[status_name]]).update(**update_kwargs)
 
     @staticmethod
     def group_by_messengers(dispatches):
+        """Groups dispatches by messages.
+
+        :param list dispatches:
+        :return:
+        """
         by_messengers = {}
         for dispatch in dispatches:
             if dispatch.messenger not in by_messengers:
@@ -177,6 +200,11 @@ class Dispatch(models.Model):
 
     @classmethod
     def get_unsent(cls, priority=None):
+        """Returns dispatches unsent (scheduled or with errors).
+
+        :param int priority: Message priority filter
+        :return:
+        """
         filter_kwargs = {
             'dispatch_status__in': (cls.DISPATCH_STATUS_PENDING, cls.DISPATCH_STATUS_ERROR)
         }
@@ -186,13 +214,23 @@ class Dispatch(models.Model):
 
     @classmethod
     def get_unread(cls):
+        """Returns unread dispatches.
+
+        :return:
+        """
         return cls.objects.filter(read_status=cls.READ_STATUS_UNDREAD).select_related('message').all()
 
     @classmethod
     def create(cls, message_model, recipients):
+        """Creates dispatches for given recipients.
+
+        :param Message message_model:
+        :param recipients:
+        :return:
+        """
         objects = []
         if recipients:
-            if not hasattr(recipients, '__iter__'):
+            if not isinstance(recipients, (list, set)):
                 recipients = (recipients,)
 
             for r in recipients:
@@ -221,3 +259,82 @@ class DispatchError(models.Model):
 
     def __str__(self):
         return 'Dispatch ID %s error entry' % self.dispatch_id
+
+
+@python_2_unicode_compatible
+class Subscription(models.Model):
+
+    time_created = models.DateTimeField(_('Time created'), auto_now_add=True, editable=False)
+    message_cls = models.CharField(_('Message class'), max_length=250, db_index=True,
+                                   help_text=_('Message logic class identifier.'))
+    messenger_cls = models.CharField(_('Messenger'), max_length=250, db_index=True,
+                                     help_text=_('Messenger class identifier.'))
+    recipient = models.ForeignKey(USER_MODEL, verbose_name=_('Recipient'), null=True, blank=True)
+    address = models.CharField(_('Address'), max_length=250, null=True, help_text=_('Recipient address.'))
+
+    class Meta:
+        verbose_name = _('Subscription')
+        verbose_name_plural = _('Subscriptions')
+
+    def __str__(self):
+        recipient = self.recipient_id or self.address
+        return '%s [%s - %s]' % (recipient, self.message_cls, self.messenger_cls)
+
+    @classmethod
+    def get_for_user(cls, user):
+        """Returns subscriptions for a given user.
+
+        :param User user:
+        :return:
+        """
+        return cls.objects.filter(recipient=user)
+
+    @classmethod
+    def get_for_message_cls(cls, message_cls):
+        """Returns subscriptions for a given message class alias.
+
+        :param str message_cls:
+        :return:
+        """
+        return cls.objects.filter(message_cls=message_cls)
+
+    @classmethod
+    def _get_base_kwargs(cls, recipient, message_cls, messenger_cls):
+        base_kwargs = {
+            'message_cls': message_cls,
+            'messenger_cls': messenger_cls,
+        }
+        if isinstance(recipient, string_types):
+            base_kwargs['address'] = recipient
+        else:
+            if not isinstance(recipient, int):
+                recipient = recipient.id
+            base_kwargs['recipient_id'] = recipient
+
+        return base_kwargs
+
+    @classmethod
+    def create(cls, recipient, message_cls, messenger_cls):
+        """Creates a subscription for a recipient.
+
+        :param int|str recipient: User ID or address string.
+        :param str message_cls: Message class alias
+        :param str messenger_cls: Messenger class alias
+        :return:
+        """
+        obj = cls(**cls._get_base_kwargs(recipient, message_cls, messenger_cls))
+        obj.save()
+        return obj
+
+    @classmethod
+    def cancel(cls, recipient, message_cls, messenger_cls):
+        """Cancels a subscription for a recipient.
+
+        :param int|str recipient: User ID or address string.
+        :param str message_cls: Message class alias
+        :param str messenger_cls: Messenger class alias
+        :return:
+        """
+        cls.objects.filter(
+            **cls._get_base_kwargs(recipient, message_cls, messenger_cls)
+        ).delete()
