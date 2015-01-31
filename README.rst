@@ -45,7 +45,7 @@ Schedule and send messages with several easy steps, using concepts of:
 
 .. code-block:: python
 
-    from sitemessage.schortcuts import schedule_email
+    from sitemessage.shortcuts import schedule_email
 
     def send_mail_view(request):
         ...
