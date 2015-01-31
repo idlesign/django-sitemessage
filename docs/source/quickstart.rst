@@ -35,7 +35,7 @@ Quickstart
 
     .. code-block:: python
 
-        from sitemessage.schortcuts import schedule_email, schedule_jabber_message
+        from sitemessage.shortcuts import schedule_email, schedule_jabber_message
 
         def send_messages_view(request):
             ...

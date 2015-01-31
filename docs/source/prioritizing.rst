@@ -31,7 +31,7 @@ to messages scheduling functions.
 
 .. code-block:: python
 
-    from sitemessage.schortcuts import schedule_email
+    from sitemessage.shortcuts import schedule_email
     from sitemessage.toolbox import schedule_messages, recipients
 
     schedule_email('Email from sitemessage.', 'user2@host.com', priority=1)
