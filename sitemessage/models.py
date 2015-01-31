@@ -150,12 +150,17 @@ class Dispatch(models.Model):
 
     @classmethod
     def log_dispatches_errors(cls, dispatches):
-        entries = []
+        """Batch logs dispatches delivery errors into DB.
+
+        :param list dispatches:
+        :return:
+        """
+        error_entries = []
         for dispatch in dispatches:
-            # Saving message cache for further usage.
+            # Saving message body cache for further usage.
             dispatch.save()
-            entries = cls(dispatch=dispatch, error_log=dispatch.error_log)
-        cls.objects.bulk_create(entries)
+            error_entries.append(DispatchError(dispatch=dispatch, error_log=dispatch.error_log))
+        DispatchError.objects.bulk_create(error_entries)
 
     @classmethod
     def set_dispatches_statuses(cls, **statuses):
