@@ -1,0 +1,31 @@
+language: python
+
+python:
+  - 3.4
+  - 3.3
+  - 2.7
+
+env:
+  - DJANGO="Django>=1.7,<1.8"
+  - DJANGO="Django>=1.6,<1.7"
+  - DJANGO="Django>=1.4,<1.5"
+  
+install:
+  - pip install -U coverage coveralls $DJANGO
+
+script: coverage run -a --source=sitemessage sitemessage/runtests.py
+
+matrix:
+
+  exclude:
+   - python: 3.4
+     env: DJANGO="Django>=1.4,<1.5"
+   - python: 3.3
+     env: DJANGO="Django>=1.4,<1.5"
+     
+  include:
+   - python: 3.4
+     env: DJANGO="Django>=1.7,<1.8"
+
+after_success:
+  coveralls

@@ -8,6 +8,12 @@ https://github.com/idlesign/django-sitemessage
 .. image:: https://pypip.in/d/django-sitemessage/badge.png
         :target: https://crate.io/packages/django-sitemessage
 
+.. image:: https://coveralls.io/repos/idlesign/django-sitemessage/badge.png
+    :target: https://coveralls.io/r/idlesign/django-sitemessage
+
+.. image:: https://travis-ci.org/idlesign/django-sitemessage.svg?branch=master
+    :target: https://travis-ci.org/idlesign/django-sitemessage
+
 
 Description
 -----------
