@@ -32,13 +32,16 @@ Schedule and send messages with several easy steps, using concepts of:
 
 .. code-block:: python
 
-    from sitemessage.utils import register_messenger_objects
+    from sitemessage.toolbox import register_messenger_objects, register_builtin_message_types
     from sitemessage.messengers.smtp import SMTPMessenger
 
     register_messenger_objects(
         # Here we register only one messenger to deliver emails.
         SMTPMessenger('user1@host.com', 'user1', 'user1password', host='smtp.host.com', use_tls=True)
     )
+
+    # And register built-in message types we'd use (for Django < 1.7).
+    register_builtin_message_types()
 
 
 2. Schedule messages for delivery when and where needed (e.g. in a view):

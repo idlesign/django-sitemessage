@@ -15,12 +15,22 @@ Quickstart
 
     Note that the command **requires** `South <http://south.aeracode.org/>`_.
 
+.. warning::
+
+    If you are using a version Django < 1.7 AND are using a version of South < 1.0, add this to your settings:
+
+    .. code-block:: python
+
+        SOUTH_MIGRATION_MODULES = {
+            'sitemessage': 'sitemessage.south_migrations',
+        }
+
 
 1. Configure messengers for your project (create `sitemessages.py` in one of your apps):
 
     .. code-block:: python
 
-        from sitemessage.utils import register_messenger_objects
+        from sitemessage.toolbox import register_messenger_objects, register_builtin_message_types
         from sitemessage.messengers.smtp import SMTPMessenger
         from sitemessage.messengers.xmpp import XMPPSleekMessenger
 
@@ -29,6 +39,9 @@ Quickstart
             SMTPMessenger('user1@host.com', 'user1', 'user1password', host='smtp.host.com', use_tls=True),
             XMPPSleekMessenger('user1@jabber.host.com', 'user1password', 'jabber.host.com'),
         )
+
+        # And register built-in message types we'd use (for Django < 1.7).
+        register_builtin_message_types()
 
 
 2. Schedule messages for delivery when and where needed (e.g. in a view):
