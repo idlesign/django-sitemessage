@@ -10,6 +10,7 @@ recursive-include docs .py
 
 recursive-include sitemessage/locale *
 recursive-include sitemessage/migrations .py
+recursive-include sitemessage/south_migrations .py
 recursive-include sitemessage/messengers .py
 recursive-include sitemessage/templates .html
 recursive-include sitemessage/templatetags .py
