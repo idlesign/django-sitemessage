@@ -264,8 +264,33 @@ class SubscriptionModelTest(SitemessageTest):
             Subscription.objects.filter(recipient=1).count(), 0
         )
 
+    def test_replace_for_user(self):
+        new_prefs = [('message3', 'messenger3')]
+        user = User()
+
+        r = Subscription.replace_for_user(user, new_prefs)
+
+        user.save()
+
+        Subscription.create(user, 'message', 'messenger')
+        Subscription.create(user, 'message2', 'messenger2')
+
+        self.assertEqual(Subscription.get_for_user(user).count(), 2)
+
+        Subscription.replace_for_user(user, new_prefs)
+
+        s = Subscription.get_for_user(user)
+        self.assertEqual(s.count(), 1)
+        s = s[0]
+        self.assertEqual(s.message_cls, 'message3')
+        self.assertEqual(s.messenger_cls, 'messenger3')
+
     def test_get_for_user(self):
         user = User()
+
+        r = Subscription.get_for_user(user)
+        self.assertEqual(r, [])
+
         user.save()
 
         self.assertEqual(Subscription.get_for_user(user).count(), 0)
