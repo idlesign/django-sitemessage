@@ -107,7 +107,7 @@ class ToolboxTest(SitemessageTest):
 
         messengers_titles, prefs = get_user_preferences_for_ui(user)
 
-        self.assertEqual(len(prefs.keys()), 3)
+        self.assertEqual(len(prefs.keys()), 2)
         self.assertEqual(len(messengers_titles), 5)
 
         Subscription.create(user, TestMessage, TestMessenger)
@@ -119,7 +119,7 @@ class ToolboxTest(SitemessageTest):
 
         self.assertEqual(len(prefs.keys()), 1)
         self.assertEqual(len(messengers_titles), 2)
-        self.assertIn('Email', messengers_titles)
+        self.assertIn('E-mail', messengers_titles)
         self.assertIn('Test messenger', messengers_titles)
 
         prefs_row = prefs.popitem()
