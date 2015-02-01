@@ -6,7 +6,7 @@ from django.db.utils import IntegrityError
 from .messages import PlainTextMessage
 from .models import Message, Dispatch, Subscription, DispatchError
 from .toolbox import schedule_messages, recipients, send_scheduled_messages, prepare_dispatches, \
-    get_user_preferences_for_ui
+    get_user_preferences_for_ui, register_builtin_message_types
 from .utils import MessageBase, MessengerBase, Recipient, register_messenger_objects, \
     register_message_types, get_registered_messenger_objects, get_registered_messenger_object, \
     get_registered_message_types
@@ -25,6 +25,8 @@ register_messenger_objects(
     # XMPPSleekMessenger('somjid', 'somepasswd'),
     # TwitterMessenger('key', 'secret', 'token', 'token_secret')
 )
+
+register_builtin_message_types()
 
 
 class TestMessenger(MessengerBase):
@@ -107,7 +109,7 @@ class ToolboxTest(SitemessageTest):
 
         messengers_titles, prefs = get_user_preferences_for_ui(user)
 
-        self.assertEqual(len(prefs.keys()), 2)
+        self.assertEqual(len(prefs.keys()), 3)
         self.assertEqual(len(messengers_titles), 3)
 
         Subscription.create(user, TestMessage, TestMessenger)
@@ -481,13 +483,13 @@ class ShortcutsTest(SitemessageTest):
     def test_schedule_email(self):
         schedule_email('some text', 'some@one.here')
 
-        self.assertEqual(Message.objects.get(pk=1).cls, 'email_plain')
+        self.assertEqual(Message.objects.all()[0].cls, 'email_plain')
         self.assertEqual(Message.objects.count(), 1)
         self.assertEqual(Dispatch.objects.count(), 1)
 
         schedule_email({'header': 'one', 'body': 'two'}, 'some@one.here')
 
-        self.assertEqual(Message.objects.get(pk=2).cls, 'email_html')
+        self.assertEqual(Message.objects.all()[1].cls, 'email_html')
         self.assertEqual(Message.objects.count(), 2)
         self.assertEqual(Dispatch.objects.count(), 2)
 
