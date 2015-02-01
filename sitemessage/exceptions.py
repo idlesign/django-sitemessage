@@ -3,6 +3,10 @@ class SiteMessageError(Exception):
     """Base class for sitemessage errors."""
 
 
+class SiteMessageConfigurationError(SiteMessageError):
+    """This error is raised on configuration errors."""
+
+
 class UnknownMessageTypeError(SiteMessageError):
     """This error is raised when there's a try to access an unknown message type."""
 

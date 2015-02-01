@@ -1,3 +1,5 @@
+from django.utils.translation import ugettext as _
+
 from ..utils import MessengerBase
 from ..exceptions import MessengerWarmupException
 
@@ -11,6 +13,7 @@ class XMPPSleekMessenger(MessengerBase):
 
     alias = 'xmppsleek'
     xmpp = None
+    title = _('XMPP')
     _session_started = False
 
     def __init__(self, from_jid, password, host='localhost', port=5222, use_tls=True, use_ssl=False):

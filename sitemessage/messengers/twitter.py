@@ -1,3 +1,5 @@
+from django.utils.translation import ugettext as _
+
 from ..utils import MessengerBase
 from ..exceptions import MessengerWarmupException
 
@@ -10,6 +12,7 @@ class TwitterMessenger(MessengerBase):
     """
 
     alias = 'twitter'
+    title = _('Tweet')
     _session_started = False
 
     def __init__(self, api_key, api_secret, access_token, access_token_secret):

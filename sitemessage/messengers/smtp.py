@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext as _
 from django.utils.html import strip_tags
 
 from ..utils import MessengerBase
@@ -11,6 +11,7 @@ class SMTPMessenger(MessengerBase):
 
     alias = 'smtp'
     smtp = None
+    title = _('E-mail')
     _session_started = False
 
     def __init__(self, from_email=None, login=None, password=None, host=None, port=None, use_tls=None, use_ssl=None, debug=False):

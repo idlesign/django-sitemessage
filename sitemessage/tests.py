@@ -5,20 +5,31 @@ from django.db.utils import IntegrityError
 
 from .messages import PlainTextMessage
 from .models import Message, Dispatch, Subscription, DispatchError
-from .toolbox import schedule_messages, recipients, send_scheduled_messages, prepare_dispatches
+from .toolbox import schedule_messages, recipients, send_scheduled_messages, prepare_dispatches, \
+    get_user_preferences_for_ui
 from .utils import MessageBase, MessengerBase, Recipient, register_messenger_objects, \
     register_message_types, get_registered_messenger_objects, get_registered_messenger_object, \
     get_registered_message_types
-from .exceptions import MessengerWarmupException
+from .exceptions import MessengerWarmupException, UnknownMessengerError, UnknownMessageTypeError
+from .schortcuts import schedule_email, schedule_jabber_message
+from .messengers.smtp import SMTPMessenger
+from .messengers.xmpp import XMPPSleekMessenger
+from .messengers.twitter import TwitterMessenger
 
-
-# TODO More tests, please %)
 
 WONDERLAND_DOMAIN = '@wonderland'
 
 
+register_messenger_objects(
+    SMTPMessenger(),
+    XMPPSleekMessenger('somjid', 'somepasswd'),
+    TwitterMessenger('key', 'secret', 'token', 'token_secret')
+)
+
+
 class TestMessenger(MessengerBase):
 
+    title = 'Test messenger'
     alias = 'test_messenger'
     last_send = None
 
@@ -43,6 +54,7 @@ class TestMessenger(MessengerBase):
 
 class BuggyMessenger(MessengerBase):
 
+    title = 'Buggy messenger'
     alias = 'buggy'
 
     def send(self, message_cls, message_model, dispatch_models):
@@ -53,6 +65,8 @@ class TestMessage(MessageBase):
 
     alias = 'test_message'
     template_ext = 'html'
+    title = 'Test message type'
+    supported_messengers = ['smtp', 'test_messenger']
 
 
 class TestMessagePlain(PlainTextMessage):
@@ -84,7 +98,37 @@ class SitemessageTest(unittest.TestCase):
         Subscription.objects.all().delete()
 
 
-class UtilityTest(SitemessageTest):
+class ToolboxTest(SitemessageTest):
+
+    def test_get_user_preferences_for_ui(self):
+
+        user = User()
+        user.save()
+
+        messengers_titles, prefs = get_user_preferences_for_ui(user)
+
+        self.assertEqual(len(prefs.keys()), 3)
+        self.assertEqual(len(messengers_titles), 5)
+
+        Subscription.create(user, TestMessage, TestMessenger)
+        messengers_titles, prefs = get_user_preferences_for_ui(
+            user,
+            message_filter=lambda m: m.alias == 'test_message',
+            messenger_filter=lambda m: m.alias in ['smtp', 'test_messenger']
+        )
+
+        self.assertEqual(len(prefs.keys()), 1)
+        self.assertEqual(len(messengers_titles), 2)
+        self.assertIn('Email', messengers_titles)
+        self.assertIn('Test messenger', messengers_titles)
+
+        prefs_row = prefs.popitem()
+        self.assertEqual(prefs_row[0], 'Test message type')
+        self.assertIn(('test_message|smtp', True, False), prefs_row[1])
+        self.assertIn(('test_message|test_messenger', True, True), prefs_row[1])
+
+
+class UtilsTest(SitemessageTest):
 
     def test_register_messengers(self):
         messenger = type('MyMessenger', (MessengerBase,), {})
@@ -319,7 +363,6 @@ class DispatchModelTest(SitemessageTest):
         self.assertEqual(d_.dispatch_status, Dispatch.DISPATCH_STATUS_ERROR)
         self.assertEqual(d_.retry_count, 2)
 
-
     def test_str(self):
         d = Dispatch()
         d.address = 'tttt'
@@ -406,6 +449,25 @@ class MessengerTest(SitemessageTest):
         m = BuggyMessenger()
         recipiets_ = recipients('test_messenger', ['a', 'b', 'c', 'd'])
         self.assertRaises(Exception, m.send, 'a buggy message', recipiets_)
+
+
+class ShortcutsTest(SitemessageTest):
+
+    def test_schedule_email(self):
+        schedule_email('some text', 'some@one.here')
+
+        self.assertEqual(Message.objects.get(pk=1).cls, 'email_plain')
+        self.assertEqual(Message.objects.count(), 1)
+        self.assertEqual(Dispatch.objects.count(), 1)
+
+        schedule_email({'header': 'one', 'body': 'two'}, 'some@one.here')
+
+        self.assertEqual(Message.objects.get(pk=2).cls, 'email_html')
+        self.assertEqual(Message.objects.count(), 2)
+        self.assertEqual(Dispatch.objects.count(), 2)
+
+    def test_schedule_jabber_message(self):
+        schedule_jabber_message('message', 'noone')
 
 
 class MessageTest(SitemessageTest):

@@ -1,3 +1,5 @@
+from django.utils.translation import ugettext as _
+
 from .utils import MessageBase, register_message_types
 
 
@@ -16,6 +18,7 @@ class PlainTextMessage(MessageBase):
 class _EmailMessageBase(MessageBase):
 
     supported_messengers = ['smtp']
+    title = _('Email notification')
 
     def __init__(self, subject, text_or_dict, type_name, template_path=None):
         context = {
@@ -49,6 +52,3 @@ class EmailHtmlMessage(_EmailMessageBase):
 def register_builtin_message_types():
     """Registers the built-in message types."""
     register_message_types(PlainTextMessage, EmailTextMessage, EmailHtmlMessage)
-
-
-register_builtin_message_types()

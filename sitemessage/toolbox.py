@@ -1,12 +1,18 @@
+from collections import OrderedDict
+
 from django import VERSION
 from django.utils import six
 from django.conf.urls import patterns, url
 
-from .models import Message, Dispatch
+from .models import Message, Dispatch, Subscription
 from .utils import is_iterable, get_registered_messenger_object, get_registered_message_type, \
-    import_project_sitemessage_modules, get_message_type_for_app, override_message_type_for_app
+    import_project_sitemessage_modules, get_registered_messenger_objects, get_registered_message_types, \
+    get_message_type_for_app, override_message_type_for_app  # Exposed as toolbox API.
 from .exceptions import UnknownMessengerError
 from .messages import PlainTextMessage
+
+
+_ALIAS_SEP = '|'
 
 
 if VERSION < (1, 7, 0):
@@ -97,6 +103,93 @@ def prepare_dispatches():
         dispatches.extend(message_cls.prepare_dispatches(message_model))
 
     return dispatches
+
+
+def get_user_preferences_for_ui(user, message_filter=None, messenger_filter=None, new_messengers_titles=None):
+    """Returns a two element tuple with user subscription preferences to render in UI.
+
+    First element:
+        A list of messengers titles.
+
+    Second element:
+        User preferences dictionary indexed by message type titles.
+        Preferences (dictionary values) are lists of tuples:
+            (preference_alias, is_supported_by_messenger_flag, user_subscribed_flag)
+
+        Example:
+            {'My message type': [('test_message|smtp', True, False), ...]}
+
+    :param User user:
+    :param callable|None message_filter: A callable accepting a message object to filter out message types
+    :param callable|None messenger_filter: A callable accepting a messenger object to filter out messengers
+    :return:
+    """
+    if new_messengers_titles is None:
+        new_messengers_titles = {}
+
+    messengers = get_registered_messenger_objects()
+    message_types = get_registered_message_types()
+    current_prefs = Subscription.get_for_user(user)
+
+    current_prefs = [
+        '%s%s%s' % (pref.message_cls, _ALIAS_SEP, pref.messenger_cls) for pref in current_prefs
+    ]
+
+    prefs_by_message_type = {}
+    messenger_titles = []
+
+    for messenger in messengers.values():
+
+        if not (messenger_filter is None or messenger_filter(messenger)):
+            continue
+
+        title = messenger.title
+        new_title = new_messengers_titles.get(messenger.alias)
+        messenger_titles.append(new_title or title)
+
+        for message_type in message_types.values():
+
+            if not (message_filter is None or message_filter(message_type)):
+                continue
+
+            title = '%s' % message_type.title
+            alias = '%s%s%s' % (message_type.alias, _ALIAS_SEP, messenger.alias)
+
+            supported_messengers = message_type.supported_messengers
+            is_supported = (not supported_messengers or messenger.alias in supported_messengers)
+            is_set = alias in current_prefs
+
+            if title not in prefs_by_message_type:
+                prefs_by_message_type[title] = []
+
+            prefs_by_message_type[title].append((alias, is_supported, is_set))
+
+    prefs_by_message_type = OrderedDict(sorted(prefs_by_message_type.items()))
+
+    # Handle messages with the same title: merge into one row.
+    messenger_titles_len = len(messenger_titles)
+    for title, prefs in prefs_by_message_type.items():
+        if len(prefs) > messenger_titles_len:
+            prefs_by_message_type[title] = filter(lambda p: p[1] is True, prefs)
+
+    return messenger_titles, prefs_by_message_type
+
+
+def set_user_preferences_from_request(request):
+    """Sets user subscription preferences using data from a request.
+
+    Expects data sent by form built with `sitemessage_prefs_table` template tag.
+
+    :param request:
+    :return:
+    """
+    key = 'sm_user_pref'
+
+    prefs = []
+    for pref in request.POST.getlist(key):
+        prefs.append(pref.split(_ALIAS_SEP))
+
+    return Subscription.replace_for_user(request.user, prefs)
 
 
 def get_sitemessage_urls():

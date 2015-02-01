@@ -1,10 +1,11 @@
-from collections import namedtuple, defaultdict
+from collections import namedtuple, defaultdict, OrderedDict
 
 from django.core.urlresolvers import reverse, NoReverseMatch
 from django.utils.crypto import salted_hmac
 from django.utils import six
 from django.utils.importlib import import_module
 from django.utils.module_loading import module_has_submodule
+from django.utils.translation import ugettext as _
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
 
@@ -16,8 +17,8 @@ from .signals import sig_unsubscribe_success, sig_unsubscribe_failed
 
 APP_URLS_ATTACHED = None
 
-_MESSENGERS_REGISTRY = {}
-_MESSAGES_REGISTRY = {}
+_MESSENGERS_REGISTRY = OrderedDict()
+_MESSAGES_REGISTRY = OrderedDict()
 
 _MESSAGES_FOR_APPS = defaultdict(dict)
 
@@ -177,7 +178,11 @@ class MessengerBase(object):
 
     # Messenger alias to address it from different places, Should rather be quite unique %)
     alias = None
-    _st = None  # Dispatches by status dict will be here. See init_delivery_statuses_dict().
+    # Title to show to user.
+    title = None
+
+    # Dispatches by status dict will be here runtime. See init_delivery_statuses_dict().
+    _st = None
 
     @classmethod
     def get_alias(cls):
@@ -382,10 +387,13 @@ class MessageBase(object):
     """
 
     # List of supported messengers (aliases).
-    supported_messengers = []  # todo think over, implement
+    supported_messengers = []
 
     # Message type alias to address it from different places, Should rather be quite unique %)
     alias = None
+
+    # Title to show to user.
+    title = _('Notification')
 
     # Number describing message priority. Can be overridden by `priority` provided with schedule_messages().
     priority = None

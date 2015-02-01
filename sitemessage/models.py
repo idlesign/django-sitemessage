@@ -292,7 +292,37 @@ class Subscription(models.Model):
         :param User user:
         :return:
         """
+        if user.id is None:
+            return []
+
         return cls.objects.filter(recipient=user)
+
+    @classmethod
+    def replace_for_user(cls, user, prefs):
+        """Set subscription preferences for a given user.
+
+        :param User user:
+        :param list prefs: List of tuples (message_cls, messenger_cls)
+        :return:
+        """
+        uid = user.id
+        if uid is None:
+            return False
+
+        # Remove previous prefs.
+        cls.objects.filter(recipient_id=uid).delete()
+
+        new_prefs = []
+
+        for pref in prefs:
+            new_prefs.append(
+                cls(**cls._get_base_kwargs(uid, pref[0], pref[1]))
+            )
+
+        if new_prefs:
+            cls.objects.bulk_create(new_prefs)
+
+        return True
 
     @classmethod
     def get_for_message_cls(cls, message_cls):
@@ -305,6 +335,13 @@ class Subscription(models.Model):
 
     @classmethod
     def _get_base_kwargs(cls, recipient, message_cls, messenger_cls):
+
+        if not isinstance(message_cls, string_types):
+            message_cls = message_cls.alias
+
+        if not isinstance(messenger_cls, string_types):
+            messenger_cls = messenger_cls.alias
+
         base_kwargs = {
             'message_cls': message_cls,
             'messenger_cls': messenger_cls,
@@ -319,27 +356,27 @@ class Subscription(models.Model):
         return base_kwargs
 
     @classmethod
-    def create(cls, recipient, message_cls, messenger_cls):
+    def create(cls, uid_or_address, message_cls, messenger_cls):
         """Creates a subscription for a recipient.
 
-        :param int|str recipient: User ID or address string.
-        :param str message_cls: Message class alias
-        :param str messenger_cls: Messenger class alias
+        :param int|str uid_or_address: User ID or address string.
+        :param str|MessageBase message_cls: Message type alias or class
+        :param str|MessengerBase messenger_cls: Messenger type alias or class
         :return:
         """
-        obj = cls(**cls._get_base_kwargs(recipient, message_cls, messenger_cls))
+        obj = cls(**cls._get_base_kwargs(uid_or_address, message_cls, messenger_cls))
         obj.save()
         return obj
 
     @classmethod
-    def cancel(cls, recipient, message_cls, messenger_cls):
+    def cancel(cls, uid_or_address, message_cls, messenger_cls):
         """Cancels a subscription for a recipient.
 
-        :param int|str recipient: User ID or address string.
-        :param str message_cls: Message class alias
-        :param str messenger_cls: Messenger class alias
+        :param int|str uid_or_address: User ID or address string.
+        :param str|MessageBase message_cls: Message type alias or class
+        :param str|MessengerBase messenger_cls: Messenger type alias or class
         :return:
         """
         cls.objects.filter(
-            **cls._get_base_kwargs(recipient, message_cls, messenger_cls)
+            **cls._get_base_kwargs(uid_or_address, message_cls, messenger_cls)
         ).delete()

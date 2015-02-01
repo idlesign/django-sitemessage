@@ -12,6 +12,7 @@ recursive-include sitemessage/locale *
 recursive-include sitemessage/migrations .py
 recursive-include sitemessage/messengers .py
 recursive-include sitemessage/templates .html
+recursive-include sitemessage/templatetags .py
 recursive-include sitemessage/management .py
 
 recursive-exclude * __pycache__

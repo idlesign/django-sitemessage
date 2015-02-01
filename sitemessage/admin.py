@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Message, Dispatch, DispatchError
+from .models import Message, Dispatch, DispatchError, Subscription
 
 
 class DispatchInlineAdmin(admin.TabularInline):
@@ -45,6 +45,14 @@ class DispatchErrorAdmin(admin.ModelAdmin):
     readonly_fields = ('time_created', 'dispatch', 'error_log')
 
 
+class SubscriptionAdmin(admin.ModelAdmin):
+
+    list_display = ('time_created', 'message_cls', 'messenger_cls')
+    ordering = ('-time_created',)
+    readonly_fields = ('time_created', 'message_cls', 'messenger_cls', 'recipient', 'address')
+
+
 admin.site.register(Message, MessageAdmin)
 admin.site.register(Dispatch, DispatchAdmin)
 admin.site.register(DispatchError, DispatchErrorAdmin)
+admin.site.register(Subscription, SubscriptionAdmin)
