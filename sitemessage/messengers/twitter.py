@@ -35,9 +35,7 @@ class TwitterMessenger(MessengerBase):
 
     @classmethod
     def get_address(cls, recipient):
-        if hasattr(recipient, 'twitter'):
-            recipient = recipient.twitter
-        return recipient
+        return getattr(recipient, 'twitter', None) or recipient
 
     def _test_message(self, to, text):
         return self._send_message(self._build_message(to, text))

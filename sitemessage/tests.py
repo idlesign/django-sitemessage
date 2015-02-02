@@ -1,3 +1,4 @@
+from mock import MagicMock, patch
 from django.utils import unittest
 from django.contrib.auth.models import User
 from django.template.base import TemplateDoesNotExist
@@ -6,11 +7,12 @@ from django.db.utils import IntegrityError
 from .messages import PlainTextMessage
 from .models import Message, Dispatch, Subscription, DispatchError
 from .toolbox import schedule_messages, recipients, send_scheduled_messages, prepare_dispatches, \
-    get_user_preferences_for_ui, register_builtin_message_types
+    get_user_preferences_for_ui, register_builtin_message_types, get_sitemessage_urls
 from .utils import MessageBase, MessengerBase, Recipient, register_messenger_objects, \
     register_message_types, get_registered_messenger_objects, get_registered_messenger_object, \
     get_registered_message_types
 from .exceptions import MessengerWarmupException, UnknownMessengerError, UnknownMessageTypeError
+
 from .schortcuts import schedule_email, schedule_jabber_message
 from .messengers.smtp import SMTPMessenger
 from .messengers.xmpp import XMPPSleekMessenger
@@ -19,12 +21,26 @@ from .messengers.twitter import TwitterMessenger
 
 WONDERLAND_DOMAIN = '@wonderland'
 
+urlpatterns = get_sitemessage_urls()
 
-register_messenger_objects(
-    SMTPMessenger(),
-    # XMPPSleekMessenger('somjid', 'somepasswd'),
-    # TwitterMessenger('key', 'secret', 'token', 'token_secret')
-)
+
+def mock_thirdparty(name, func, mock=None):
+    if mock is None:
+        mock = MagicMock()
+
+    with patch.dict('sys.modules', {name: mock}):
+        result = func()
+
+    return result
+
+
+messenger_smtp = mock_thirdparty('smtplib', lambda: SMTPMessenger(login='someone', use_tls=True))
+messenger_xmpp = mock_thirdparty('sleekxmpp', lambda: XMPPSleekMessenger('somjid', 'somepasswd'))
+messenger_xmpp._session_started = True
+messenger_twitter = mock_thirdparty('twitter', lambda: TwitterMessenger('key', 'secret', 'token', 'token_secret'))
+messenger_twitter.lib = MagicMock()
+
+register_messenger_objects(messenger_smtp, messenger_xmpp, messenger_twitter)
 
 register_builtin_message_types()
 
@@ -110,7 +126,7 @@ class ToolboxTest(SitemessageTest):
         messengers_titles, prefs = get_user_preferences_for_ui(user)
 
         self.assertEqual(len(prefs.keys()), 3)
-        self.assertEqual(len(messengers_titles), 3)
+        self.assertEqual(len(messengers_titles), 5)
 
         Subscription.create(user, TestMessage, TestMessenger)
         messengers_titles, prefs = get_user_preferences_for_ui(
@@ -494,8 +510,72 @@ class ShortcutsTest(SitemessageTest):
         self.assertEqual(Dispatch.objects.count(), 2)
 
     def test_schedule_jabber_message(self):
-        pass
-        # schedule_jabber_message('message', 'noone')
+        schedule_jabber_message('message', 'noone')
+
+
+class SMTPMessengerTest(SitemessageTest):
+
+    def test_get_address(self):
+        r = object()
+        self.assertEqual(messenger_smtp.get_address(r), r)
+
+        r = type('r', (object,), dict(email='somewhere'))
+        self.assertEqual(messenger_smtp.get_address(r), 'somewhere')
+
+    def test_send(self):
+        # schedule_messages('text', recipients('xmppsleek', 'someone'))
+        schedule_messages('text', recipients('smtp', 'someone'))
+        send_scheduled_messages()
+        messenger_smtp.smtp.sendmail.assert_called_once()
+
+    def test_send_test_message(self):
+        messenger_smtp.send_test_message('someone', 'sometext')
+        messenger_smtp.smtp.sendmail.assert_called_once()
+
+
+class TwitterMessengerTest(SitemessageTest):
+
+    def test_get_address(self):
+        r = object()
+        self.assertEqual(messenger_twitter.get_address(r), r)
+
+        r = type('r', (object,), dict(twitter='somewhere'))
+        self.assertEqual(messenger_twitter.get_address(r), 'somewhere')
+
+    def test_send(self):
+        schedule_messages('text', recipients('twitter', 'someone'))
+        send_scheduled_messages()
+        messenger_twitter.api.statuses.update.assert_called_with(status='@someone text')
+
+    def test_send_test_message(self):
+        messenger_twitter.send_test_message('someone', 'sometext')
+        messenger_twitter.api.statuses.update.assert_called_with(status='@someone sometext')
+
+        messenger_twitter.send_test_message('', 'sometext')
+        messenger_twitter.api.statuses.update.assert_called_with(status='sometext')
+
+
+class XMPPSleekMessengerTest(SitemessageTest):
+
+    def test_get_address(self):
+        r = object()
+        self.assertEqual(messenger_xmpp.get_address(r), r)
+
+        r = type('r', (object,), dict(jabber='somewhere'))
+        self.assertEqual(messenger_xmpp.get_address(r), 'somewhere')
+
+    def test_send(self):
+        schedule_messages('text', recipients('xmppsleek', 'someone'))
+        send_scheduled_messages()
+        messenger_xmpp.xmpp.send_message.assert_called_once_with(
+            mtype='chat', mbody='text', mfrom='somjid', mto='someone'
+        )
+
+    def test_send_test_message(self):
+        messenger_xmpp.send_test_message('someone', 'sometext')
+        messenger_xmpp.xmpp.send_message.assert_called_with(
+            mtype='chat', mbody='sometext', mfrom='somjid', mto='someone'
+        )
 
 
 class MessageTest(SitemessageTest):

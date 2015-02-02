@@ -46,9 +46,7 @@ class SMTPMessenger(MessengerBase):
 
     @classmethod
     def get_address(cls, recipient):
-        if hasattr(recipient, 'email'):
-            recipient = recipient.email
-        return recipient
+        return getattr(recipient, 'email', None) or recipient
 
     def _test_message(self, to, text):
         return self._send_message(self._build_message(to, text, mtype='html'))

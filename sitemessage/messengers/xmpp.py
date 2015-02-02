@@ -40,9 +40,7 @@ class XMPPSleekMessenger(MessengerBase):
 
     @classmethod
     def get_address(cls, recipient):
-        if hasattr(recipient, 'jabber'):
-            recipient = recipient.jabber
-        return recipient
+        return getattr(recipient, 'jabber', None) or recipient
 
     def _test_message(self, to, text):
         return self._send_message(to, text)

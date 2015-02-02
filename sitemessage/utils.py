@@ -494,7 +494,7 @@ class MessageBase(object):
         :param int message_id:
         :return:
         """
-        return salted_hmac(dispatch_id, '%s|%s' % (message_id, dispatch_id)).hexdigest()
+        return salted_hmac('%s' % dispatch_id, '%s|%s' % (message_id, dispatch_id)).hexdigest()
 
     @classmethod
     def get_unsubscribe_directive(cls, message_model, dispatch_model):

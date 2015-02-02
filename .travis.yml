@@ -11,7 +11,7 @@ env:
   - DJANGO="Django>=1.4,<1.5"
   
 install:
-  - pip install -U coverage coveralls $DJANGO
+  - pip install -U mock coverage coveralls $DJANGO
 
 script: coverage run -a --source=sitemessage sitemessage/runtests.py
 
