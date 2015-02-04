@@ -12,7 +12,7 @@ class SitemessageConfig(AppConfig):
         from sitemessage.utils import import_project_sitemessage_modules
         import_project_sitemessage_modules()
 
-        from sitemessage.settings import BOOTSTRAP_BUILTIN_MESSAGE_TYPES
-        if BOOTSTRAP_BUILTIN_MESSAGE_TYPES:
+        from sitemessage.settings import INIT_BUILTIN_MESSAGE_TYPES
+        if INIT_BUILTIN_MESSAGE_TYPES:
             from sitemessage.messages import register_builtin_message_types
             register_builtin_message_types()
