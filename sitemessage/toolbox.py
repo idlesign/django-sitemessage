@@ -35,7 +35,7 @@ def recipients(messenger, addresses):
 
 
 def schedule_messages(messages, recipients=None, sender=None, priority=None):
-    """Sends a message(s).
+    """Schedules a message or messages.
 
     :param MessageBase, str, list messages: str or MessageBase heir or list - use str to create PlainTextMessage.
     :param list recipients: recipients addresses or Django User model heir instances

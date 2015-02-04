@@ -5,7 +5,8 @@ from .toolbox import schedule_messages, recipients
 def schedule_email(message, to, subject=None, sender=None, priority=None):
     """Schedules an email message for delivery.
 
-    :param dict, str message: str or dict: use str for simple text email; dict - to compile email from a template (default: `sitemessage/email_html_smtp.html`).
+    :param dict, str message: str or dict: use str for simple text email;
+        dict - to compile email from a template (default: `sitemessage/messages/email_html__smtp.html`).
     :param list to: recipients addresses or Django User model heir instances
     :param str subject: email subject
     :param User sender: User model heir instance
