@@ -549,7 +549,7 @@ class MessageBase(object):
         1. `tpl` field of message context;
         2. `template` field of message class;
         3. deduced from message, messenger data and `template_ext` message type field
-           (e.g. `sitemessage/plain_smtp.txt`).
+           (e.g. `sitemessage/messages/plain__smtp.txt` for `plain` message type).
 
         :param Message message: Message model
         :param MessengerBase messenger: a MessengerBase heir
@@ -562,7 +562,9 @@ class MessageBase(object):
             return template
 
         if cls.template is None:
-            cls.template = 'sitemessage/%s_%s.%s' % (cls.get_alias(), messenger.get_alias(), cls.template_ext)
+            cls.template = 'sitemessage/messages/%s__%s.%s' % (
+                cls.get_alias(), messenger.get_alias(), cls.template_ext
+            )
         return cls.template
 
     @classmethod
@@ -572,7 +574,7 @@ class MessageBase(object):
         Considers `use_tpl` field from message context to decide whether
         template compilation is used.
 
-        Otherwise `text` field from message context is used as message contents.
+        Otherwise a SIMPLE_TEXT_ID field from message context is used as message contents.
 
         :param Message message: model instance
         :param MessengerBase messenger: MessengerBase heir instance
