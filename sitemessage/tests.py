@@ -592,7 +592,10 @@ class MessageTest(SitemessageTest):
         self.assertEqual(msg.context, {'name': 'idle', 'title': 'My message!', 'tpl': None, 'use_tpl': True})
 
     def test_get_template(self):
-        self.assertEqual(TestMessage.get_template(TestMessage(), TestMessenger('a', 'b')), 'sitemessage/test_message_test_messenger.html')
+        self.assertEqual(
+            TestMessage.get_template(TestMessage(), TestMessenger('a', 'b')),
+            'sitemessage/messages/test_message__test_messenger.html'
+        )
 
     def test_compile_string(self):
         msg = TestMessagePlain('simple')
