@@ -1,5 +1,6 @@
 from .messages import EmailHtmlMessage, EmailTextMessage
 from .toolbox import schedule_messages, recipients
+from .settings import DEFAULT_SHORTCUT_EMAIL_MESSAGES_TYPE
 
 
 def schedule_email(message, to, subject=None, sender=None, priority=None):
@@ -16,7 +17,12 @@ def schedule_email(message, to, subject=None, sender=None, priority=None):
         message_cls = EmailHtmlMessage
     else:
         message_cls = EmailTextMessage
-    schedule_messages(message_cls(subject, message), recipients('smtp', to), sender=sender, priority=priority)
+
+    schedule_messages(
+        message_cls(subject, message),
+        recipients(DEFAULT_SHORTCUT_EMAIL_MESSAGES_TYPE, to),
+        sender=sender, priority=priority
+    )
 
 
 def schedule_jabber_message(message, to, sender=None, priority=None):
