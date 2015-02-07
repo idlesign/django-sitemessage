@@ -8,7 +8,7 @@ from .models import Message, Dispatch, Subscription
 from .utils import is_iterable, get_registered_messenger_object, get_registered_message_type, \
     import_project_sitemessage_modules, get_registered_messenger_objects, get_registered_message_types, \
     get_message_type_for_app, override_message_type_for_app, register_messenger_objects, \
-    register_message_types  # Exposed as toolbox API.
+    register_message_types, get_site_url  # Exposed as toolbox API.
 from .exceptions import UnknownMessengerError
 from .messages import PlainTextMessage, register_builtin_message_types
 

@@ -25,7 +25,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
 
-    install_requires=[],
+    install_requires=['django-etc'],
 
     classifiers=[
         # As in https://pypi.python.org/pypi?:action=list_classifiers

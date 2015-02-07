@@ -13,9 +13,11 @@
     </div>
     <div style="font-size: 10px;color: #999;margin-top: 25px;">
         {% block footer %}
+            <hr noshade style="color: #ccc;">
             {% if footer %}
-                <hr noshade style="color: #ccc;">
                 {{ footer|safe }}
+            {% else %}
+                {{ SITE_URL }}
             {% endif %}
         {% endblock %}
     </div>

@@ -1,4 +1,5 @@
 from collections import namedtuple, defaultdict, OrderedDict
+from threading import local
 
 from django.core.urlresolvers import reverse, NoReverseMatch
 from django.utils.crypto import salted_hmac
@@ -8,8 +9,9 @@ from django.utils.module_loading import module_has_submodule
 from django.utils.translation import ugettext as _
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
+from etc.toolbox import get_site_url as get_site_url_
 
-from .settings import APP_MODULE_NAME
+from .settings import APP_MODULE_NAME, SITE_URL
 from .models import Message, Dispatch, Subscription
 from .exceptions import UnknownMessageTypeError, UnknownMessengerError
 from .signals import sig_unsubscribe_success, sig_unsubscribe_failed
@@ -21,6 +23,23 @@ _MESSENGERS_REGISTRY = OrderedDict()
 _MESSAGES_REGISTRY = OrderedDict()
 
 _MESSAGES_FOR_APPS = defaultdict(dict)
+
+_THREAD_LOCAL = local()
+_THREAD_SITE_URL = 'sitemessage_site_url'
+
+
+def get_site_url():
+    """Returns a URL for current site.
+
+    :return:
+    """
+
+    site_url = getattr(_THREAD_LOCAL, _THREAD_SITE_URL, None)
+    if site_url is None:
+        site_url = SITE_URL or get_site_url_()
+        setattr(_THREAD_LOCAL, _THREAD_SITE_URL, site_url)
+
+    return site_url
 
 
 def get_message_type_for_app(app_name, default_message_type_alias):
@@ -585,6 +604,7 @@ class MessageBase(object):
         if message.context.get('use_tpl', False):
             context = message.context
             context.update({
+                'SITE_URL': get_site_url(),
                 'message_model': message,
                 'dispatch_model': dispatch
             })
