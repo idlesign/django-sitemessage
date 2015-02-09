@@ -14,7 +14,7 @@ from etc.toolbox import get_site_url as get_site_url_
 from .settings import APP_MODULE_NAME, SITE_URL
 from .models import Message, Dispatch, Subscription
 from .exceptions import UnknownMessageTypeError, UnknownMessengerError
-from .signals import sig_unsubscribe_success, sig_unsubscribe_failed
+from .signals import sig_unsubscribe_success, sig_unsubscribe_failed, sig_mark_read_success, sig_mark_read_failed
 
 
 APP_URLS_ATTACHED = None
@@ -516,6 +516,16 @@ class MessageBase(object):
         return salted_hmac('%s' % dispatch_id, '%s|%s' % (message_id, dispatch_id)).hexdigest()
 
     @classmethod
+    def get_mark_read_directive(cls, message_model, dispatch_model):
+        """Returns mark read directive (command, URL, etc.) string.
+
+        :param Message message_model:
+        :param Dispatch dispatch_model:
+        :return:
+        """
+        return cls._get_url('sitemessage_mark_read', message_model, dispatch_model)
+
+    @classmethod
     def get_unsubscribe_directive(cls, message_model, dispatch_model):
         """Returns an unsubscribe directive (command, URL, etc.) string.
 
@@ -523,15 +533,31 @@ class MessageBase(object):
         :param Dispatch dispatch_model:
         :return:
         """
+        return cls._get_url('sitemessage_unsubscribe', message_model, dispatch_model)
+
+    @classmethod
+    def _get_url(cls, name, message_model, dispatch_model):
+        """Returns a common pattern sitemessage URL.
+
+        :param str name: URL name
+        :param Message message_model:
+        :param Dispatch|None dispatch_model:
+        :return:
+        """
         global APP_URLS_ATTACHED
 
         url = ''
+
+        if dispatch_model is None:
+            return url
+
         if APP_URLS_ATTACHED != False:  # sic!
 
             hashed = cls.get_dispatch_hash(dispatch_model.id, message_model.id)
 
             try:
-                url = reverse('sitemessage_unsubscribe', args=[message_model.id, dispatch_model.id, hashed])
+                url = reverse(name, args=[message_model.id, dispatch_model.id, hashed])
+                url = '%s%s' % (get_site_url(), url)
             except NoReverseMatch:
                 if APP_URLS_ATTACHED is None:
                     APP_URLS_ATTACHED = False
@@ -551,14 +577,36 @@ class MessageBase(object):
         """
 
         if hash_is_valid:
-            Subscription.remove(
+            Subscription.cancel(
                 cls.alias, dispatch.messenger, dispatch.recipient_id or dispatch.address
             )
-            sig_unsubscribe_success.send(cls, request=request, message=message, dispatch=dispatch)
-
+            signal = sig_unsubscribe_success
         else:
-            sig_unsubscribe_failed.send(cls, request=request, message=message, dispatch=dispatch)
+            signal = sig_unsubscribe_failed
 
+        signal.send(cls, request=request, message=message, dispatch=dispatch)
+        return redirect(redirect_to)
+
+    @classmethod
+    def handle_mark_read_request(cls, request, message, dispatch, hash_is_valid, redirect_to):
+        """Handles a request to mark a message as read.
+
+        :param Request request: Request instance
+        :param Message message: Message model instance
+        :param Dispatch dispatch: Dispatch model instance
+        :param bool hash_is_valid: Flag indicating that user supplied request signature is correct
+        :param str redirect_to: Redirection URL
+        :rtype: list
+        """
+
+        if hash_is_valid:
+            dispatch.mark_read()
+            dispatch.save()
+            signal = sig_mark_read_success
+        else:
+            signal = sig_mark_read_failed
+
+        signal.send(cls, request=request, message=message, dispatch=dispatch)
         return redirect(redirect_to)
 
     @classmethod
@@ -605,6 +653,8 @@ class MessageBase(object):
             context = message.context
             context.update({
                 'SITE_URL': get_site_url(),
+                'directive_unsubscribe': cls.get_unsubscribe_directive(message, dispatch),
+                'directive_mark_read': cls.get_mark_read_directive(message, dispatch),
                 'message_model': message,
                 'dispatch_model': dispatch
             })

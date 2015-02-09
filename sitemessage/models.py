@@ -148,6 +148,13 @@ class Dispatch(models.Model):
     def __str__(self):
         return '%s [%s]' % (self.address, self.messenger)
 
+    def mark_read(self):
+        """Marks message as read (doesn't save it).
+
+        :return:
+        """
+        self.read_status = self.READ_STATUS_READ
+
     @classmethod
     def log_dispatches_errors(cls, dispatches):
         """Batch logs dispatches delivery errors into DB.

@@ -212,5 +212,10 @@ def get_sitemessage_urls():
             r'^messages/unsubscribe/(?P<message_id>\d+)/(?P<dispatch_id>\d+)/(?P<hashed>[^/]+)/$',
             'sitemessage.views.unsubscribe',
             name='sitemessage_unsubscribe'
+        ),
+        url(
+            r'^messages/ping/(?P<message_id>\d+)/(?P<dispatch_id>\d+)/(?P<hashed>[^/]+)/$',
+            'sitemessage.views.mark_read',
+            name='sitemessage_mark_read'
         )
     )
