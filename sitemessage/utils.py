@@ -372,7 +372,7 @@ class MessengerBase(object):
                     if message_type_cache is None and not message_cls.has_dynamic_context:
                         # If a message class doesn't depend upon a dispatch data for message compilation,
                         # we'd compile a message just once.
-                        message_type_cache = message_cls.compile(message_model, self)
+                        message_type_cache = message_cls.compile(message_model, self, dispatch=dispatch)
 
                     dispatch.message_cache = message_type_cache or message_cls.compile(
                         message_model, self, dispatch=dispatch
