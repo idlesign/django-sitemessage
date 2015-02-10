@@ -1,4 +1,5 @@
 from django.shortcuts import redirect
+from django.contrib.staticfiles.templatetags.staticfiles import static as get_static_url
 
 from .models import Dispatch
 from .exceptions import UnknownMessageTypeError
@@ -60,6 +61,9 @@ def mark_read(request, message_id, dispatch_id, hashed, redirect_to=None):
     :param str redirect_to:
     :return:
     """
+    if redirect_to is None:
+        redirect_to = get_static_url('img/sitemessage/blank.png')
+
     return _generic_view(
         'handle_mark_read_request', sig_mark_read_failed,
         request, message_id, dispatch_id, hashed, redirect_to=redirect_to
