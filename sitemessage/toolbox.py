@@ -9,11 +9,12 @@ from .utils import is_iterable, get_registered_messenger_object, get_registered_
     import_project_sitemessage_modules, get_registered_messenger_objects, get_registered_message_types, \
     get_message_type_for_app, override_message_type_for_app, register_messenger_objects, \
     register_message_types, get_site_url  # Exposed as toolbox API.
-from .exceptions import UnknownMessengerError
+from .exceptions import UnknownMessengerError, UnknownMessageTypeError
 from .messages import PlainTextMessage, register_builtin_message_types
 
 
 _ALIAS_SEP = '|'
+_PREF_POST_KEY = 'sm_user_pref'
 
 
 if VERSION < (1, 7, 0):
@@ -184,11 +185,16 @@ def set_user_preferences_from_request(request):
     :param request:
     :return:
     """
-    key = 'sm_user_pref'
-
     prefs = []
-    for pref in request.POST.getlist(key):
-        prefs.append(pref.split(_ALIAS_SEP))
+    for pref in request.POST.getlist(_PREF_POST_KEY):
+        message_alias, messenger_alias = pref.split(_ALIAS_SEP)
+        try:
+            get_registered_message_type(message_alias)
+            get_registered_messenger_object(messenger_alias)
+        except (UnknownMessengerError, UnknownMessageTypeError) as e:
+            pass
+        else:
+            prefs.append((message_alias, messenger_alias))
 
     return Subscription.replace_for_user(request.user, prefs)
 

@@ -1,5 +1,7 @@
 from mock import MagicMock, patch
+from django.core.urlresolvers import reverse
 from django.utils import unittest
+from django.test.client import RequestFactory, Client
 from django.contrib.auth.models import User
 from django.template.base import TemplateDoesNotExist
 from django.db.utils import IntegrityError
@@ -7,11 +9,13 @@ from django.db.utils import IntegrityError
 from .messages import PlainTextMessage
 from .models import Message, Dispatch, Subscription, DispatchError
 from .toolbox import schedule_messages, recipients, send_scheduled_messages, prepare_dispatches, \
-    get_user_preferences_for_ui, register_builtin_message_types, get_sitemessage_urls
+    get_user_preferences_for_ui, register_builtin_message_types, get_sitemessage_urls, \
+    set_user_preferences_from_request, _ALIAS_SEP, _PREF_POST_KEY
 from .utils import MessageBase, MessengerBase, Recipient, register_messenger_objects, \
     register_message_types, get_registered_messenger_objects, get_registered_messenger_object, \
-    get_registered_message_types
+    get_registered_message_types, override_message_type_for_app, get_message_type_for_app, get_registered_message_type
 from .exceptions import MessengerWarmupException, UnknownMessengerError, UnknownMessageTypeError
+from .signals import sig_mark_read_failed, sig_mark_read_success, sig_unsubscribe_failed, sig_unsubscribe_success
 
 from .schortcuts import schedule_email, schedule_jabber_message
 from .messengers.smtp import SMTPMessenger
@@ -113,6 +117,7 @@ class SitemessageTest(unittest.TestCase):
         User.objects.all().delete()
         Message.objects.all().delete()
         Dispatch.objects.all().delete()
+        DispatchError.objects.all().delete()
         Subscription.objects.all().delete()
 
 
@@ -144,6 +149,34 @@ class ToolboxTest(SitemessageTest):
         self.assertEqual(prefs_row[0], 'Test message type')
         self.assertIn(('test_message|smtp', True, False), prefs_row[1])
         self.assertIn(('test_message|test_messenger', True, True), prefs_row[1])
+
+    def test_send_scheduled_messages_unknown_messenger(self):
+        message = Message()
+        message.save()
+        dispatch = Dispatch(message=message, messenger='unknownname')
+        dispatch.save()
+
+        self.assertRaises(UnknownMessengerError, send_scheduled_messages)
+
+        send_scheduled_messages(ignore_unknown_messengers=True)
+
+    def test_set_user_preferences_from_request(self):
+        user = User()
+        user.save()
+
+        r = RequestFactory().post('/', data={_PREF_POST_KEY: 'aaa%sqqq' % _ALIAS_SEP})
+        r.user = user
+        set_user_preferences_from_request(r)
+
+        subs = Subscription.objects.all()
+        self.assertEqual(len(subs), 0)
+
+        r = RequestFactory().post('/', data={_PREF_POST_KEY: 'test_message%stest_messenger' % _ALIAS_SEP})
+        r.user = user
+        set_user_preferences_from_request(r)
+
+        subs = Subscription.objects.all()
+        self.assertEqual(len(subs), 1)
 
 
 class UtilsTest(SitemessageTest):
@@ -236,6 +269,15 @@ class UtilsTest(SitemessageTest):
         self.assertEqual(len(dispatch_models), 2)
         self.assertEqual(dispatch_models[0].address, 'gogi%s' % WONDERLAND_DOMAIN)
         self.assertEqual(dispatch_models[0].messenger, 'test_messenger')
+
+    def test_override_message_type_for_app(self):
+
+        mt = get_message_type_for_app('myapp', 'testplain')
+        self.assertIs(mt, TestMessagePlain)
+
+        override_message_type_for_app('myapp', 'sometype', 'test_message')
+        mt = get_message_type_for_app('myapp', 'sometype')
+        self.assertIs(mt, TestMessage)
 
 
 class SubscriptionModelTest(SitemessageTest):
@@ -412,6 +454,11 @@ class DispatchModelTest(SitemessageTest):
 
         self.assertIn('tttt', str(d))
 
+    def test_mark_read(self):
+        d = Dispatch()
+        self.assertEqual(d.read_status, d.READ_STATUS_UNDREAD)
+        d.mark_read()
+        self.assertEqual(d.read_status, d.READ_STATUS_READ)
 
 class MessageModelTest(SitemessageTest):
 
@@ -523,10 +570,27 @@ class SMTPMessengerTest(SitemessageTest):
         self.assertEqual(messenger_smtp.get_address(r), 'somewhere')
 
     def test_send(self):
-        # schedule_messages('text', recipients('xmppsleek', 'someone'))
         schedule_messages('text', recipients('smtp', 'someone'))
         send_scheduled_messages()
         messenger_smtp.smtp.sendmail.assert_called_once()
+
+    def test_send_fail(self):
+        schedule_messages('text', recipients('smtp', 'someone'))
+
+        def new_method(*args, **kwargs):
+            raise Exception('smtp failed')
+
+        old_method = messenger_smtp.smtp.sendmail
+        messenger_smtp.smtp.sendmail = new_method
+
+        try:
+            send_scheduled_messages()
+            errors = DispatchError.objects.all()
+            self.assertEqual(len(errors), 1)
+            self.assertEqual(errors[0].error_log, 'smtp failed')
+            self.assertEqual(errors[0].dispatch.address, 'someone')
+        finally:
+            messenger_smtp.smtp.sendmail = old_method
 
     def test_send_test_message(self):
         messenger_smtp.send_test_message('someone', 'sometext')
@@ -554,6 +618,24 @@ class TwitterMessengerTest(SitemessageTest):
         messenger_twitter.send_test_message('', 'sometext')
         messenger_twitter.api.statuses.update.assert_called_with(status='sometext')
 
+    def test_send_fail(self):
+        schedule_messages('text', recipients('twitter', 'someone'))
+
+        def new_method(*args, **kwargs):
+            raise Exception('tweet failed')
+
+        old_method = messenger_twitter.api.statuses.update
+        messenger_twitter.api.statuses.update = new_method
+
+        try:
+            send_scheduled_messages()
+            errors = DispatchError.objects.all()
+            self.assertEqual(len(errors), 1)
+            self.assertEqual(errors[0].error_log, 'tweet failed')
+            self.assertEqual(errors[0].dispatch.address, 'someone')
+        finally:
+            messenger_twitter.api.statuses.update = old_method
+
 
 class XMPPSleekMessengerTest(SitemessageTest):
 
@@ -577,6 +659,97 @@ class XMPPSleekMessengerTest(SitemessageTest):
             mtype='chat', mbody='sometext', mfrom='somjid', mto='someone'
         )
 
+    def test_send_fail(self):
+        schedule_messages('text', recipients('xmppsleek', 'someone'))
+
+        def new_method(*args, **kwargs):
+            raise Exception('xmppsleek failed')
+
+        old_method = messenger_xmpp.xmpp.send_message
+        messenger_xmpp.xmpp.send_message = new_method
+        messenger_xmpp._session_started = True
+        try:
+            send_scheduled_messages()
+            errors = DispatchError.objects.all()
+            self.assertEqual(len(errors), 1)
+            self.assertEqual(errors[0].error_log, 'xmppsleek failed')
+            self.assertEqual(errors[0].dispatch.address, 'someone')
+        finally:
+            messenger_xmpp.xmpp.send_message = old_method
+
+
+class ViewsTest(SitemessageTest):
+
+    STATUS_SUCCESS = 'success'
+    STATUS_FAIL = 'fail'
+
+    def setUp(self):
+
+        def catcher_success(*args, **kwargs):
+            self.status = self.STATUS_SUCCESS
+        self.catcher_success = catcher_success
+
+        def catcher_fail(*args, **kwargs):
+            self.status = self.STATUS_FAIL
+        self.catcher_fail = catcher_fail
+
+        user = User()
+        user.save()
+        self.user = user
+
+        msg_type = TestMessagePlain('sometext')
+        self.msg_type = msg_type
+
+        msg_model, _ = schedule_messages(msg_type, recipients(TestMessenger, user))[0]
+        dispatch = Dispatch.objects.all()[0]
+        self.msg_model = msg_model
+        self.dispatch = dispatch
+
+        dispatch_hash = msg_type.get_dispatch_hash(dispatch.id, msg_model.id)
+        self.dispatch_hash = dispatch_hash
+
+    def send_request(self, msg_id, dispatch_id, dispatch_hash, expected_status):
+        Client().get(reverse(self.view_name, args=[msg_id, dispatch_id, dispatch_hash]))
+        self.assertEqual(self.status, expected_status)
+        self.status = None
+
+    def generic_view_test(self):
+        # Unknown dispatch ID.
+        self.send_request(self.msg_model.id, 999999, self.dispatch_hash, self.STATUS_FAIL)
+        # Invalid hash.
+        self.send_request(self.msg_model.id, self.dispatch.id, 'nothash', self.STATUS_FAIL)
+        # Message ID mismatch.
+        self.send_request(999999, self.dispatch.id, self.dispatch_hash, self.STATUS_FAIL)
+
+    def test_unsubscribe(self):
+        self.view_name = 'sitemessage_unsubscribe'
+
+        sig_unsubscribe_success.connect(self.catcher_success, weak=False)
+        sig_unsubscribe_failed.connect(self.catcher_fail, weak=False)
+
+        self.generic_view_test()
+
+        subscr = Subscription(
+            message_cls=self.msg_type, messenger_cls=TestMessenger.alias, recipient=self.user
+        )
+        subscr.save()
+        self.assertEqual(len(Subscription.objects.all()), 1)
+
+        self.send_request(self.msg_model.id, self.dispatch.id, self.dispatch_hash, self.STATUS_SUCCESS)
+        self.assertEqual(len(Subscription.objects.all()), 0)
+
+    def test_mark_read(self):
+
+        self.view_name = 'sitemessage_mark_read'
+
+        sig_mark_read_success.connect(self.catcher_success, weak=False)
+        sig_mark_read_failed.connect(self.catcher_fail, weak=False)
+
+        self.generic_view_test()
+        self.assertFalse(Dispatch.objects.get(pk=self.dispatch.pk).is_read())
+
+        self.send_request(self.msg_model.id, self.dispatch.id, self.dispatch_hash, self.STATUS_SUCCESS)
+        self.assertTrue(Dispatch.objects.get(pk=self.dispatch.pk).is_read())
 
 class MessageTest(SitemessageTest):
 
@@ -584,8 +757,11 @@ class MessageTest(SitemessageTest):
         message = type('MyMessage', (MessageBase,), {'alias': 'myalias'})
         self.assertEqual(message.get_alias(), 'myalias')
 
-        message = type('MyMessage', (MessengerBase,), {})
+        message = type('MyMessage', (MessageBase,), {})
         self.assertEqual(message.get_alias(), 'MyMessage')
+
+        message = message()
+        self.assertEqual(str(message), 'MyMessage')
 
     def test_context(self):
         msg = TestMessage({'title': 'My message!', 'name': 'idle'})

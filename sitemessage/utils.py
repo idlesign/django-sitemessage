@@ -578,7 +578,7 @@ class MessageBase(object):
 
         if hash_is_valid:
             Subscription.cancel(
-                cls.alias, dispatch.messenger, dispatch.recipient_id or dispatch.address
+                dispatch.recipient_id or dispatch.address, cls.alias, dispatch.messenger
             )
             signal = sig_unsubscribe_success
         else:

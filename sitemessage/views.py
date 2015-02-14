@@ -13,8 +13,10 @@ def _generic_view(message_method, fail_signal, request, message_id, dispatch_id,
 
     try:
         dispatch = Dispatch.objects.select_related('message').get(pk=dispatch_id)
+        if int(message_id) != dispatch.message_id:
+            raise ValueError()
         message = dispatch.message
-    except Dispatch.DoesNotExist:
+    except (Dispatch.DoesNotExist, ValueError):
         pass
     else:
         try:

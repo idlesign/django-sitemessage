@@ -15,7 +15,8 @@ def main():
             INSTALLED_APPS=('django.contrib.auth', 'django.contrib.contenttypes', app_name),
             DATABASES={'default': {'ENGINE': 'django.db.backends.sqlite3'}},
             MIDDLEWARE_CLASSES=global_settings.MIDDLEWARE_CLASSES,  # Prevents Django 1.7 warning.
-            ROOT_URLCONF = 'sitemessage.tests',
+            ROOT_URLCONF='sitemessage.tests',
+            STATIC_URL='static/'
         )
 
     try:  # Django 1.7 +
