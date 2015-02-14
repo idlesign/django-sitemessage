@@ -5,10 +5,12 @@ from django.utils import six
 from django.conf.urls import patterns, url
 
 from .models import Message, Dispatch, Subscription
-from .utils import is_iterable, get_registered_messenger_object, get_registered_message_type, \
-    import_project_sitemessage_modules, get_registered_messenger_objects, get_registered_message_types, \
-    get_message_type_for_app, override_message_type_for_app, register_messenger_objects, \
-    register_message_types, get_site_url  # Exposed as toolbox API.
+from .utils import (is_iterable, get_registered_messenger_object, get_registered_message_type,
+    import_project_sitemessage_modules, get_registered_messenger_objects, get_registered_message_types,
+
+    # Exposed as toolbox API.
+    get_message_type_for_app, override_message_type_for_app, register_messenger_objects,
+    register_message_types, get_site_url, recipients)
 from .exceptions import UnknownMessengerError, UnknownMessageTypeError
 from .messages import PlainTextMessage, register_builtin_message_types
 
@@ -20,19 +22,6 @@ _PREF_POST_KEY = 'sm_user_pref'
 if VERSION < (1, 7, 0):
     # Trying import sitemessage settings files from project apps.
     import_project_sitemessage_modules()
-
-
-def recipients(messenger, addresses):
-    """Structures recipients data.
-
-    :param str, MessageBase messenger: MessengerBase heir
-    :param list addresses: recipients addresses or Django User model heir instances (NOTE: if supported by a messenger)
-    :return: list of Recipient
-    :rtype: list
-    """
-    if isinstance(messenger, six.string_types):
-        messenger = get_registered_messenger_object(messenger)
-    return messenger._structure_recipients_data(addresses)
 
 
 def schedule_messages(messages, recipients=None, sender=None, priority=None):

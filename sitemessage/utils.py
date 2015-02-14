@@ -187,6 +187,19 @@ def is_iterable(v):
 Recipient = namedtuple('Recipient', ('messenger', 'user', 'address'))
 
 
+def recipients(messenger, addresses):
+    """Structures recipients data.
+
+    :param str, MessageBase messenger: MessengerBase heir
+    :param list addresses: recipients addresses or Django User model heir instances (NOTE: if supported by a messenger)
+    :return: list of Recipient
+    :rtype: list
+    """
+    if isinstance(messenger, six.string_types):
+        messenger = get_registered_messenger_object(messenger)
+    return messenger._structure_recipients_data(addresses)
+
+
 class MessengerBase(object):
     """Base class for messengers used by sitemessage.
 
@@ -493,6 +506,11 @@ class MessageBase(object):
         return self._message_model, self._dispatch_models
 
     @classmethod
+    def recipients(cls, messenger, addresses):
+        """Shorcut method. See `recipients()`,"""
+        return recipients(messenger, addresses)
+
+    @classmethod
     def get_subscribers(cls):
         """Returns a list of Recipient objects subscribed for this message type.
 
@@ -659,12 +677,25 @@ class MessageBase(object):
                 'message_model': message,
                 'dispatch_model': dispatch
             })
+            context = cls.get_template_context(context)
             return render_to_string(cls.get_template(message, messenger), context)
         return message.context[cls.SIMPLE_TEXT_ID]
 
     @classmethod
+    def get_template_context(cls, context):
+        """Returns context dict for template compilation.
+
+        This method might be reimplemented by a heir to add some data into
+        context before template compilation.
+
+        :param dict context: Initial context
+        :return:
+        """
+        return context
+
+    @classmethod
     def update_context(cls, base_context, str_or_dict, template_path=None):
-        """Helper method to structure message context data.
+        """Helper method to structure initial message context data.
 
         NOTE: updates `base_context` inplace.
 
