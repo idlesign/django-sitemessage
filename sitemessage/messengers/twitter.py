@@ -68,5 +68,5 @@ class TwitterMessenger(MessengerBase):
                 try:
                     self._send_message(msg)
                     self.mark_sent(dispatch_model)
-                except self.lib.api.TwitterError as e:
+                except Exception as e:
                     self.mark_error(dispatch_model, e, message_cls)
