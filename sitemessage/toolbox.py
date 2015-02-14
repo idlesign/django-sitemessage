@@ -145,9 +145,8 @@ def get_user_preferences_for_ui(user, message_filter=None, messenger_filter=None
         if not (messenger_filter is None or messenger_filter(messenger)):
             continue
 
-        title = messenger.title
-        new_title = new_messengers_titles.get(messenger.alias)
-        messenger_titles.append(new_title or title)
+        msgr_title = messenger.title
+        msgr_new_title = new_messengers_titles.get(messenger.alias)
 
         for message_type in message_types.values():
 
@@ -166,6 +165,12 @@ def get_user_preferences_for_ui(user, message_filter=None, messenger_filter=None
 
             prefs_by_message_type[title].append((alias, is_supported, is_set))
 
+            if is_supported:
+                # Titles accumulation allows messengers columns to be hidden
+                # when not used by any message type.
+                messenger_titles.append(msgr_new_title or msgr_title)
+
+    messenger_titles = list(OrderedDict.fromkeys(messenger_titles))  # Preserve columns order.
     prefs_by_message_type = OrderedDict(sorted(prefs_by_message_type.items()))
 
     # Handle messages with the same title: merge into one row.
