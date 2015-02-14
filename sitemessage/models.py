@@ -77,6 +77,19 @@ class Message(models.Model):
 
     @classmethod
     def create(cls, message_class, context, recipients=None, sender=None, priority=None):
+        """Creates a message (and dispatches).
+
+        Returns a tuple: (message_model, list_of_dispatches)
+
+        :param str message_class: alias of MessageBase heir
+        :param dict context: context for a message
+        :param list|None recipients: recipient (or a list) or None.
+            If `None` Dispatches should be created before send using `prepare_dispatches()`.
+        :param User|None sender: Django User model heir instance
+        :param int|None priority: number describing message priority
+        :return: a tuple with message model and a list of dispatch models.
+        :rtype: tuple
+        """
         dispatches_ready = False
         if recipients is not None:
             dispatches_ready = True

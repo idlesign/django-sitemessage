@@ -38,9 +38,10 @@ def recipients(messenger, addresses):
 def schedule_messages(messages, recipients=None, sender=None, priority=None):
     """Schedules a message or messages.
 
-    :param MessageBase, str, list messages: str or MessageBase heir or list - use str to create PlainTextMessage.
-    :param list recipients: recipients addresses or Django User model heir instances
-    :param User sender: User model heir instance
+    :param MessageBase|str|list messages: str or MessageBase heir or list - use str to create PlainTextMessage.
+    :param list|None recipients: recipients addresses or Django User model heir instances
+        If `None` Dispatches should be created before send using `prepare_dispatches()`.
+    :param User|None sender: User model heir instance
     :param int priority: number describing message priority. If set overrides priority provided with message type.
     :return: list of tuples - (message_model, dispatches_models)
     :rtype: list

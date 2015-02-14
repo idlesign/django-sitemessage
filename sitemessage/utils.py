@@ -478,11 +478,12 @@ class MessageBase(object):
 
     def schedule(self, recipients=None, sender=None, priority=None):
         """Schedules message for a delivery.
-        Puts message data into DB.
+        Puts message (and dispatches if any) data into DB.
 
-        :param list recipients: of Recipient
-        :param User sender: Django User model heir instance
-        :param int priority: number describing message priority
+        :param list|None recipients: recipient (or a list) or None.
+            If `None` Dispatches should be created before send using `prepare_dispatches()`.
+        :param User|None sender: Django User model heir instance
+        :param int|None priority: number describing message priority
         :return: a tuple with message model and a list of dispatch models.
         :rtype: tuple
         """
