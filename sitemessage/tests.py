@@ -1,5 +1,6 @@
 from mock import MagicMock, patch
 from django.core.urlresolvers import reverse
+from django.core.management import call_command
 from django.utils import unittest
 from django.test.client import RequestFactory, Client
 from django.contrib.auth.models import User
@@ -17,7 +18,7 @@ from .utils import MessageBase, MessengerBase, Recipient, register_messenger_obj
 from .exceptions import MessengerWarmupException, UnknownMessengerError, UnknownMessageTypeError
 from .signals import sig_mark_read_failed, sig_mark_read_success, sig_unsubscribe_failed, sig_unsubscribe_success
 
-from .schortcuts import schedule_email, schedule_jabber_message
+from .shortcuts import schedule_email, schedule_jabber_message
 from .messengers.smtp import SMTPMessenger
 from .messengers.xmpp import XMPPSleekMessenger
 from .messengers.twitter import TwitterMessenger
@@ -751,6 +752,7 @@ class ViewsTest(SitemessageTest):
         self.send_request(self.msg_model.id, self.dispatch.id, self.dispatch_hash, self.STATUS_SUCCESS)
         self.assertTrue(Dispatch.objects.get(pk=self.dispatch.pk).is_read())
 
+
 class MessageTest(SitemessageTest):
 
     def test_alias(self):
@@ -794,3 +796,9 @@ class MessageTest(SitemessageTest):
         msg = TestMessagePlain('schedule2')
         model, _ = msg.schedule(sender=user)
         self.assertEqual(model.sender, user)
+
+
+class CommandsTest(SitemessageTest):
+
+    def test_send_scheduled(self):
+        call_command('sitemessage_send_scheduled', priority=1)
