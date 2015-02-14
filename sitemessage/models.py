@@ -148,6 +148,14 @@ class Dispatch(models.Model):
     def __str__(self):
         return '%s [%s]' % (self.address, self.messenger)
 
+    def is_read(self):
+        """Returns message read flag.
+
+        :rtype: bool
+        :return:
+        """
+        return self.read_status == self.READ_STATUS_READ
+
     def mark_read(self):
         """Marks message as read (doesn't save it).
 
@@ -235,6 +243,8 @@ class Dispatch(models.Model):
     @classmethod
     def create(cls, message_model, recipients):
         """Creates dispatches for given recipients.
+
+        NB: dispatch models are bulk created and do not have IDs.
 
         :param Message message_model:
         :param recipients:
