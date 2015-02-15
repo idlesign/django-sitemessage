@@ -2,7 +2,7 @@ from django.conf import settings
 from django.utils.translation import ugettext as _
 from django.utils.html import strip_tags
 
-from ..utils import MessengerBase
+from .base import MessengerBase
 from ..exceptions import MessengerWarmupException
 
 

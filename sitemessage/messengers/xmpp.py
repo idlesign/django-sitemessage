@@ -1,6 +1,6 @@
 from django.utils.translation import ugettext as _
 
-from ..utils import MessengerBase
+from .base import MessengerBase
 from ..exceptions import MessengerWarmupException
 
 

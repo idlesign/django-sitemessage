@@ -1,4 +1,4 @@
-from .messages import EmailHtmlMessage, EmailTextMessage
+from .messages.email import EmailHtmlMessage, EmailTextMessage
 from .toolbox import schedule_messages, recipients
 from .settings import DEFAULT_SHORTCUT_EMAIL_MESSAGES_TYPE
 

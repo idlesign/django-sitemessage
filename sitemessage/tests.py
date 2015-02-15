@@ -5,17 +5,18 @@ from django.utils import unittest
 from django.test.client import RequestFactory, Client
 from django.contrib.auth.models import User
 from django.template.base import TemplateDoesNotExist
-from django.db.utils import IntegrityError
 
-from .messages import PlainTextMessage
+from .messages.plain import PlainTextMessage
+from .messages.base import MessageBase
 from .models import Message, Dispatch, Subscription, DispatchError
 from .toolbox import schedule_messages, recipients, send_scheduled_messages, prepare_dispatches, \
     get_user_preferences_for_ui, register_builtin_message_types, get_sitemessage_urls, \
     set_user_preferences_from_request, _ALIAS_SEP, _PREF_POST_KEY
-from .utils import MessageBase, MessengerBase, Recipient, register_messenger_objects, \
+from .messengers.base import MessengerBase
+from .utils import Recipient, register_messenger_objects, \
     register_message_types, get_registered_messenger_objects, get_registered_messenger_object, \
-    get_registered_message_types, override_message_type_for_app, get_message_type_for_app, get_registered_message_type
-from .exceptions import MessengerWarmupException, UnknownMessengerError, UnknownMessageTypeError
+    get_registered_message_types, override_message_type_for_app, get_message_type_for_app
+from .exceptions import UnknownMessengerError
 from .signals import sig_mark_read_failed, sig_mark_read_success, sig_unsubscribe_failed, sig_unsubscribe_success
 
 from .shortcuts import schedule_email, schedule_jabber_message

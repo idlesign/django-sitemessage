@@ -1,18 +1,6 @@
 from django.utils.translation import ugettext as _
 
-from .utils import MessageBase, register_message_types
-
-
-class PlainTextMessage(MessageBase):
-    """Simple plain text message class to allow schedule_messages()
-    to accept message as a simple string instead of a message object.
-
-    """
-
-    alias = 'plain'
-
-    def __init__(self, text):
-        super(PlainTextMessage, self).__init__({self.SIMPLE_TEXT_ID: text})
+from .base import MessageBase
 
 
 class _EmailMessageBase(MessageBase):
@@ -47,8 +35,3 @@ class EmailHtmlMessage(_EmailMessageBase):
 
     def __init__(self, subject, html_or_dict, template_path=None):
         super(EmailHtmlMessage, self).__init__(subject, html_or_dict, 'html', template_path=template_path)
-
-
-def register_builtin_message_types():
-    """Registers the built-in message types."""
-    register_message_types(PlainTextMessage, EmailTextMessage, EmailHtmlMessage)
