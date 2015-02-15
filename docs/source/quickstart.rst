@@ -34,6 +34,7 @@ Quickstart
         from sitemessage.messengers.smtp import SMTPMessenger
         from sitemessage.messengers.xmpp import XMPPSleekMessenger
 
+
         # We register two messengers to deliver emails and jabber messages.
         register_messenger_objects(
             SMTPMessenger('user1@host.com', 'user1', 'user1password', host='smtp.host.com', use_tls=True),
@@ -49,6 +50,7 @@ Quickstart
     .. code-block:: python
 
         from sitemessage.shortcuts import schedule_email, schedule_jabber_message
+
 
         def send_messages_view(request):
             ...

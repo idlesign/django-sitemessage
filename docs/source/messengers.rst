@@ -10,15 +10,15 @@ You can either use builtin classes or define your own.
 Helper functions
 ----------------
 
-* **sitemessage.utils.register_messenger_objects(\*messengers)**
+* **sitemessage.toolbox.register_messenger_objects(\*messengers)**
 
   Registers (configures) messengers.
 
-* **sitemessage.utils.get_registered_messenger_objects()**
+* **sitemessage.toolbox.get_registered_messenger_objects()**
 
   Returns registered (configured) messengers dict indexed by messenger aliases.
 
-* **sitemessage.utils.get_registered_messenger_object(messenger)**
+* **sitemessage.toolbox.get_registered_messenger_object(messenger)**
 
   Returns registered (configured) messenger by alias,
 
@@ -36,6 +36,8 @@ Builtin messengers are available from **sitemessage.messengers**:
 
     Uses Python's built-in ``smtplib``.
 
+
+
 * **sitemessage.messengers.xmpp.XMPPSleekMessenger**
 
 .. warning::
@@ -46,8 +48,10 @@ Builtin messengers are available from **sitemessage.messengers**:
 
     from sitemessage.toolbox import schedule_messages, recipients
 
+
     # Sending jabber message.
     schedule_messages('Hello there!', recipients('xmppsleek', 'somebody@example.ru'))
+
 
 
 * **sitemessage.messengers.twitter.TwitterMessenger**
@@ -59,6 +63,7 @@ Builtin messengers are available from **sitemessage.messengers**:
 .. code-block:: python
 
     from sitemessage.toolbox import schedule_messages, recipients
+
 
     # Twitting example.
     schedule_messages('My tweet.', recipients('twitter', ''))
@@ -77,6 +82,7 @@ After a messenger is configured you can try whether it works properly using its 
 
     from sitemessage.messengers.smtp import SMTPMessenger
 
+
     msgr = SMTPMessenger('user1@host.com', 'user1', 'user1password', host='smtp.host.com', use_tls=True)
     msgr.send_test_message('user1@host.com', 'This is a test message')
 
@@ -85,19 +91,24 @@ After a messenger is configured you can try whether it works properly using its 
 User defined messengers
 -----------------------
 
-To define a message type one needs to inherit from **sitemessage.utils.MessengerBase** (or a builtin messenger class),
-and to register it with **sitemessage.utils.register_messenger_objects** (put these instructions
+To define a message type one needs to inherit from **sitemessage.messengers.base.MessengerBase** (or a builtin messenger class),
+and to register it with **sitemessage.toolbox.register_messenger_objects** (put these instructions
 into `sitemessages.py` in one of your apps):
 
 
 .. code-block:: python
 
-    from .utils import MessengerBase, register_messenger_objects
+    from sitemessage.messengers.base import MessengerBase
+    from sitemessage.toolbox import register_messenger_objects
+
 
     class MyMessenger(MessengerBase):
 
         # Messengers could be addressed by aliases.
         alias = 'mymessenger'
+
+        # Messenger title to show up in UI
+        title = 'Super messenger'
 
         def __init__(self):
             """This messenger doesn't accept any configuration arguments.
@@ -143,6 +154,7 @@ After that you can schedule and send messages with your messenger as usual:
 .. code-block:: python
 
     from sitemessage.toolbox import schedule_messages, recipients
+
 
     user2 = ...  # Let's suppose it's an instance of Django user model.
     # We'll just try to send PlainText message.

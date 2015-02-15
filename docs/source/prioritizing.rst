@@ -16,7 +16,8 @@ Prioritization is supported on the following two levels:
 
 .. code-block:: python
 
-    from .utils import MessageBase
+    from sitemessage.messages.base import MessageBase
+
 
     class MyMessage(MessageBase):
 
@@ -26,6 +27,7 @@ Prioritization is supported on the following two levels:
 
         ...
 
+
 2. Or you can override priority defined within message type, by supplying `priority` argument
 to messages scheduling functions.
 
@@ -33,6 +35,7 @@ to messages scheduling functions.
 
     from sitemessage.shortcuts import schedule_email
     from sitemessage.toolbox import schedule_messages, recipients
+
 
     schedule_email('Email from sitemessage.', 'user2@host.com', priority=1)
 
@@ -50,5 +53,5 @@ argument to send message when needed::
 
 .. note::
 
-    Use a scheduler (e.g cron) to send messages with different priorities
+    Use a scheduler (e.g cron, uWSGI cron/cron2, etc.) to send messages with different priorities
     on different days or intervals, and even simultaneously.

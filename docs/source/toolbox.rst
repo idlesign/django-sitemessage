@@ -16,6 +16,7 @@ so that they could be passed into message scheduling functions:
     from sitemessage.messengers.smtp import SMTPMessenger
     from sitemessage.messengers.xmpp import XMPPSleekMessenger
 
+
     # The first argument could be Messenger alias:
     my_smtp_recipients = recipients('smtp', ['user1@host.com', 'user2@host.com']),
 
@@ -34,7 +35,7 @@ so that they could be passed into message scheduling functions:
 Scheduling messages
 -------------------
 
-**sitemessage.toolbox.schedule_messages** is a generic mean to schedule messages:
+**sitemessage.toolbox.schedule_messages** is a generic tool to schedule messages:
 
 
 .. code-block:: python
@@ -42,6 +43,7 @@ Scheduling messages
     from sitemessage.toolbox import schedule_messages, recipients
     # Let's import a built-in message type class we'll use.
     from sitemessage.messages import EmailHtmlMessage
+
 
     schedule_messages(
         # You can pass one or several message objects:
@@ -79,12 +81,13 @@ Nevertheless you can directly use **sitemessage.toolbox.send_scheduled_messages*
 
     from sitemessage.toolbox import send_scheduled_messages
 
+
     # Note that this might eventually raise UnknownMessengerError, UnknownMessageTypeError exceptions.
     send_scheduled_messages()
 
-    # Or if do not want some exceptions to be raised (that way scheduled messages
+    # Or if you do not want sitemessage exceptions to be raised (that way scheduled messages
     # with unknown message types or for which messengers are not configured won't be sent):
     send_scheduled_messages(ignore_unknown_messengers=True, ignore_unknown_message_types=True)
 
-    # To send only message with a certain priority use `priority` argument.
+    # To send only messages of a certain priority use `priority` argument.
     send_scheduled_messages(priority=10)
