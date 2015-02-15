@@ -2,6 +2,25 @@ django-sitemessage changelog
 ============================
 
 
+Unreleased
+----------
++ Implemented subscriptions handling.
++ Implemented Django email backend.
++ Implemented experimental `mark read` functionality for e-mails.
++ Implemented `List-Unsubscribe` e-mail header support for SMTP messenger.
++ Added Django 1.7+ migrations.
++ Added basic messages templates.
++ Added `INIT_BUILTIN_MESSAGE_TYPES` setting.
++ Added `EMAIL_BACKEND_MESSAGES_PRIORITY` setting.
++ Added `DEFAULT_SHORTCUT_EMAIL_MESSAGES_TYPE` setting.
++ Added `SITE_URL` setting.
+* IMPORTANT: Package layout changed (messages, messengers locations changed).
+* IMPORTANT: Changed default templates search path.
+* Fixed delivery errors logging.
+* Dispatch model is now always passed into `compile()`.
+* Exception handling scope broadened for Twitter.
+
+
 v0.4.1
 ------
 * Fixed `sitemessage_send_scheduled` command failure on Django 1.7.
@@ -33,4 +52,3 @@ v0.2.0
 v0.1.0
 ------
 + Basic functionality.
-
