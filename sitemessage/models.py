@@ -361,7 +361,7 @@ class Subscription(models.Model):
         :param str message_cls:
         :return:
         """
-        return cls.objects.filter(message_cls=message_cls)
+        return cls.objects.select_related('recipient').filter(message_cls=message_cls)
 
     @classmethod
     def _get_base_kwargs(cls, recipient, message_cls, messenger_cls):

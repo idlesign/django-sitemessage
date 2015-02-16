@@ -49,7 +49,8 @@ class SubscriptionAdmin(admin.ModelAdmin):
 
     list_display = ('time_created', 'message_cls', 'messenger_cls')
     ordering = ('-time_created',)
-    readonly_fields = ('time_created', 'message_cls', 'messenger_cls', 'recipient', 'address')
+    readonly_fields = ('time_created',)
+    list_filter = ('message_cls', 'messenger_cls')
 
 
 admin.site.register(Message, MessageAdmin)

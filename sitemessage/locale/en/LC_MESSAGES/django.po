@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-09-06 21:42+0700\n"
+"POT-Creation-Date: 2015-02-16 21:04+0600\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,12 +21,40 @@ msgstr ""
 msgid "Messaging"
 msgstr ""
 
-#: models.py:34
+#: messages/base.py:30
+msgid "Notification"
+msgstr ""
+
+#: messages/email.py:9
+msgid "Email notification"
+msgstr ""
+
+#: messages/plain.py:13
+msgid "Text notification"
+msgstr ""
+
+#: messengers/smtp.py:14
+msgid "E-mail"
+msgstr ""
+
+#: messengers/smtp.py:80
+msgid "No Subject"
+msgstr ""
+
+#: messengers/twitter.py:15
+msgid "Tweet"
+msgstr ""
+
+#: messengers/xmpp.py:16
+msgid "XMPP"
+msgstr ""
+
+#: models.py:33
 #, python-format
 msgid "Value `%r` is not a valid context."
 msgstr ""
 
-#: models.py:43 models.py:108 models.py:201
+#: models.py:43 models.py:138 models.py:287 models.py:302
 msgid "Time created"
 msgstr ""
 
@@ -34,138 +62,150 @@ msgstr ""
 msgid "Sender"
 msgstr ""
 
-#: models.py:45
+#: models.py:45 models.py:303
 msgid "Message class"
 msgstr ""
 
-#: models.py:45
+#: models.py:46 models.py:304
 msgid "Message logic class identifier."
 msgstr ""
 
-#: models.py:46
+#: models.py:47
 msgid "Message context"
 msgstr ""
 
-#: models.py:47
+#: models.py:48
 msgid "Priority"
 msgstr ""
 
-#: models.py:47
+#: models.py:49
 msgid ""
 "Number describing message sending priority. Messages with different "
 "priorities can be sent with different periodicity."
 msgstr ""
 
-#: models.py:48
+#: models.py:51
 msgid "Dispatches ready"
 msgstr ""
 
-#: models.py:48
+#: models.py:52
 msgid ""
 "Indicates whether dispatches for this message are already formed and ready "
 "to delivery."
 msgstr ""
 
-#: models.py:76 models.py:110
+#: models.py:56 models.py:142
 msgid "Message"
 msgstr ""
 
-#: models.py:77
+#: models.py:57
 msgid "Messages"
 msgstr ""
 
-#: models.py:92
+#: models.py:122
 msgid "Pending"
 msgstr ""
 
-#: models.py:93
+#: models.py:123
 msgid "Sent"
 msgstr ""
 
-#: models.py:94
+#: models.py:124
 msgid "Error"
 msgstr ""
 
-#: models.py:95
+#: models.py:125
 msgid "Failed"
 msgstr ""
 
-#: models.py:102
+#: models.py:132
 msgid "Unread"
 msgstr ""
 
-#: models.py:103
+#: models.py:133
 msgid "Read"
 msgstr ""
 
-#: models.py:109
+#: models.py:139
 msgid "Time dispatched"
 msgstr ""
 
-#: models.py:109
+#: models.py:140
 msgid "Time of the last delivery attempt."
 msgstr ""
 
-#: models.py:111
+#: models.py:143 models.py:305
 msgid "Messenger"
 msgstr ""
 
-#: models.py:111
+#: models.py:144 models.py:306
 msgid "Messenger class identifier."
 msgstr ""
 
-#: models.py:112
+#: models.py:146 models.py:307
 msgid "Recipient"
 msgstr ""
 
-#: models.py:113
+#: models.py:147 models.py:308
 msgid "Address"
 msgstr ""
 
-#: models.py:113
+#: models.py:147 models.py:308
 msgid "Recipient address."
 msgstr ""
 
-#: models.py:114
+#: models.py:148
 msgid "Retry count"
 msgstr ""
 
-#: models.py:114
+#: models.py:149
 msgid "A number of delivery retries has already been made."
 msgstr ""
 
-#: models.py:115
+#: models.py:151
 msgid "Message cache"
 msgstr ""
 
-#: models.py:116
+#: models.py:152
 msgid "Dispatch status"
 msgstr ""
 
-#: models.py:117
+#: models.py:155
 msgid "Read status"
 msgstr ""
 
-#: models.py:191 models.py:202
+#: models.py:158 models.py:288
 msgid "Dispatch"
 msgstr ""
 
-#: models.py:192
+#: models.py:159
 msgid "Dispatches"
 msgstr ""
 
-#: models.py:203
+#: models.py:289
 msgid "Text"
 msgstr ""
 
-#: models.py:206
+#: models.py:292
 msgid "Dispatch error"
 msgstr ""
 
-#: models.py:207
+#: models.py:293
 msgid "Dispatch errors"
 msgstr ""
 
-#: messengers/smtp.py:81
-msgid "No Subject"
+#: models.py:311
+msgid "Subscription"
+msgstr ""
+
+#: models.py:312
+msgid "Subscriptions"
+msgstr ""
+
+#: templates/sitemessage/messages/_base.html:21
+msgid "You can unsubscribe from this list using"
+msgstr ""
+
+#: templates/sitemessage/messages/_base.html:21
+msgid "this link"
 msgstr ""

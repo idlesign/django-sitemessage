@@ -3,10 +3,12 @@ from django.utils.crypto import salted_hmac
 from django.utils.translation import ugettext as _
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
+from django.utils.six import string_types
 
-from ..utils import Recipient, recipients, get_site_url
+from ..utils import Recipient, recipients, get_site_url, get_registered_messenger_object
 from ..models import Message, Dispatch, Subscription
 from ..signals import sig_unsubscribe_success, sig_unsubscribe_failed, sig_mark_read_success, sig_mark_read_failed
+from ..exceptions import UnknownMessengerError
 
 
 APP_URLS_ATTACHED = None
@@ -120,7 +122,17 @@ class MessageBase(object):
         subscribers = []
 
         for subscriber in subscribers_raw:
-            subscribers.append(Recipient(subscriber.messenger_cls, subscriber.recipient, subscriber.address))
+            messenger_cls = subscriber.messenger_cls
+            address = subscriber.address
+            recipient = subscriber.recipient
+            if address is None:
+                try:
+                    address = get_registered_messenger_object(messenger_cls).get_address(recipient)
+                except UnknownMessengerError:
+                    pass
+
+            if address and isinstance(address, string_types):
+                subscribers.append(Recipient(messenger_cls, recipient, address))
 
         return subscribers
 

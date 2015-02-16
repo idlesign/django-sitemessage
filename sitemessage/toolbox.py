@@ -181,7 +181,8 @@ def set_user_preferences_from_request(request):
     Expects data sent by form built with `sitemessage_prefs_table` template tag.
 
     :param request:
-    :return:
+    :rtype: bool
+    :return: Flag, whether prefs were found in the request.
     """
     prefs = []
     for pref in request.POST.getlist(_PREF_POST_KEY):
@@ -194,7 +195,9 @@ def set_user_preferences_from_request(request):
         else:
             prefs.append((message_alias, messenger_alias))
 
-    return Subscription.replace_for_user(request.user, prefs)
+    Subscription.replace_for_user(request.user, prefs)
+
+    return bool(prefs)
 
 
 def get_sitemessage_urls():

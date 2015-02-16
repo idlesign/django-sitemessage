@@ -103,3 +103,19 @@ And that's what is in a template used by the view above:
 .. note::
 
     You can get subscribers as recipients list right from your message type, using `get_subscribers()` method.
+
+
+**sitemessage** bundles some views, and one of those allows users to unsubscribe from certain message types
+just by visiting it. So let's configure your project to use those views:
+
+
+.. code-block:: python
+
+    from sitemessage.toolbox import get_sitemessage_urls
+
+    ...
+
+    # Somewhere in your urls.py.
+
+    urlpatterns += get_sitemessage_urls()  # Attaching sitemessage URLs.
+
