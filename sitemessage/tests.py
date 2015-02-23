@@ -1,10 +1,13 @@
 from mock import MagicMock, patch
+from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.core.management import call_command
-from django.utils import unittest
+from django.test.utils import override_settings
+from django.test import TestCase
 from django.test.client import RequestFactory, Client
 from django.contrib.auth.models import User
-from django.template.base import TemplateDoesNotExist
+from django.template.base import TemplateDoesNotExist, Template, TemplateSyntaxError
+from django.template.context import Context
 
 from .messages.plain import PlainTextMessage
 from .messages.base import MessageBase
@@ -16,7 +19,7 @@ from .messengers.base import MessengerBase
 from .utils import Recipient, register_messenger_objects, \
     register_message_types, get_registered_messenger_objects, get_registered_messenger_object, \
     get_registered_message_types, override_message_type_for_app, get_message_type_for_app
-from .exceptions import UnknownMessengerError
+from .exceptions import UnknownMessengerError, SiteMessageConfigurationError
 from .signals import sig_mark_read_failed, sig_mark_read_success, sig_unsubscribe_failed, sig_unsubscribe_success
 
 from .shortcuts import schedule_email, schedule_jabber_message
@@ -113,7 +116,7 @@ register_messenger_objects(TestMessenger('mylogin', 'mypassword'), BuggyMessenge
 register_message_types(PlainTextMessage, TestMessage, TestMessagePlain, TestMessagePlainDynamic)
 
 
-class SitemessageTest(unittest.TestCase):
+class SitemessageTest(TestCase):
 
     def tearDown(self):
         User.objects.all().delete()
@@ -121,6 +124,11 @@ class SitemessageTest(unittest.TestCase):
         Dispatch.objects.all().delete()
         DispatchError.objects.all().delete()
         Subscription.objects.all().delete()
+
+    @classmethod
+    def render_template(cls, string, context_dict=None):
+        context_dict = context_dict or {}
+        return Template(string).render(Context(context_dict))
 
 
 class ToolboxTest(SitemessageTest):
@@ -136,21 +144,50 @@ class ToolboxTest(SitemessageTest):
         self.assertEqual(len(messengers_titles), 5)
 
         Subscription.create(user, TestMessage, TestMessenger)
-        messengers_titles, prefs = get_user_preferences_for_ui(
+        user_prefs = get_user_preferences_for_ui(
             user,
             message_filter=lambda m: m.alias == 'test_message',
             messenger_filter=lambda m: m.alias in ['smtp', 'test_messenger']
         )
+        messengers_titles, prefs = user_prefs
 
         self.assertEqual(len(prefs.keys()), 1)
         self.assertEqual(len(messengers_titles), 2)
         self.assertIn('E-mail', messengers_titles)
         self.assertIn('Test messenger', messengers_titles)
 
+        html = self.render_template(
+            "{% load sitemessage %}{% sitemessage_prefs_table from user_prefs %}",
+            {'user_prefs': user_prefs}
+        )
+
+        self.assertIn('class="sitemessage_prefs', html)
+        self.assertIn('E-mail</th>', html)
+        self.assertIn('Test messenger</th>', html)
+        self.assertIn('Test messenger</th>', html)
+        self.assertIn('value="test_message|smtp"', html)
+        self.assertIn('value="test_message|test_messenger" checked', html)
+
         prefs_row = prefs.popitem()
         self.assertEqual(prefs_row[0], 'Test message type')
         self.assertIn(('test_message|smtp', True, False), prefs_row[1])
         self.assertIn(('test_message|test_messenger', True, True), prefs_row[1])
+
+    def test_templatetag_fails_silent(self):
+        html = self.render_template(
+            "{% load sitemessage %}{% sitemessage_prefs_table from user_prefs %}",
+            {'user_prefs': 'a'}
+        )
+        self.assertEqual(html, '')
+
+    @override_settings(DEBUG=True)
+    def test_templatetag_fails_loud(self):
+        tpl = "{% load sitemessage %}{% sitemessage_prefs_table from user_prefs %}"
+        context = {'user_prefs': 'a'}
+        self.assertRaises(SiteMessageConfigurationError, self.render_template, tpl, context)
+
+        tpl = "{% load sitemessage %}{% sitemessage_prefs_table user_prefs %}"
+        self.assertRaises(TemplateSyntaxError, self.render_template, tpl)
 
     def test_send_scheduled_messages_unknown_messenger(self):
         message = Message()
@@ -803,3 +840,18 @@ class CommandsTest(SitemessageTest):
 
     def test_send_scheduled(self):
         call_command('sitemessage_send_scheduled', priority=1)
+
+
+@override_settings(EMAIL_BACKEND='sitemessage.backends.EmailBackend')
+class BackendsTest(SitemessageTest):
+
+    def test_email_backend(self):
+        send_mail('subj', 'message', 'from@example.com', ['to@example.com'], fail_silently=False)
+        dispatches = list(Dispatch.objects.all())
+        self.assertEqual(len(dispatches), 1)
+        self.assertEqual(dispatches[0].messenger, 'smtp')
+        self.assertEqual(dispatches[0].address, 'to@example.com')
+        self.assertEqual(dispatches[0].dispatch_status, Dispatch.DISPATCH_STATUS_PENDING)
+        self.assertEqual(dispatches[0].message.cls, 'email_html')
+        self.assertEqual(dispatches[0].message.context['subject'], 'subj')
+        self.assertEqual(dispatches[0].message.context['contents'], 'message')
