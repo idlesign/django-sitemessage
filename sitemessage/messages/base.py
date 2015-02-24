@@ -102,6 +102,9 @@ class MessageBase(object):
         :return: a tuple with message model and a list of dispatch models.
         :rtype: tuple
         """
+        if priority is None:
+            priority = self.priority
+
         self._message_model, self._dispatch_models = Message.create(
             self.get_alias(), self.get_context(), recipients=recipients, sender=sender, priority=priority
         )
