@@ -2,10 +2,10 @@ django-sitemessage changelog
 ============================
 
 
-Unreleased
-----------
+v0.5.1
+------
 * Message.schedule() now respects message type priority attribute.
-* `SITEMESSAGE_EMAIL_BACKEND_MESSAGES_PRIORITY` now default to None.
+* `SITEMESSAGE_EMAIL_BACKEND_MESSAGES_PRIORITY` now defaults to None.
 
 
 v0.5.0
