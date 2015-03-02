@@ -71,4 +71,5 @@ Also
 ----
 
 If the application is not what you want for messaging with Django, you might be interested in considering
-other choices at https://www.djangopackages.com/grids/g/email/ or, maybe https://www.djangopackages.com/grids/g/messaging/
+other choices at https://www.djangopackages.com/grids/g/notification/ or https://www.djangopackages.com/grids/g/newsletter/ 
+or https://www.djangopackages.com/grids/g/email/.
