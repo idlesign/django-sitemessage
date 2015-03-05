@@ -2,6 +2,11 @@ django-sitemessage changelog
 ============================
 
 
+Unreleased
+----------
+* Russian locale is updated.
+
+
 v0.5.1
 ------
 * Message.schedule() now respects message type priority attribute.

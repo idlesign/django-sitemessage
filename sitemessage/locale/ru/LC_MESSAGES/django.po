@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: django-sitemessage\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-02-16 21:04+0600\n"
-"PO-Revision-Date: 2015-02-16 21:11+0600\n"
+"PO-Revision-Date: 2015-03-05 20:25+0600\n"
 "Last-Translator: Igor 'idle sign' Starikov <idlesign@yandex.ru>\n"
 "Language-Team: Russian (http://www.transifex.com/projects/p/django-"
 "sitemessage/language/ru/)\n"
@@ -212,7 +212,7 @@ msgstr "Подписки"
 
 #: templates/sitemessage/messages/_base.html:21
 msgid "You can unsubscribe from this list using"
-msgstr "Вы можете отписаться от это рассылки, воспользовавшись"
+msgstr "Вы можете отписаться от данной рассылки, воспользовавшись"
 
 #: templates/sitemessage/messages/_base.html:21
 msgid "this link"
