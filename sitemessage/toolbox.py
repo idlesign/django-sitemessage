@@ -190,7 +190,7 @@ def set_user_preferences_from_request(request):
         try:
             get_registered_message_type(message_alias)
             get_registered_messenger_object(messenger_alias)
-        except (UnknownMessengerError, UnknownMessageTypeError) as e:
+        except (UnknownMessengerError, UnknownMessageTypeError):
             pass
         else:
             prefs.append((message_alias, messenger_alias))
