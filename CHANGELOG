@@ -2,8 +2,9 @@ django-sitemessage changelog
 ============================
 
 
-Unreleased
-----------
+v0.6.0
+------
++ Adapted for Django 1.8.
 * Russian locale is updated.
 
 
