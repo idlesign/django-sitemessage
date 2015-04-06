@@ -1,4 +1,6 @@
 from django import template
+from django.template.base import FilterExpression
+from django.template.loader import get_template
 from django.conf import settings
 
 from ..exceptions import SiteMessageConfigurationError
@@ -30,7 +32,7 @@ class sitemessage_prefs_tableNode(template.Node):
         self.prefs_obj = prefs_obj
 
     def render(self, context):
-        resolve = lambda arg: arg.resolve(context) if isinstance(arg, template.FilterExpression) else arg
+        resolve = lambda arg: arg.resolve(context) if isinstance(arg, FilterExpression) else arg
 
         prefs_obj = resolve(self.prefs_obj)
         if not isinstance(prefs_obj, tuple):
@@ -42,7 +44,7 @@ class sitemessage_prefs_tableNode(template.Node):
 
         context.push()
         context['sitemessage_user_prefs'] = prefs_obj
-        contents = template.loader.get_template(
+        contents = get_template(
             resolve(self.use_template or 'sitemessage/user_prefs_table.html')
         ).render(context)
         context.pop()
