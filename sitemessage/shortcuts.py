@@ -26,7 +26,7 @@ def schedule_email(message, to, subject=None, sender=None, priority=None):
 
 
 def schedule_jabber_message(message, to, sender=None, priority=None):
-    """Schedules an email message for delivery.
+    """Schedules Jabber XMPP message for delivery.
 
     :param str message: text to send.
     :param list to: recipients addresses or Django User model heir instances
@@ -34,3 +34,14 @@ def schedule_jabber_message(message, to, sender=None, priority=None):
     :param int priority: number describing message priority. If set overrides priority provided with message type.
     """
     schedule_messages(message, recipients('xmppsleek', to), sender=sender, priority=priority)
+
+
+def schedule_tweet(message, to='', sender=None, priority=None):
+    """Schedules a Tweet for delivery.
+
+    :param str message: text to send.
+    :param list to: recipients addresses or Django User model heir instances. If supplied tweets will be @-replies.
+    :param User sender: User model heir instance
+    :param int priority: number describing message priority. If set overrides priority provided with message type.
+    """
+    schedule_messages(message, recipients('twitter', to), sender=sender, priority=priority)
