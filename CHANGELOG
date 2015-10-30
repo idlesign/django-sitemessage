@@ -1,6 +1,14 @@
 django-sitemessage changelog
 ============================
 
+Unreleased
+----------
++ Implemented Telegram messenger.
++ Added `allow_user_subscription` attr to base message and messenger classes.
++ Added schedule_tweet() shortcut.
++ Added schedule_telegram_message() shortcut.
+* Fixed `get_user_preferences_for_ui()` producing buggy result.
+
 
 v0.6.0
 ------
