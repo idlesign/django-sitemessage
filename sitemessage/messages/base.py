@@ -48,6 +48,9 @@ class MessageBase(object):
     # This limits the number of send attempts before message delivery considered failed.
     send_retry_limit = 10
 
+    # Makes subscription for this message type available for users (see get_user_preferences_for_ui())
+    allow_user_subscription = True
+
     _message_model = None
     _dispatch_models = None
 

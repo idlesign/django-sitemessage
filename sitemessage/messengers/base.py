@@ -16,6 +16,9 @@ class MessengerBase(object):
     # Title to show to user.
     title = None
 
+    # Makes subscription for this messenger messages available for users (see get_user_preferences_for_ui())
+    allow_user_subscription = True
+
     # Dispatches by status dict will be here runtime. See init_delivery_statuses_dict().
     _st = None
 
