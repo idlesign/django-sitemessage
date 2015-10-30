@@ -45,3 +45,14 @@ def schedule_tweet(message, to='', sender=None, priority=None):
     :param int priority: number describing message priority. If set overrides priority provided with message type.
     """
     schedule_messages(message, recipients('twitter', to), sender=sender, priority=priority)
+
+
+def schedule_telegram_message(message, to, sender=None, priority=None):
+    """Schedules Telegram message for delivery.
+
+    :param str message: text to send.
+    :param list to: recipients addresses or Django User model heir instances
+    :param User sender: User model heir instance
+    :param int priority: number describing message priority. If set overrides priority provided with message type.
+    """
+    schedule_messages(message, recipients('telegram', to), sender=sender, priority=priority)
