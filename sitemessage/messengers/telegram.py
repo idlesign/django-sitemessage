@@ -53,8 +53,6 @@ class TelegramMessenger(MessengerBase):
 
     @classmethod
     def _build_message(cls, to, text):
-        if not to.startswith('@'):
-            to = '@%s' % to
         return {'chat_id': to, 'text': text}
 
     def _send_command(self, method_name, data=None):
