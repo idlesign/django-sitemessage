@@ -2,14 +2,14 @@ django-sitemessage
 ==================
 https://github.com/idlesign/django-sitemessage
 
-.. image:: https://badge.fury.io/py/django-sitemessage.png
-    :target: http://badge.fury.io/py/django-sitemessage
+.. image:: https://img.shields.io/pypi/v/django-sitemessage.svg
+    :target: https://pypi.python.org/pypi/django-sitemessage
 
-.. image:: https://pypip.in/d/django-sitemessage/badge.png
-        :target: https://crate.io/packages/django-sitemessage
+.. image:: https://img.shields.io/pypi/dm/django-sitemessage.svg
+    :target: https://pypi.python.org/pypi/django-sitemessage
 
-.. image:: https://coveralls.io/repos/idlesign/django-sitemessage/badge.png
-    :target: https://coveralls.io/r/idlesign/django-sitemessage
+.. image:: https://img.shields.io/pypi/l/django-sitemessage.svg
+    :target: https://pypi.python.org/pypi/django-sitemessage
 
 .. image:: https://travis-ci.org/idlesign/django-sitemessage.svg?branch=master
     :target: https://travis-ci.org/idlesign/django-sitemessage
@@ -27,7 +27,7 @@ Description
 
 Schedule and send messages with several easy steps, using concepts of:
 
-* **Messengers** - clients for various protocols (smtp, jabber, twitter, etc.);
+* **Messengers** - clients for various protocols (smtp, jabber, twitter, telegram, etc.);
 
 * **Message Types** - message classes exposing message composition logic (plain text, html, etc.).
 

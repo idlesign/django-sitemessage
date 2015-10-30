@@ -73,6 +73,22 @@ Builtin messengers are available from **sitemessage.messengers**:
 
 
 
+* **sitemessage.messengers.telegram.TelegramMessenger**
+
+.. warning::
+
+    Requires ``requests`` package and a registered Telegram Bot. See https://core.telegram.org/bots/api
+
+.. code-block:: python
+
+    from sitemessage.toolbox import schedule_messages, recipients
+
+
+    # Message to chat with ID 12345678.
+    schedule_messages('Hi there!', recipients('twitter', '12345678'))
+
+
+
 Sending test messages
 ---------------------
 
