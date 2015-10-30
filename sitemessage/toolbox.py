@@ -1,4 +1,5 @@
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
+from operator import itemgetter
 
 from django import VERSION
 from django.utils import six
@@ -103,6 +104,8 @@ def prepare_dispatches():
 def get_user_preferences_for_ui(user, message_filter=None, messenger_filter=None, new_messengers_titles=None):
     """Returns a two element tuple with user subscription preferences to render in UI.
 
+    Message types with the same titles are merged into one row.
+
     First element:
         A list of messengers titles.
 
@@ -122,57 +125,59 @@ def get_user_preferences_for_ui(user, message_filter=None, messenger_filter=None
     if new_messengers_titles is None:
         new_messengers_titles = {}
 
-    messengers = get_registered_messenger_objects()
-    message_types = get_registered_message_types()
-    current_prefs = Subscription.get_for_user(user)
+    msgr_to_msg = defaultdict(set)
+    msg_titles = OrderedDict()
+    msgr_titles = OrderedDict()
 
-    current_prefs = [
-        '%s%s%s' % (pref.message_cls, _ALIAS_SEP, pref.messenger_cls) for pref in current_prefs
-    ]
-
-    prefs_by_message_type = {}
-    messenger_titles = []
-
-    for messenger in messengers.values():
-
-        if not (messenger_filter is None or messenger_filter(messenger)):
+    for msgr in get_registered_messenger_objects().values():
+        if not (messenger_filter is None or messenger_filter(msgr)) or not msgr.allow_user_subscription:
             continue
 
-        msgr_title = messenger.title
-        msgr_new_title = new_messengers_titles.get(messenger.alias)
+        msgr_alias = msgr.alias
+        msgr_title = new_messengers_titles.get(msgr.alias) or msgr.title
 
-        for message_type in message_types.values():
-
-            if not (message_filter is None or message_filter(message_type)):
+        for msg in get_registered_message_types().values():
+            if not (message_filter is None or message_filter(msg)) or not msg.allow_user_subscription:
                 continue
 
-            title = '%s' % message_type.title
-            alias = '%s%s%s' % (message_type.alias, _ALIAS_SEP, messenger.alias)
+            msgr_supported = msg.supported_messengers
+            is_supported = (not msgr_supported or msgr.alias in msgr_supported)
 
-            supported_messengers = message_type.supported_messengers
-            is_supported = (not supported_messengers or messenger.alias in supported_messengers)
-            is_set = alias in current_prefs
+            if not is_supported:
+                continue
 
-            if title not in prefs_by_message_type:
-                prefs_by_message_type[title] = []
+            msg_alias = msg.alias
+            msg_titles.setdefault('%s' % msg.title, []).append(msg_alias)
 
-            prefs_by_message_type[title].append((alias, is_supported, is_set))
+            msgr_to_msg[msgr_alias].update((msg_alias,))
+            msgr_titles[msgr_title] = msgr_alias
 
-            if is_supported:
-                # Titles accumulation allows messengers columns to be hidden
-                # when not used by any message type.
-                messenger_titles.append(msgr_new_title or msgr_title)
+    def sort_titles(titles):
+        return OrderedDict(sorted([(k, v) for k, v in titles.items()], key=itemgetter(0)))
 
-    messenger_titles = list(OrderedDict.fromkeys(messenger_titles))  # Preserve columns order.
-    prefs_by_message_type = OrderedDict(sorted(prefs_by_message_type.items()))
+    msgr_titles = sort_titles(msgr_titles)
 
-    # Handle messages with the same title: merge into one row.
-    messenger_titles_len = len(messenger_titles)
-    for title, prefs in prefs_by_message_type.items():
-        if len(prefs) > messenger_titles_len:
-            prefs_by_message_type[title] = filter(lambda p: p[1] is True, prefs)
+    user_prefs = OrderedDict()
 
-    return messenger_titles, prefs_by_message_type
+    user_subscriptions = ['%s%s%s' % (pref.message_cls, _ALIAS_SEP, pref.messenger_cls)
+                          for pref in Subscription.get_for_user(user)]
+
+    for msg_title, msg_aliases in sort_titles(msg_titles).items():
+        for __, msgr_alias in msgr_titles.items():
+            msg_candidates = msgr_to_msg[msgr_alias].intersection(msg_aliases)
+
+            alias = ''
+            msg_supported = False
+            subscribed = False
+
+            if msg_candidates:
+                alias = '%s%s%s' % (msg_candidates.pop(), _ALIAS_SEP, msgr_alias)
+                msg_supported = True
+                subscribed = alias in user_subscriptions
+
+            user_prefs.setdefault(msg_title, []).append((alias, msg_supported, subscribed))
+
+    return msgr_titles.keys(), user_prefs
 
 
 def set_user_preferences_from_request(request):
