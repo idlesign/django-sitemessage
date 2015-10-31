@@ -22,6 +22,7 @@ Currently supported messengers:
 1. SMTP;
 2. XMPP (requires ``sleekxmpp`` package).
 3. Twitter (requires ``twitter`` package).
+4. Telegram (requires ``requests`` package).
 
 
 
@@ -47,6 +48,7 @@ Table of Contents
     exceptions
     prioritizing
     recipients
+    views
     apps
 
 

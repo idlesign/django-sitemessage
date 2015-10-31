@@ -41,7 +41,7 @@ Quickstart
             XMPPSleekMessenger('user1@jabber.host.com', 'user1password', 'jabber.host.com'),
         )
 
-        # And register built-in message types we'd use (for Django < 1.7).
+        # And register built-in message types we'd use (for Django < 1.7):
         register_builtin_message_types()
 
 

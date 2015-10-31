@@ -69,6 +69,10 @@ into `sitemessages.py` in one of your apps):
         # Define a send retry limit for that message type.
         send_retry_limit = 10
 
+        # If we don't want users to subscribe for messages of this type
+        # (see get_user_preferences_for_ui()) we just forbid such subscriptions.
+        allow_user_subscription = False
+
         def __init__(self, text, date):
             # Calling base class __init__ and passing message context
             super(MyMessage, self).__init__({'text': text, 'date': date})

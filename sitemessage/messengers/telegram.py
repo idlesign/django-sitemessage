@@ -24,7 +24,7 @@ class TelegramMessenger(MessengerBase):
     def __init__(self, auth_token):
         """Configures messenger.
 
-        Register a Telegram Bot using instructions fromhttps://core.telegram.org/bots/api
+        Register a Telegram Bot using instructions from https://core.telegram.org/bots/api
 
         :param auth_token: Bot unique authentication token
         """

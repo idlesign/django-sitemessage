@@ -80,7 +80,8 @@ and store subscription data into DB.
 .. note::
 
     **get_user_preferences_for_ui** allows messenger titles customization and both
-    message types and messengers filtering.
+    message types and messengers filtering. You can also forbid subscriptions on message type
+    or messenger level by setting `allow_user_subscription` class attribute to `False`.
 
 
 And that's what is in a template used by the view above:
@@ -105,17 +106,15 @@ And that's what is in a template used by the view above:
     You can get subscribers as recipients list right from your message type, using `get_subscribers()` method.
 
 
+Handling unsubscriptions
+------------------------
+
+.. _handle_unsubscriptions:
+
 **sitemessage** bundles some views, and one of those allows users to unsubscribe from certain message types
-just by visiting it. So let's configure your project to use those views:
+just by visiting it.
 
+Please refer to :ref:`Bundled views <bundled_views>` section of this documentation.
 
-.. code-block:: python
-
-    from sitemessage.toolbox import get_sitemessage_urls
-
-    ...
-
-    # Somewhere in your urls.py.
-
-    urlpatterns += get_sitemessage_urls()  # Attaching sitemessage URLs.
-
+After that, for example, your E-mail client (if it supports `List-Unsubscribe` header) will happily introduce you
+some button to unsubscribe from messages of that type.
