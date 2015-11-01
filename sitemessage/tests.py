@@ -34,6 +34,13 @@ WONDERLAND_DOMAIN = '@wonderland'
 urlpatterns = get_sitemessage_urls()
 
 
+class MockException(Exception):
+    """This will prevent `catching classes that do not inherit from BaseException is not allowed` errors
+    when `mock_thirdparty` is used.
+
+    """
+
+
 def mock_thirdparty(name, func, mock=None):
     if mock is None:
         mock = MagicMock()
@@ -51,6 +58,7 @@ messenger_twitter = mock_thirdparty('twitter', lambda: TwitterMessenger('key', '
 messenger_twitter.lib = MagicMock()
 messenger_telegram = mock_thirdparty('requests', lambda: TelegramMessenger('bottoken'))
 messenger_telegram.lib = MagicMock()
+messenger_telegram.lib.exceptions.RequestException = MockException
 
 register_messenger_objects(messenger_smtp, messenger_xmpp, messenger_twitter, messenger_telegram)
 
