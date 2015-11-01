@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+
 from ..utils import Recipient, is_iterable, get_registered_message_type
 from ..models import Dispatch
 from ..exceptions import UnknownMessageTypeError
@@ -36,15 +38,24 @@ class MessengerBase(object):
     def __str__(self):
         return self.__class__.get_alias()
 
+    @contextmanager
+    def before_after_send_handling(self):
+        """Context manager that allows to execute send wrapped
+        in before_send() and after_send().
+
+        """
+        self.before_send()
+        yield
+        self.after_send()
+
     def send_test_message(self, to, text):
         """Sends a test message using messengers settings.
 
         :param str to: an address to send test message to
         :param str text: text to send
         """
-        self.before_send()
-        result = self._test_message(to, text)
-        self.after_send()
+        with self.before_after_send_handling():
+            result = self._test_message(to, text)
         return result
 
     def _test_message(self, to, text):
@@ -173,33 +184,32 @@ class MessengerBase(object):
         :raises UnknownMessageTypeError:
         """
         self._init_delivery_statuses_dict()
-        self.before_send()
 
-        for message_id, message_data in messages.items():
-            message_model, dispatch_models = message_data
-            try:
-                message_cls = get_registered_message_type(message_model.cls)
-            except UnknownMessageTypeError:
-                if ignore_unknown_message_types:
-                    continue
-                raise
+        with self.before_after_send_handling():
+            for message_id, message_data in messages.items():
+                message_model, dispatch_models = message_data
+                try:
+                    message_cls = get_registered_message_type(message_model.cls)
+                except UnknownMessageTypeError:
+                    if ignore_unknown_message_types:
+                        continue
+                    raise
 
-            message_type_cache = None
-            for dispatch in dispatch_models:
-                if not dispatch.message_cache:  # Create actual message text for further usage.
+                message_type_cache = None
+                for dispatch in dispatch_models:
+                    if not dispatch.message_cache:  # Create actual message text for further usage.
 
-                    if message_type_cache is None and not message_cls.has_dynamic_context:
-                        # If a message class doesn't depend upon a dispatch data for message compilation,
-                        # we'd compile a message just once.
-                        message_type_cache = message_cls.compile(message_model, self, dispatch=dispatch)
+                        if message_type_cache is None and not message_cls.has_dynamic_context:
+                            # If a message class doesn't depend upon a dispatch data for message compilation,
+                            # we'd compile a message just once.
+                            message_type_cache = message_cls.compile(message_model, self, dispatch=dispatch)
 
-                    dispatch.message_cache = message_type_cache or message_cls.compile(
-                        message_model, self, dispatch=dispatch
-                    )
+                        dispatch.message_cache = message_type_cache or message_cls.compile(
+                            message_model, self, dispatch=dispatch
+                        )
 
-            self.send(message_cls, message_model, dispatch_models)
+                self.send(message_cls, message_model, dispatch_models)
 
-        self.after_send()
         self._update_dispatches()
 
     def _update_dispatches(self):
