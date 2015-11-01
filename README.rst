@@ -11,6 +11,9 @@ https://github.com/idlesign/django-sitemessage
 .. image:: https://img.shields.io/pypi/l/django-sitemessage.svg
     :target: https://pypi.python.org/pypi/django-sitemessage
 
+.. image:: https://img.shields.io/coveralls/idlesign/django-sitemessage/master.svg
+    :target: https://coveralls.io/r/idlesign/django-sitemessage
+
 .. image:: https://travis-ci.org/idlesign/django-sitemessage.svg?branch=master
     :target: https://travis-ci.org/idlesign/django-sitemessage
 
