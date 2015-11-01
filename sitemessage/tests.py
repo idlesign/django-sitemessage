@@ -26,6 +26,7 @@ from .shortcuts import schedule_email, schedule_jabber_message
 from .messengers.smtp import SMTPMessenger
 from .messengers.xmpp import XMPPSleekMessenger
 from .messengers.twitter import TwitterMessenger
+from .messengers.telegram import TelegramMessenger
 
 
 WONDERLAND_DOMAIN = '@wonderland'
@@ -48,8 +49,10 @@ messenger_xmpp = mock_thirdparty('sleekxmpp', lambda: XMPPSleekMessenger('somjid
 messenger_xmpp._session_started = True
 messenger_twitter = mock_thirdparty('twitter', lambda: TwitterMessenger('key', 'secret', 'token', 'token_secret'))
 messenger_twitter.lib = MagicMock()
+messenger_telegram = mock_thirdparty('requests', lambda: TelegramMessenger('bottoken'))
+messenger_telegram.lib = MagicMock()
 
-register_messenger_objects(messenger_smtp, messenger_xmpp, messenger_twitter)
+register_messenger_objects(messenger_smtp, messenger_xmpp, messenger_twitter, messenger_telegram)
 
 register_builtin_message_types()
 
@@ -118,6 +121,10 @@ register_message_types(PlainTextMessage, TestMessage, TestMessagePlain, TestMess
 
 class SitemessageTest(TestCase):
 
+    def assert_called_n(self, func, n=1):
+        self.assertEqual(func.call_count, n)
+        func.call_count = 0
+
     def tearDown(self):
         User.objects.all().delete()
         Message.objects.all().delete()
@@ -141,7 +148,7 @@ class ToolboxTest(SitemessageTest):
         messengers_titles, prefs = get_user_preferences_for_ui(user)
 
         self.assertEqual(len(prefs.keys()), 3)
-        self.assertEqual(len(messengers_titles), 5)
+        self.assertEqual(len(messengers_titles), 6)
 
         Subscription.create(user, TestMessage, TestMessenger)
         user_prefs = get_user_preferences_for_ui(
@@ -499,6 +506,7 @@ class DispatchModelTest(SitemessageTest):
         d.mark_read()
         self.assertEqual(d.read_status, d.READ_STATUS_READ)
 
+
 class MessageModelTest(SitemessageTest):
 
     def test_create(self):
@@ -611,7 +619,7 @@ class SMTPMessengerTest(SitemessageTest):
     def test_send(self):
         schedule_messages('text', recipients('smtp', 'someone'))
         send_scheduled_messages()
-        messenger_smtp.smtp.sendmail.assert_called_once()
+        self.assert_called_n(messenger_smtp.smtp.sendmail)
 
     def test_send_fail(self):
         schedule_messages('text', recipients('smtp', 'someone'))
@@ -633,7 +641,7 @@ class SMTPMessengerTest(SitemessageTest):
 
     def test_send_test_message(self):
         messenger_smtp.send_test_message('someone', 'sometext')
-        messenger_smtp.smtp.sendmail.assert_called_once()
+        self.assert_called_n(messenger_smtp.smtp.sendmail)
 
 
 class TwitterMessengerTest(SitemessageTest):
@@ -716,6 +724,53 @@ class XMPPSleekMessengerTest(SitemessageTest):
         finally:
             messenger_xmpp.xmpp.send_message = old_method
 
+
+class TelegramMessengerTest(SitemessageTest):
+
+    def setUp(self):
+        messenger_telegram._verify_bot()
+        messenger_telegram.lib.post.call_count = 0
+
+    def test_get_address(self):
+        r = object()
+        self.assertEqual(messenger_telegram.get_address(r), r)
+
+        r = type('r', (object,), dict(telegram='chat_id'))
+        self.assertEqual(messenger_telegram.get_address(r), 'chat_id')
+
+    def test_send(self):
+        schedule_messages('text', recipients('telegram', '1234567'))
+        send_scheduled_messages()
+        self.assert_called_n(messenger_telegram.lib.post)
+
+    def test_send_test_message(self):
+        messenger_telegram.send_test_message('someone', 'sometext')
+        self.assert_called_n(messenger_telegram.lib.post)
+
+        messenger_telegram.send_test_message('', 'sometext')
+        self.assert_called_n(messenger_telegram.lib.post)
+
+    def test_get_chat_ids(self):
+        self.assertEqual(messenger_telegram.get_chat_ids(), [])
+        self.assert_called_n(messenger_telegram.lib.post, 2)
+
+    def test_send_fail(self):
+        schedule_messages('text', recipients('telegram', 'someone'))
+
+        def new_method(*args, **kwargs):
+            raise Exception('telegram failed')
+
+        old_method = messenger_telegram.lib.post
+        messenger_telegram.lib.post = new_method
+
+        try:
+            send_scheduled_messages()
+            errors = DispatchError.objects.all()
+            self.assertEqual(len(errors), 1)
+            self.assertEqual(errors[0].error_log, 'telegram failed')
+            self.assertEqual(errors[0].dispatch.address, 'someone')
+        finally:
+            messenger_telegram.lib.post = old_method
 
 class ViewsTest(SitemessageTest):
 
