@@ -11,12 +11,12 @@ class UnknownMessageTypeError(SiteMessageError):
     """This error is raised when there's a try to access an unknown message type."""
 
 
-class UnknownMessengerError(SiteMessageError):
-    """This error is raised when there's a try to access an unknown messenger."""
-
-
 class MessengerException(SiteMessageError):
     """Base messenger exception."""
+
+
+class UnknownMessengerError(MessengerException):
+    """This error is raised when there's a try to access an unknown messenger."""
 
 
 class MessengerWarmupException(MessengerException):
