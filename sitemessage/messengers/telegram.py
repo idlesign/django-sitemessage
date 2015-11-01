@@ -9,7 +9,7 @@ class TelegramMessengerException(MessengerException):
 
 
 class TelegramMessenger(MessengerBase):
-    """Implements Telegram message delivery vie Telegram Bot API.
+    """Implements Telegram message delivery via Telegram Bot API.
 
     Uses `requests` module: https://pypi.python.org/pypi/requests
 
@@ -44,7 +44,34 @@ class TelegramMessenger(MessengerBase):
         """Sends an API command to test whether bot is authorized."""
         self._send_command('getMe')
 
+    def get_updates(self):
+        """Returns new messages addressed to bot.
+
+        :rtype: list
+        """
+        with self.before_after_send_handling():
+            result = self._send_command('getUpdates')
+        return result
+
+    def get_chat_ids(self):
+        """Returns unique chat IDs from `/start` command messages sent to our bot by users.
+        Those chat IDs can be used to send messages to chats.
+
+        :rtype: list
+        """
+        updates = self.get_updates()
+        chat_ids = []
+        if updates:
+            for update in updates:
+                message = update['message']
+                if message['text'] == '/start':
+                    chat_ids.append(message['chat']['id'])
+        return list(set(chat_ids))
+
     def before_send(self):
+        if self._session_started:
+            return
+
         try:
             self._verify_bot()
             self._session_started = True
@@ -68,6 +95,8 @@ class TelegramMessenger(MessengerBase):
 
             if not json['ok']:
                 raise TelegramMessengerException(json['description'])
+
+            return json['result']
 
         except self.lib.exceptions.RequestException as e:
             raise TelegramMessengerException(e)

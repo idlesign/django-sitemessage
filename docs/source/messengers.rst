@@ -87,7 +87,9 @@ Builtin messengers are available from **sitemessage.messengers**:
     from sitemessage.toolbox import schedule_messages, recipients
 
 
-    # Message to chat with ID 12345678.
+    # Let's send a message to chat with ID 12345678.
+    # (To get chat IDs from `/start` command messages sent to our bot
+    # by users you can use get_chat_ids() method of Telegram messenger).
     schedule_messages('Hi there!', recipients('telegram', '12345678'))
 
     # Message to a channel mychannel
