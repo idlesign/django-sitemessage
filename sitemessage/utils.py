@@ -2,7 +2,13 @@ from collections import namedtuple, defaultdict, OrderedDict
 from threading import local
 
 from django.utils import six
-from django.utils.importlib import import_module
+
+try:
+    from django.utils.module_loading import import_module
+except ImportError:
+    # Django <=1.9.0
+    from django.utils.importlib import import_module
+
 from django.utils.module_loading import module_has_submodule
 from etc.toolbox import get_site_url as get_site_url_
 

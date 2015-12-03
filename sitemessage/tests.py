@@ -6,7 +6,13 @@ from django.test.utils import override_settings
 from django.test import TestCase
 from django.test.client import RequestFactory, Client
 from django.contrib.auth.models import User
-from django.template.base import TemplateDoesNotExist, Template, TemplateSyntaxError
+
+try:
+    from django.template.base import TemplateDoesNotExist, Template, TemplateSyntaxError
+except ImportError:
+    # Django 1.9+
+    from django.template import TemplateDoesNotExist, Template, TemplateSyntaxError
+
 from django.template.context import Context
 
 from .messages.plain import PlainTextMessage
