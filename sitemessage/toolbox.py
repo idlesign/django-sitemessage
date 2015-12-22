@@ -8,6 +8,7 @@ from django.conf.urls import patterns, url
 from .models import Message, Dispatch, Subscription
 from .exceptions import UnknownMessengerError, UnknownMessageTypeError
 from .messages.plain import PlainTextMessage
+from .views import mark_read, unsubscribe
 
 # NB: Some of these unused imports are exposed as part of toolbox API.
 from .messages import register_builtin_message_types
@@ -218,16 +219,19 @@ def get_sitemessage_urls():
         ) + get_sitemessage_urls()  # Now attaching additional URLs.
 
     """
-    return patterns(
-        '',
-        url(
-            r'^messages/unsubscribe/(?P<message_id>\d+)/(?P<dispatch_id>\d+)/(?P<hashed>[^/]+)/$',
-            'sitemessage.views.unsubscribe',
-            name='sitemessage_unsubscribe'
-        ),
-        url(
-            r'^messages/ping/(?P<message_id>\d+)/(?P<dispatch_id>\d+)/(?P<hashed>[^/]+)/$',
-            'sitemessage.views.mark_read',
-            name='sitemessage_mark_read'
-        )
+    url_unsubscribe = url(
+        r'^messages/unsubscribe/(?P<message_id>\d+)/(?P<dispatch_id>\d+)/(?P<hashed>[^/]+)/$',
+        unsubscribe,
+        name='sitemessage_unsubscribe'
     )
+
+    url_mark_read = url(
+        r'^messages/ping/(?P<message_id>\d+)/(?P<dispatch_id>\d+)/(?P<hashed>[^/]+)/$',
+        mark_read,
+        name='sitemessage_mark_read'
+    )
+
+    if VERSION >= (1, 9):
+        return [url_unsubscribe, url_mark_read]
+
+    return patterns('', url_unsubscribe, url_mark_read)
