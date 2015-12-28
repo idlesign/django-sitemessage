@@ -151,7 +151,10 @@ def import_app_sitemessage_module(app):
     :rtype: module or None
     """
     module_name = APP_MODULE_NAME
-    module = import_module(app)
+    try:
+        module = import_module(app)
+    except ImportError:
+        return None
     try:
         sub_module = import_module('%s.%s' % (app, module_name))
         return sub_module
