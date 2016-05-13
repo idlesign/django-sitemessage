@@ -10,7 +10,7 @@ except ImportError:
     from django.utils.importlib import import_module
 
 from django.utils.module_loading import module_has_submodule
-from etc.toolbox import get_site_url as get_site_url_
+from etc.toolbox import get_site_url as get_site_url_, import_app_module, import_project_modules
 
 from .settings import APP_MODULE_NAME, SITE_URL
 from .exceptions import UnknownMessageTypeError, UnknownMessengerError
@@ -150,26 +150,12 @@ def import_app_sitemessage_module(app):
     :return: submodule or None
     :rtype: module or None
     """
-    module_name = APP_MODULE_NAME
-    module = import_module(app)
-    try:
-        sub_module = import_module('%s.%s' % (app, module_name))
-        return sub_module
-    except:
-        if module_has_submodule(module, module_name):
-            raise
-        return None
+    return import_app_module(app, APP_MODULE_NAME)
 
 
 def import_project_sitemessage_modules():
     """Imports sitemessages modules from registered apps."""
-    from django.conf import settings as django_settings
-    submodules = []
-    for app in django_settings.INSTALLED_APPS:
-        module = import_app_sitemessage_module(app)
-        if module is not None:
-            submodules.append(module)
-    return submodules
+    return import_project_modules(APP_MODULE_NAME)
 
 
 def is_iterable(v):
