@@ -9,7 +9,6 @@ except ImportError:
     # Django <=1.9.0
     from django.utils.importlib import import_module
 
-from django.utils.module_loading import module_has_submodule
 from etc.toolbox import get_site_url as get_site_url_, import_app_module, import_project_modules
 
 from .settings import APP_MODULE_NAME, SITE_URL
