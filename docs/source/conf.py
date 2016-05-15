@@ -86,7 +86,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'django-sitemessage'
-copyright = u'2014-2015, Igor `idle sign` Starikov'
+copyright = u'2014-2016, Igor `idle sign` Starikov'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
