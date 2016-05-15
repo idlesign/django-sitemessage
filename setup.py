@@ -25,11 +25,14 @@ setup(
     include_package_data=True,
     zip_safe=False,
 
-    install_requires=['django-etc >= 0.9.0'],
+    install_requires=['django-etc >= 0.9.1'],
 
     classifiers=[
         # As in https://pypi.python.org/pypi?:action=list_classifiers
         'Development Status :: 4 - Beta',
+        'Environment :: Web Environment',
+        'Framework :: Django',
+        'Intended Audience :: Developers',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
