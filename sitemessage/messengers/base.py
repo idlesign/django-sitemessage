@@ -44,9 +44,15 @@ class MessengerBase(object):
         in before_send() and after_send().
 
         """
+        self._init_delivery_statuses_dict()
         self.before_send()
-        yield
-        self.after_send()
+
+        try:
+            yield
+
+        finally:
+            self.after_send()
+            self._update_dispatches()
 
     def send_test_message(self, to, text):
         """Sends a test message using messengers settings.
@@ -183,8 +189,6 @@ class MessengerBase(object):
         :param bool ignore_unknown_message_types: whether to silence exceptions
         :raises UnknownMessageTypeError:
         """
-        self._init_delivery_statuses_dict()
-
         with self.before_after_send_handling():
             for message_id, message_data in messages.items():
                 message_model, dispatch_models = message_data
@@ -198,19 +202,19 @@ class MessengerBase(object):
                 message_type_cache = None
                 for dispatch in dispatch_models:
                     if not dispatch.message_cache:  # Create actual message text for further usage.
+                        try:
+                            if message_type_cache is None and not message_cls.has_dynamic_context:
+                                # If a message class doesn't depend upon a dispatch data for message compilation,
+                                # we'd compile a message just once.
+                                message_type_cache = message_cls.compile(message_model, self, dispatch=dispatch)
 
-                        if message_type_cache is None and not message_cls.has_dynamic_context:
-                            # If a message class doesn't depend upon a dispatch data for message compilation,
-                            # we'd compile a message just once.
-                            message_type_cache = message_cls.compile(message_model, self, dispatch=dispatch)
+                            dispatch.message_cache = message_type_cache or message_cls.compile(
+                                message_model, self, dispatch=dispatch)
 
-                        dispatch.message_cache = message_type_cache or message_cls.compile(
-                            message_model, self, dispatch=dispatch
-                        )
+                        except Exception as e:
+                            self.mark_error(dispatch, e, message_cls)
 
                 self.send(message_cls, message_model, dispatch_models)
-
-        self._update_dispatches()
 
     def _update_dispatches(self):
         """Updates dispatched data in DB according to information gather by `mark_*` methods,"""

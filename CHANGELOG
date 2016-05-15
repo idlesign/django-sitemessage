@@ -2,6 +2,11 @@ django-sitemessage changelog
 ============================
 
 
+Unreleased
+----------
+* Template compilation errors are now considered dispatch errors and properly logged.
+
+
 v0.7.1
 ------
 * Django 1.9 compatibility improvements.
