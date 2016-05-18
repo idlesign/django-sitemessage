@@ -110,8 +110,26 @@ Builtin messengers are available from **sitemessage.messengers**:
     from sitemessage.toolbox import schedule_messages, recipients
 
 
-    # Schedule message ar URL for FB timeline.
+    # Schedule a message or a URL for FB timeline.
     schedule_messages('Hi there!', recipients('fb', ''))
+
+
+* **sitemessage.messengers.vkontakte.VKontakteMessenger** aliased *vk*
+
+.. warning::
+
+    Requires ``requests`` package, registered VK application and community page.
+
+    See ``VKontakteMessenger`` docstring for detailed instructions.
+
+
+.. code-block:: python
+
+    from sitemessage.toolbox import schedule_messages, recipients
+
+
+    # Schedule a message or a URL for VK page wall. 1245 - user_id; use -12345 (with minus) to post to community wall.
+    schedule_messages('Hi there!', recipients('vk', '12345'))
 
 
 

@@ -62,8 +62,19 @@ def schedule_telegram_message(message, to, sender=None, priority=None):
 def schedule_facebook_message(message, sender=None, priority=None):
     """Schedules Facebook wall message for delivery.
 
-    :param str message: text or link to publish.
+    :param str message: text or URL to publish.
     :param User sender: User model heir instance
     :param int priority: number describing message priority. If set overrides priority provided with message type.
     """
     schedule_messages(message, recipients('fb', ''), sender=sender, priority=priority)
+
+
+def schedule_vkontakte_message(message, to, sender=None, priority=None):
+    """Schedules VKontakte message for delivery.
+
+    :param str message: text or URL to publish on wall.
+    :param list to: recipients addresses or Django User model heir instances with `vk` attributes.
+    :param User sender: User model heir instance
+    :param int priority: number describing message priority. If set overrides priority provided with message type.
+    """
+    schedule_messages(message, recipients('vk', to), sender=sender, priority=priority)

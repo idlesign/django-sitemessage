@@ -28,12 +28,14 @@ from .utils import Recipient, register_messenger_objects, \
 from .exceptions import UnknownMessengerError, SiteMessageConfigurationError
 from .signals import sig_mark_read_failed, sig_mark_read_success, sig_unsubscribe_failed, sig_unsubscribe_success
 
-from .shortcuts import schedule_email, schedule_jabber_message
+from .shortcuts import schedule_email, schedule_jabber_message, schedule_telegram_message, schedule_tweet, \
+    schedule_vkontakte_message, schedule_facebook_message
 from .messengers.smtp import SMTPMessenger
 from .messengers.xmpp import XMPPSleekMessenger
 from .messengers.twitter import TwitterMessenger
 from .messengers.telegram import TelegramMessenger
 from .messengers.facebook import FacebookMessenger
+from .messengers.vkontakte import VKontakteMessenger
 
 
 WONDERLAND_DOMAIN = '@wonderland'
@@ -74,12 +76,17 @@ messenger_fb = mock_thirdparty('requests', lambda: FacebookMessenger('pagetoken'
 messenger_fb.lib = MagicMock()
 messenger_fb.lib.exceptions.RequestException = MockException
 
+messenger_vk = mock_thirdparty('requests', lambda: VKontakteMessenger('apptoken'))
+messenger_vk.lib = MagicMock()
+messenger_vk.lib.exceptions.RequestException = MockException
+
 register_messenger_objects(
     messenger_smtp,
     messenger_xmpp,
     messenger_twitter,
     messenger_telegram,
-    messenger_fb
+    messenger_fb,
+    messenger_vk
 )
 
 register_builtin_message_types()
@@ -176,7 +183,7 @@ class ToolboxTest(SitemessageTest):
         messengers_titles, prefs = get_user_preferences_for_ui(user)
 
         self.assertEqual(len(prefs.keys()), 3)
-        self.assertEqual(len(messengers_titles), 7)
+        self.assertEqual(len(messengers_titles), 8)
 
         Subscription.create(user, TestMessage, TestMessenger)
         user_prefs = get_user_preferences_for_ui(
@@ -634,6 +641,18 @@ class ShortcutsTest(SitemessageTest):
     def test_schedule_jabber_message(self):
         schedule_jabber_message('message', 'noone')
 
+    def test_schedule_tweet(self):
+        schedule_tweet('message', '')
+
+    def test_schedule_tele(self):
+        schedule_telegram_message('message', '')
+
+    def test_schedule_fb(self):
+        schedule_facebook_message('message')
+
+    def test_schedule_vk(self):
+        schedule_vkontakte_message('message', '12345')
+
 
 class SMTPMessengerTest(SitemessageTest):
 
@@ -840,6 +859,43 @@ class FacebookMessengerTest(SitemessageTest):
             self.assertEqual(errors[0].dispatch.address, '')
         finally:
             messenger_fb.lib.post = old_method
+
+
+class VKontakteMessengerTest(SitemessageTest):
+
+    def setUp(self):
+        messenger_vk.lib.post.call_count = 0
+        messenger_vk.lib.get.call_count = 0
+
+    def test_send(self):
+        schedule_messages('text', recipients('vk', '12345'))
+        send_scheduled_messages()
+        self.assert_called_n(messenger_vk.lib.post)
+
+    def test_send_test_message(self):
+        messenger_vk.send_test_message('12345', 'sometext')
+        self.assert_called_n(messenger_vk.lib.post)
+
+        messenger_vk.send_test_message('12345', 'sometext')
+        self.assert_called_n(messenger_vk.lib.post)
+
+    def test_send_fail(self):
+        schedule_messages('text', recipients('vk', '12345'))
+
+        def new_method(*args, **kwargs):
+            raise Exception('vk failed')
+
+        old_method = messenger_vk.lib.post
+        messenger_vk.lib.post = new_method
+
+        try:
+            send_scheduled_messages()
+            errors = DispatchError.objects.all()
+            self.assertEqual(len(errors), 1)
+            self.assertEqual(errors[0].error_log, 'vk failed')
+            self.assertEqual(errors[0].dispatch.address, '12345')
+        finally:
+            messenger_vk.lib.post = old_method
 
 class ViewsTest(SitemessageTest):
 

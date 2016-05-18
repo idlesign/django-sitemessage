@@ -30,7 +30,7 @@ Description
 
 Schedule and send messages with several easy steps, using concepts of:
 
-* **Messengers** - clients for various protocols (smtp, jabber, twitter, telegram, etc.);
+* **Messengers** - clients for various protocols (smtp, jabber, twitter, telegram, facebook, vkontakte, etc.);
 
 * **Message Types** - message classes exposing message composition logic (plain text, html, etc.).
 
