@@ -96,6 +96,24 @@ Builtin messengers are available from **sitemessage.messengers**:
     schedule_messages('Hi all!', recipients('telegram', '@mychannel'))
 
 
+* **sitemessage.messengers.facebook.FacebookMessenger** aliased *fb*
+
+.. warning::
+
+    Requires ``requests`` package, registered FB application and page.
+
+    See ``FacebookMessenger`` docstring for detailed instructions.
+
+
+.. code-block:: python
+
+    from sitemessage.toolbox import schedule_messages, recipients
+
+
+    # Schedule message ar URL for FB timeline.
+    schedule_messages('Hi there!', recipients('fb', ''))
+
+
 
 Sending test messages
 ---------------------

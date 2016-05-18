@@ -33,6 +33,7 @@ from .messengers.smtp import SMTPMessenger
 from .messengers.xmpp import XMPPSleekMessenger
 from .messengers.twitter import TwitterMessenger
 from .messengers.telegram import TelegramMessenger
+from .messengers.facebook import FacebookMessenger
 
 
 WONDERLAND_DOMAIN = '@wonderland'
@@ -58,15 +59,28 @@ def mock_thirdparty(name, func, mock=None):
 
 
 messenger_smtp = mock_thirdparty('smtplib', lambda: SMTPMessenger(login='someone', use_tls=True))
+
 messenger_xmpp = mock_thirdparty('sleekxmpp', lambda: XMPPSleekMessenger('somjid', 'somepasswd'))
 messenger_xmpp._session_started = True
+
 messenger_twitter = mock_thirdparty('twitter', lambda: TwitterMessenger('key', 'secret', 'token', 'token_secret'))
 messenger_twitter.lib = MagicMock()
+
 messenger_telegram = mock_thirdparty('requests', lambda: TelegramMessenger('bottoken'))
 messenger_telegram.lib = MagicMock()
 messenger_telegram.lib.exceptions.RequestException = MockException
 
-register_messenger_objects(messenger_smtp, messenger_xmpp, messenger_twitter, messenger_telegram)
+messenger_fb = mock_thirdparty('requests', lambda: FacebookMessenger('pagetoken'))
+messenger_fb.lib = MagicMock()
+messenger_fb.lib.exceptions.RequestException = MockException
+
+register_messenger_objects(
+    messenger_smtp,
+    messenger_xmpp,
+    messenger_twitter,
+    messenger_telegram,
+    messenger_fb
+)
 
 register_builtin_message_types()
 
@@ -162,7 +176,7 @@ class ToolboxTest(SitemessageTest):
         messengers_titles, prefs = get_user_preferences_for_ui(user)
 
         self.assertEqual(len(prefs.keys()), 3)
-        self.assertEqual(len(messengers_titles), 6)
+        self.assertEqual(len(messengers_titles), 7)
 
         Subscription.create(user, TestMessage, TestMessenger)
         user_prefs = get_user_preferences_for_ui(
@@ -785,6 +799,47 @@ class TelegramMessengerTest(SitemessageTest):
             self.assertEqual(errors[0].dispatch.address, 'someone')
         finally:
             messenger_telegram.lib.post = old_method
+
+
+class FacebookMessengerTest(SitemessageTest):
+
+    def setUp(self):
+        messenger_fb.lib.post.call_count = 0
+        messenger_fb.lib.get.call_count = 0
+
+    def test_send(self):
+        schedule_messages('text', recipients('fb', ''))
+        send_scheduled_messages()
+        self.assert_called_n(messenger_fb.lib.post)
+
+    def test_send_test_message(self):
+        messenger_fb.send_test_message('', 'sometext')
+        self.assert_called_n(messenger_fb.lib.post)
+
+        messenger_fb.send_test_message('', 'sometext')
+        self.assert_called_n(messenger_fb.lib.post)
+
+    def test_get_page_access_token(self):
+        self.assertEqual(messenger_fb.get_page_access_token('app_id', 'app_secret', 'user_token'), {})
+        self.assert_called_n(messenger_fb.lib.get, 2)
+
+    def test_send_fail(self):
+        schedule_messages('text', recipients('fb', ''))
+
+        def new_method(*args, **kwargs):
+            raise Exception('fb failed')
+
+        old_method = messenger_fb.lib.post
+        messenger_fb.lib.post = new_method
+
+        try:
+            send_scheduled_messages()
+            errors = DispatchError.objects.all()
+            self.assertEqual(len(errors), 1)
+            self.assertEqual(errors[0].error_log, 'fb failed')
+            self.assertEqual(errors[0].dispatch.address, '')
+        finally:
+            messenger_fb.lib.post = old_method
 
 class ViewsTest(SitemessageTest):
 

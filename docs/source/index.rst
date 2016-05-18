@@ -20,9 +20,11 @@ Schedule and send messages with several easy steps, using concepts of:
 Currently supported messengers:
 
 1. SMTP;
-2. XMPP (requires ``sleekxmpp`` package).
-3. Twitter (requires ``twitter`` package).
-4. Telegram (requires ``requests`` package).
+2. XMPP (requires ``sleekxmpp`` package);
+3. Twitter (requires ``twitter`` package);
+4. Telegram (requires ``requests`` package);
+5. Facebook (requires ``requests`` package);
+6. VKontakte (requires ``requests`` package).
 
 
 

@@ -29,7 +29,7 @@ def schedule_jabber_message(message, to, sender=None, priority=None):
     """Schedules Jabber XMPP message for delivery.
 
     :param str message: text to send.
-    :param list to: recipients addresses or Django User model heir instances
+    :param list to: recipients addresses or Django User model heir instances with `email` attributes.
     :param User sender: User model heir instance
     :param int priority: number describing message priority. If set overrides priority provided with message type.
     """
@@ -40,7 +40,8 @@ def schedule_tweet(message, to='', sender=None, priority=None):
     """Schedules a Tweet for delivery.
 
     :param str message: text to send.
-    :param list to: recipients addresses or Django User model heir instances. If supplied tweets will be @-replies.
+    :param list to: recipients addresses or Django User model heir instances with `telegram` attributes.
+        If supplied tweets will be @-replies.
     :param User sender: User model heir instance
     :param int priority: number describing message priority. If set overrides priority provided with message type.
     """
@@ -51,8 +52,18 @@ def schedule_telegram_message(message, to, sender=None, priority=None):
     """Schedules Telegram message for delivery.
 
     :param str message: text to send.
-    :param list to: recipients addresses or Django User model heir instances
+    :param list to: recipients addresses or Django User model heir instances with `telegram` attributes.
     :param User sender: User model heir instance
     :param int priority: number describing message priority. If set overrides priority provided with message type.
     """
     schedule_messages(message, recipients('telegram', to), sender=sender, priority=priority)
+
+
+def schedule_facebook_message(message, sender=None, priority=None):
+    """Schedules Facebook wall message for delivery.
+
+    :param str message: text or link to publish.
+    :param User sender: User model heir instance
+    :param int priority: number describing message priority. If set overrides priority provided with message type.
+    """
+    schedule_messages(message, recipients('fb', ''), sender=sender, priority=priority)
