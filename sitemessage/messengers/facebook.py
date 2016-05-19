@@ -24,6 +24,8 @@ class FacebookMessenger(MessengerBase):
     3. Go to Graph API Explorer - https://developers.facebook.com/tools/explorer/
        3.1. Pick your application from top right dropdown.
        3.2. `Get User Token` using dropdown near Access Token field. Check `manage_pages` permission.
+       
+    4. Get page access token from your user token and application credentials using .get_page_access_token().
 
     """
 
