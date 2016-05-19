@@ -12,9 +12,23 @@ class VKontakteMessenger(MessengerBase):
     """Implements VKontakte page wall message publishing.
 
     Uses `requests` module: https://pypi.python.org/pypi/requests
+    
+    Steps to be done:
+
+    1. Create a user/community page.
+    2. Create `Standalone` application at http://vk.com/apps?act=manage
+    3. Get your Application ID (under Settings menu item in left menu)
+    4. To generate an access token go to using your browser:
+
+        https://oauth.vk.com/authorize?client_id={app_id}&scope=wall,offline&display=page&response_type=token
+        &v=5.52&redirect_uri=https://oauth.vk.com/blank.html
+        
+        * Replace {app_id} with actual application ID.
+
+    5. Copy token from URL in browser (symbols after `access_token=` but before &)
+    6. Use this token.
 
     """
-
     alias = 'vk'
     title = _('VKontakte')
 
@@ -23,20 +37,7 @@ class VKontakteMessenger(MessengerBase):
     def __init__(self, access_token):
         """Configures messenger.
 
-        Steps to be done:
-
-        1. Create a user/community page.
-        2. Create `Standalone` application at http://vk.com/apps?act=manage
-        3. Get Application ID (under Settings menu item in left menu)
-        4. Go to in browser (replace {app_id} with actual application ID):
-
-            https://oauth.vk.com/authorize?client_id={app_id}&scope=wall,offline&display=page&response_type=token
-            &v=5.52&redirect_uri=https://oauth.vk.com/blank.html
-
-        5. Copy token from URL in browser (symbols after `access_token=` but before &)
-        6. Use token,
-
-        :param str access_token: Unique authentication token of your VK user/community page.
+        :param str access_token: Unique authentication token to access your VK user/community page.
 
         """
         import requests
