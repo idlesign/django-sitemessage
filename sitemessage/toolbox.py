@@ -3,7 +3,7 @@ from operator import itemgetter
 
 from django import VERSION
 from django.utils import six
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 
 from .models import Message, Dispatch, Subscription
 from .exceptions import UnknownMessengerError, UnknownMessageTypeError
@@ -234,4 +234,5 @@ def get_sitemessage_urls():
     if VERSION >= (1, 9):
         return [url_unsubscribe, url_mark_read]
 
+    from django.conf.urls import patterns
     return patterns('', url_unsubscribe, url_mark_read)
