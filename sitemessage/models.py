@@ -1,5 +1,6 @@
 import json
 
+from django import VERSION
 from django.core import exceptions
 from django.db import models
 from django.utils import timezone
@@ -11,14 +12,35 @@ from django.conf import settings
 
 USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
+if VERSION >= (1, 9, 0):
+    ContextFieldBase = models.TextField
+else:
+    ContextFieldBase = with_metaclass(models.SubfieldBase, models.TextField)
 
-# This allows South to handle our custom 'CharFieldNullable' field.
+
+# This allows South to handle our custom 'ContextField' field.
 if 'south' in settings.INSTALLED_APPS:
     from south.modelsinspector import add_introspection_rules
     add_introspection_rules([], ['^sitemessage\.models\.ContextField'])
 
 
-class ContextField(with_metaclass(models.SubfieldBase, models.TextField)):
+class ContextField(ContextFieldBase):
+
+    @classmethod
+    def parse_value(cls, value):
+        try:
+            return json.loads(value)
+
+        except ValueError:
+            raise exceptions.ValidationError(
+                _('Value `%r` is not a valid context.') % value,
+                code='invalid_context', params={'value': value})
+
+    def from_db_value(self, value, expression, connection, contex):
+        if value is None:
+            return {}
+
+        return self.parse_value(value)
 
     def to_python(self, value):
         if not value:
@@ -27,11 +49,7 @@ class ContextField(with_metaclass(models.SubfieldBase, models.TextField)):
         if isinstance(value, dict):
             return value
 
-        try:
-            return json.loads(value)
-        except ValueError:
-            raise exceptions.ValidationError(_('Value `%r` is not a valid context.') % value,
-                                             code='invalid_context', params={'value': value},)
+        return self.parse_value(value)
 
     def get_prep_value(self, value):
         return json.dumps(value)
