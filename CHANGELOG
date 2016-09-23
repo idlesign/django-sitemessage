@@ -2,6 +2,11 @@ django-sitemessage changelog
 ============================
 
 
+Unreleased
+----------
++ `Message.get_subscribers()` now returns only active users by default.
+
+
 v0.8.1
 ------
 * Django 1.10 compatibility improved.

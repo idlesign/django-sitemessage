@@ -115,13 +115,14 @@ class MessageBase(object):
 
     @classmethod
     def recipients(cls, messenger, addresses):
-        """Shorcut method. See `recipients()`,"""
+        """Shortcut method. See `recipients()`,"""
         return recipients(messenger, addresses)
 
     @classmethod
-    def get_subscribers(cls):
+    def get_subscribers(cls, active_only=True):
         """Returns a list of Recipient objects subscribed for this message type.
 
+        :param bool active_only: Flag whether
         :return:
         """
         subscribers_raw = Subscription.get_for_message_cls(cls.alias)
@@ -131,6 +132,12 @@ class MessageBase(object):
             messenger_cls = subscriber.messenger_cls
             address = subscriber.address
             recipient = subscriber.recipient
+
+            # Do not send messages to inactive users.
+            if active_only and recipient:
+                if not getattr(recipient, 'is_active', False):
+                    continue
+
             if address is None:
                 try:
                     address = get_registered_messenger_object(messenger_cls).get_address(recipient)

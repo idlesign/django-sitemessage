@@ -610,6 +610,11 @@ class MessengerTest(SitemessageTest):
         self.assertEqual(r1[2].address, 'user_myuser%s' % WONDERLAND_DOMAIN)
         self.assertEqual(r1[2].messenger, 'test_messenger')
 
+    def test_recipients(self):
+        r = TestMessagePlain.recipients('smtp', 'someone')
+        self.assertEqual(len(r), 1)
+        self.assertEqual(r[0].address, 'someone')
+
     def test_send(self):
         m = TestMessenger('l', 'p')
         m.send('message_cls', 'message_model', 'dispatch_models')
@@ -621,6 +626,17 @@ class MessengerTest(SitemessageTest):
         m = BuggyMessenger()
         recipiets_ = recipients('test_messenger', ['a', 'b', 'c', 'd'])
         self.assertRaises(Exception, m.send, 'a buggy message', recipiets_)
+
+    def test_subscription(self):
+        user1 = User(is_active=True, username='first')
+        user1.save()
+        user2 = User(is_active=False, username='second')
+        user2.save()
+
+        Subscription.create(user1.id, TestMessagePlain, TestMessenger)
+        Subscription.create(user2.id, TestMessagePlain, TestMessenger)
+        self.assertEqual(len(TestMessagePlain.get_subscribers(active_only=False)), 2)
+        self.assertEqual(len(TestMessagePlain.get_subscribers(active_only=True)), 1)
 
 
 class ShortcutsTest(SitemessageTest):
