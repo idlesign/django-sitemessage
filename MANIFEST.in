@@ -5,18 +5,18 @@ include LICENSE
 include README.rst
 
 include docs/Makefile
-recursive-include docs .rst
-recursive-include docs .py
+recursive-include docs *.rst
+recursive-include docs *.py
 
 recursive-include sitemessage/locale *
-recursive-include sitemessage/management .py
-recursive-include sitemessage/messages .py
-recursive-include sitemessage/messengers .py
-recursive-include sitemessage/migrations .py
-recursive-include sitemessage/south_migrations .py
+recursive-include sitemessage/management *.py
+recursive-include sitemessage/messages *.py
+recursive-include sitemessage/messengers *.py
+recursive-include sitemessage/migrations *.py
+recursive-include sitemessage/south_migrations *.py
 recursive-include sitemessage/static *
-recursive-include sitemessage/templates .html
-recursive-include sitemessage/templatetags .py
+recursive-include sitemessage/templates *.html
+recursive-include sitemessage/templatetags *.py
 
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
