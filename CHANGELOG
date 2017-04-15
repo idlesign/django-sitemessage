@@ -2,8 +2,8 @@ django-sitemessage changelog
 ============================
 
 
-Unreleased
-----------
+v0.8.4
+------
 * Django 1.11 compatibility improvements.
 
 
