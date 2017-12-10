@@ -24,11 +24,6 @@ _ALIAS_SEP = '|'
 _PREF_POST_KEY = 'sm_user_pref'
 
 
-if VERSION < (1, 7, 0):
-    # Trying import sitemessage settings files from project apps.
-    import_project_sitemessage_modules()
-
-
 def schedule_messages(messages, recipients=None, sender=None, priority=None):
     """Schedules a message or messages.
 

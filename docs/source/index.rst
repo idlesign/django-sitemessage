@@ -31,9 +31,8 @@ Currently supported messengers:
 Requirements
 ------------
 
-1. Python 2.7+, 3.2+
-2. Django 1.4+
-3. South 0.7.1+ for Django (required for version upgrades on Django < 1.7)
+1. Python 2.7+, 3.4+
+2. Django 1.7+
 
 
 

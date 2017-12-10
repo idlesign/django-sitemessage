@@ -2,6 +2,11 @@ django-sitemessage changelog
 ============================
 
 
+Unreleased
+----------
+* Dropped support for Python<3.4 and Django<1.7.
+
+
 v0.8.4
 ------
 * Django 1.11 compatibility improvements.
