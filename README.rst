@@ -5,9 +5,6 @@ https://github.com/idlesign/django-sitemessage
 .. image:: https://img.shields.io/pypi/v/django-sitemessage.svg
     :target: https://pypi.python.org/pypi/django-sitemessage
 
-.. image:: https://img.shields.io/pypi/dm/django-sitemessage.svg
-    :target: https://pypi.python.org/pypi/django-sitemessage
-
 .. image:: https://img.shields.io/pypi/l/django-sitemessage.svg
     :target: https://pypi.python.org/pypi/django-sitemessage
 
