@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                 ('message_cls', models.CharField(help_text='Message logic class identifier.', max_length=250, verbose_name='Message class', db_index=True)),
                 ('messenger_cls', models.CharField(help_text='Messenger class identifier.', max_length=250, verbose_name='Messenger', db_index=True)),
                 ('address', models.CharField(help_text='Recipient address.', max_length=250, null=True, verbose_name='Address')),
-                ('recipient', models.ForeignKey(verbose_name='Recipient', blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+                ('recipient', models.ForeignKey(verbose_name='Recipient', blank=True, to=settings.AUTH_USER_MODEL, null=True, on_delete=models.CASCADE)),
             ],
             options={
                 'verbose_name': 'Subscription',

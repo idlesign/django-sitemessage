@@ -1,6 +1,12 @@
 from mock import MagicMock, patch
 from django.core.mail import send_mail
-from django.core.urlresolvers import reverse
+
+try:
+    from django.urls import reverse
+
+except ImportError:  # Django<2.0
+    from django.core.urlresolvers import reverse
+
 from django.core.management import call_command
 from django.test.utils import override_settings
 from django.test import TestCase

@@ -18,12 +18,6 @@ else:
     ContextFieldBase = with_metaclass(models.SubfieldBase, models.TextField)
 
 
-# This allows South to handle our custom 'ContextField' field.
-if 'south' in settings.INSTALLED_APPS:
-    from south.modelsinspector import add_introspection_rules
-    add_introspection_rules([], ['^sitemessage\.models\.ContextField'])
-
-
 class ContextField(ContextFieldBase):
 
     @classmethod
@@ -36,7 +30,9 @@ class ContextField(ContextFieldBase):
                 _('Value `%r` is not a valid context.') % value,
                 code='invalid_context', params={'value': value})
 
-    def from_db_value(self, value, expression, connection, contex):
+    def from_db_value(self, *args):
+        value, expression, connection = args[:3]  # Django 2.0 dropped `context` arg.
+
         if value is None:
             return {}
 
@@ -59,7 +55,7 @@ class ContextField(ContextFieldBase):
 class Message(models.Model):
 
     time_created = models.DateTimeField(_('Time created'), auto_now_add=True, editable=False)
-    sender = models.ForeignKey(USER_MODEL, verbose_name=_('Sender'), null=True, blank=True)
+    sender = models.ForeignKey(USER_MODEL, verbose_name=_('Sender'), null=True, blank=True, on_delete=models.CASCADE)
     cls = models.CharField(_('Message class'), max_length=250, db_index=True,
                            help_text=_('Message logic class identifier.'))
     context = ContextField(_('Message context'))
@@ -157,11 +153,12 @@ class Dispatch(models.Model):
     time_dispatched = models.DateTimeField(_('Time dispatched'), editable=False, null=True, blank=True,
                                            help_text=_('Time of the last delivery attempt.'))
 
-    message = models.ForeignKey(Message, verbose_name=_('Message'))
+    message = models.ForeignKey(Message, verbose_name=_('Message'), on_delete=models.CASCADE)
     messenger = models.CharField(_('Messenger'), max_length=250, db_index=True,
                                  help_text=_('Messenger class identifier.'))
 
-    recipient = models.ForeignKey(USER_MODEL, verbose_name=_('Recipient'), null=True, blank=True)
+    recipient = models.ForeignKey(
+        USER_MODEL, verbose_name=_('Recipient'), null=True, blank=True, on_delete=models.CASCADE)
     address = models.CharField(_('Address'), max_length=250, help_text=_('Recipient address.'))
     retry_count = models.PositiveIntegerField(_('Retry count'), default=0,
                                               help_text=_('A number of delivery retries has already been made.'))
@@ -303,7 +300,7 @@ class Dispatch(models.Model):
 class DispatchError(models.Model):
 
     time_created = models.DateTimeField(_('Time created'), auto_now_add=True, editable=False)
-    dispatch = models.ForeignKey(Dispatch, verbose_name=_('Dispatch'))
+    dispatch = models.ForeignKey(Dispatch, verbose_name=_('Dispatch'), on_delete=models.CASCADE)
     error_log = models.TextField(_('Text'))
 
     class Meta:
@@ -322,7 +319,8 @@ class Subscription(models.Model):
                                    help_text=_('Message logic class identifier.'))
     messenger_cls = models.CharField(_('Messenger'), max_length=250, db_index=True,
                                      help_text=_('Messenger class identifier.'))
-    recipient = models.ForeignKey(USER_MODEL, verbose_name=_('Recipient'), null=True, blank=True)
+    recipient = models.ForeignKey(
+        USER_MODEL, verbose_name=_('Recipient'), null=True, blank=True, on_delete=models.CASCADE)
     address = models.CharField(_('Address'), max_length=250, null=True, help_text=_('Recipient address.'))
 
     class Meta:

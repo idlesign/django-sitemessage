@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('time_created', models.DateTimeField(auto_now_add=True, verbose_name='Time created')),
                 ('error_log', models.TextField(verbose_name='Text')),
-                ('dispatch', models.ForeignKey(verbose_name='Dispatch', to='sitemessage.Dispatch')),
+                ('dispatch', models.ForeignKey(verbose_name='Dispatch', to='sitemessage.Dispatch', on_delete=models.CASCADE)),
             ],
             options={
                 'verbose_name': 'Dispatch error',
@@ -55,7 +55,7 @@ class Migration(migrations.Migration):
                 ('context', sitemessage.models.ContextField(verbose_name='Message context')),
                 ('priority', models.PositiveIntegerField(default=0, help_text='Number describing message sending priority. Messages with different priorities can be sent with different periodicity.', verbose_name='Priority', db_index=True)),
                 ('dispatches_ready', models.BooleanField(default=False, help_text='Indicates whether dispatches for this message are already formed and ready to delivery.', db_index=True, verbose_name='Dispatches ready')),
-                ('sender', models.ForeignKey(verbose_name='Sender', blank=True, to=settings.AUTH_USER_MODEL, null=True)),
+                ('sender', models.ForeignKey(verbose_name='Sender', blank=True, to=settings.AUTH_USER_MODEL, null=True, on_delete=models.CASCADE)),
             ],
             options={
                 'verbose_name': 'Message',
@@ -66,13 +66,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='dispatch',
             name='message',
-            field=models.ForeignKey(verbose_name='Message', to='sitemessage.Message'),
+            field=models.ForeignKey(verbose_name='Message', to='sitemessage.Message', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='dispatch',
             name='recipient',
-            field=models.ForeignKey(verbose_name='Recipient', blank=True, to=settings.AUTH_USER_MODEL, null=True),
+            field=models.ForeignKey(verbose_name='Recipient', blank=True, to=settings.AUTH_USER_MODEL, null=True, on_delete=models.CASCADE),
             preserve_default=True,
         ),
     ]

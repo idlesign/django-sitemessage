@@ -1,4 +1,9 @@
-from django.core.urlresolvers import reverse, NoReverseMatch
+try:
+    from django.urls import reverse, NoReverseMatch
+
+except ImportError:  # Django<2.0
+    from django.core.urlresolvers import reverse, NoReverseMatch
+
 from django.utils.crypto import salted_hmac
 from django.utils.translation import ugettext as _
 from django.shortcuts import redirect
