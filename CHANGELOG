@@ -2,6 +2,11 @@ django-sitemessage changelog
 ============================
 
 
+Unreleased
+----------
+* Updated VKontakte messenger to conform to new rules.
+
+
 v0.9.0
 ------
 + Django 2.0 basic compatibility.

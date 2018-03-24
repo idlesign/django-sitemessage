@@ -65,6 +65,7 @@ class VKontakteMessenger(MessengerBase):
                     'owner_id': to,
                     'from_group': 1,
                     'access_token': self.access_token,
+                    'v': '5.73',
                 })
 
             json = response.json()
