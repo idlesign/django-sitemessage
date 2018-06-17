@@ -1,13 +1,17 @@
 import os
+import sys
+
 from setuptools import setup
+
 from sitemessage import VERSION
 
-
 PATH_BASE = os.path.dirname(__file__)
+PYTEST_RUNNER = ['pytest-runner'] if 'test' in sys.argv else []
 
 f = open(os.path.join(PATH_BASE, 'README.rst'))
 README = f.read()
 f.close()
+
 
 setup(
     name='django-sitemessage',
@@ -26,6 +30,11 @@ setup(
     zip_safe=False,
 
     install_requires=['django-etc >= 0.9.1'],
+    setup_requires=[] + PYTEST_RUNNER,
+    tests_require=[
+        'pytest',
+        'pytest-djangoapp',
+    ],
 
     classifiers=[
         # As in https://pypi.python.org/pypi?:action=list_classifiers

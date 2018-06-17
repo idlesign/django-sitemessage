@@ -18,7 +18,7 @@ env:
 install:
   - pip install -U mock coverage coveralls django-etc $DJANGO
 
-script: coverage run -a --source=sitemessage sitemessage/runtests.py
+script: coverage run -a --source=sitemessage setup.py test
 
 matrix:
 
