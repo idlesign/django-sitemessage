@@ -8,7 +8,7 @@ def schedule_email(message, to, subject=None, sender=None, priority=None):
 
     :param dict, str message: str or dict: use str for simple text email;
         dict - to compile email from a template (default: `sitemessage/messages/email_html__smtp.html`).
-    :param list to: recipients addresses or Django User model heir instances
+    :param list|str|unicode to: recipients addresses or Django User model heir instances
     :param str subject: email subject
     :param User sender: User model heir instance
     :param int priority: number describing message priority. If set overrides priority provided with message type.
@@ -29,7 +29,7 @@ def schedule_jabber_message(message, to, sender=None, priority=None):
     """Schedules Jabber XMPP message for delivery.
 
     :param str message: text to send.
-    :param list to: recipients addresses or Django User model heir instances with `email` attributes.
+    :param list|str|unicode to: recipients addresses or Django User model heir instances with `email` attributes.
     :param User sender: User model heir instance
     :param int priority: number describing message priority. If set overrides priority provided with message type.
     """
@@ -40,7 +40,7 @@ def schedule_tweet(message, to='', sender=None, priority=None):
     """Schedules a Tweet for delivery.
 
     :param str message: text to send.
-    :param list to: recipients addresses or Django User model heir instances with `telegram` attributes.
+    :param list|str|unicode to: recipients addresses or Django User model heir instances with `telegram` attributes.
         If supplied tweets will be @-replies.
     :param User sender: User model heir instance
     :param int priority: number describing message priority. If set overrides priority provided with message type.
@@ -52,7 +52,7 @@ def schedule_telegram_message(message, to, sender=None, priority=None):
     """Schedules Telegram message for delivery.
 
     :param str message: text to send.
-    :param list to: recipients addresses or Django User model heir instances with `telegram` attributes.
+    :param list|str|unicode to: recipients addresses or Django User model heir instances with `telegram` attributes.
     :param User sender: User model heir instance
     :param int priority: number describing message priority. If set overrides priority provided with message type.
     """
@@ -73,7 +73,7 @@ def schedule_vkontakte_message(message, to, sender=None, priority=None):
     """Schedules VKontakte message for delivery.
 
     :param str message: text or URL to publish on wall.
-    :param list to: recipients addresses or Django User model heir instances with `vk` attributes.
+    :param list|str|unicode to: recipients addresses or Django User model heir instances with `vk` attributes.
     :param User sender: User model heir instance
     :param int priority: number describing message priority. If set overrides priority provided with message type.
     """
