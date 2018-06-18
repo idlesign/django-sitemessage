@@ -3,14 +3,13 @@ import pytest
 from sitemessage.messages.base import MessageBase
 from sitemessage.models import Message, Dispatch
 from sitemessage.shortcuts import (
-    schedule_email, 
-    schedule_jabber_message, 
-    schedule_tweet, 
+    schedule_email,
+    schedule_jabber_message,
+    schedule_tweet,
     schedule_facebook_message,
     schedule_telegram_message,
     schedule_vkontakte_message,
 )
-
 
 try:
     from django.template.base import TemplateDoesNotExist, Template, TemplateSyntaxError
@@ -19,7 +18,6 @@ except ImportError:
     from django.template import TemplateDoesNotExist, Template, TemplateSyntaxError
 
 from django.core.mail import send_mail
-from django.core.management import call_command
 
 from .testapp.sitemessages import MessagePlainForTest, MessageForTest, \
     MessengerForTest
@@ -71,8 +69,8 @@ class TestMessageSuite(object):
 
 class TestCommands(object):
 
-    def test_send_scheduled(self):
-        call_command('sitemessage_send_scheduled', priority=1)
+    def test_send_scheduled(self, command_run):
+        command_run('sitemessage_send_scheduled', options=dict(priority=1))
 
 
 class TestBackends(object):
