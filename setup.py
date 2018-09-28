@@ -33,7 +33,7 @@ setup(
     setup_requires=[] + PYTEST_RUNNER,
     tests_require=[
         'pytest',
-        'pytest-djangoapp',
+        'pytest-djangoapp>=0.10.0',
     ],
 
     classifiers=[
