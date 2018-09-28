@@ -1,14 +1,13 @@
 import json
 
 from django import VERSION
+from django.conf import settings
 from django.core import exceptions
 from django.db import models
 from django.utils import timezone
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.six import with_metaclass, string_types
 from django.utils.translation import ugettext_lazy as _
-from django.utils.encoding import python_2_unicode_compatible
-from django.conf import settings
-
 
 USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
@@ -55,16 +54,24 @@ class ContextField(ContextFieldBase):
 class Message(models.Model):
 
     time_created = models.DateTimeField(_('Time created'), auto_now_add=True, editable=False)
-    sender = models.ForeignKey(USER_MODEL, verbose_name=_('Sender'), null=True, blank=True, on_delete=models.CASCADE)
-    cls = models.CharField(_('Message class'), max_length=250, db_index=True,
-                           help_text=_('Message logic class identifier.'))
+
+    sender = models.ForeignKey(
+        USER_MODEL, verbose_name=_('Sender'), null=True, blank=True, on_delete=models.CASCADE)
+
+    cls = models.CharField(
+        _('Message class'), max_length=250, db_index=True,
+        help_text=_('Message logic class identifier.'))
+
     context = ContextField(_('Message context'))
-    priority = models.PositiveIntegerField(_('Priority'), default=0, db_index=True,
-                                           help_text=_('Number describing message sending priority. Messages with '
-                                                       'different priorities can be sent with different periodicity.'))
-    dispatches_ready = models.BooleanField(_('Dispatches ready'), db_index=True, default=False,
-                                           help_text=_('Indicates whether dispatches for this message are already '
-                                                       'formed and ready to delivery.'))
+
+    priority = models.PositiveIntegerField(
+        _('Priority'), default=0, db_index=True,
+        help_text=_('Number describing message sending priority. '
+                    'Messages with different priorities can be sent with different periodicity.'))
+
+    dispatches_ready = models.BooleanField(
+        _('Dispatches ready'), db_index=True, default=False,
+        help_text=_('Indicates whether dispatches for this message are already formed and ready to delivery.'))
 
     class Meta:
         verbose_name = _('Message')
@@ -83,10 +90,7 @@ class Message(models.Model):
 
     @classmethod
     def get_without_dispatches(cls):
-        """Returns messages with no dispatches created.
-
-        :return:
-        """
+        """Returns messages with no dispatches created."""
         return cls.objects.filter(dispatches_ready=False).all()
 
     @classmethod
@@ -95,16 +99,23 @@ class Message(models.Model):
 
         Returns a tuple: (message_model, list_of_dispatches)
 
-        :param str message_class: alias of MessageBase heir
+        :param str|unicode message_class: alias of MessageBase heir
+
         :param dict context: context for a message
-        :param list|None recipients: recipient (or a list) or None.
+
+        :param list recipients: recipient (or a list) or None.
             If `None` Dispatches should be created before send using `prepare_dispatches()`.
-        :param User|None sender: Django User model heir instance
-        :param int|None priority: number describing message priority
+
+        :param User sender: Django User model heir instance
+
+        :param int priority: number describing message priority
+
         :return: a tuple with message model and a list of dispatch models.
+
         :rtype: tuple
         """
         dispatches_ready = False
+
         if recipients is not None:
             dispatches_ready = True
 
@@ -121,6 +132,7 @@ class Message(models.Model):
         message_model = cls(**msg_kwargs)
         message_model.save()
         dispatch_models = Dispatch.create(message_model, recipients)
+
         return message_model, dispatch_models
 
 
@@ -149,23 +161,29 @@ class Dispatch(models.Model):
 
     error_log = None
 
-    time_created = models.DateTimeField(_('Time created'), auto_now_add=True, editable=False)
-    time_dispatched = models.DateTimeField(_('Time dispatched'), editable=False, null=True, blank=True,
-                                           help_text=_('Time of the last delivery attempt.'))
+    time_created = models.DateTimeField(
+        _('Time created'), auto_now_add=True, editable=False)
+
+    time_dispatched = models.DateTimeField(
+        _('Time dispatched'), editable=False, null=True, blank=True, help_text=_('Time of the last delivery attempt.'))
 
     message = models.ForeignKey(Message, verbose_name=_('Message'), on_delete=models.CASCADE)
-    messenger = models.CharField(_('Messenger'), max_length=250, db_index=True,
-                                 help_text=_('Messenger class identifier.'))
+
+    messenger = models.CharField(
+        _('Messenger'), max_length=250, db_index=True, help_text=_('Messenger class identifier.'))
 
     recipient = models.ForeignKey(
         USER_MODEL, verbose_name=_('Recipient'), null=True, blank=True, on_delete=models.CASCADE)
+
     address = models.CharField(_('Address'), max_length=250, help_text=_('Recipient address.'))
-    retry_count = models.PositiveIntegerField(_('Retry count'), default=0,
-                                              help_text=_('A number of delivery retries has already been made.'))
+
+    retry_count = models.PositiveIntegerField(
+        _('Retry count'), default=0, help_text=_('A number of delivery retries has already been made.'))
 
     message_cache = models.TextField(_('Message cache'), null=True, editable=False)
-    dispatch_status = models.PositiveIntegerField(_('Dispatch status'), choices=DISPATCH_STATUSES,
-                                                  default=DISPATCH_STATUS_PENDING)
+
+    dispatch_status = models.PositiveIntegerField(
+        _('Dispatch status'), choices=DISPATCH_STATUSES, default=DISPATCH_STATUS_PENDING)
 
     read_status = models.PositiveIntegerField(_('Read status'), choices=READ_STATUSES, default=READ_STATUS_UNDREAD)
 
@@ -180,15 +198,11 @@ class Dispatch(models.Model):
         """Returns message read flag.
 
         :rtype: bool
-        :return:
         """
         return self.read_status == self.READ_STATUS_READ
 
     def mark_read(self):
-        """Marks message as read (doesn't save it).
-
-        :return:
-        """
+        """Marks message as read (doesn't save it)."""
         self.read_status = self.READ_STATUS_READ
 
     @classmethod
@@ -196,13 +210,14 @@ class Dispatch(models.Model):
         """Batch logs dispatches delivery errors into DB.
 
         :param list dispatches:
-        :return:
         """
         error_entries = []
+
         for dispatch in dispatches:
             # Saving message body cache for further usage.
             dispatch.save()
             error_entries.append(DispatchError(dispatch=dispatch, error_log=dispatch.error_log))
+
         DispatchError.objects.bulk_create(error_entries)
 
     @classmethod
@@ -211,7 +226,6 @@ class Dispatch(models.Model):
         of dispatch lists indexed by statuses.
 
         :param statuses:
-        :return:
         """
         kwarg_status_map = {
             'sent': cls.DISPATCH_STATUS_SENT,
@@ -219,6 +233,7 @@ class Dispatch(models.Model):
             'failed': cls.DISPATCH_STATUS_FAILED,
             'pending': cls.DISPATCH_STATUS_PENDING,
         }
+
         for status_name, real_status in kwarg_status_map.items():
             if statuses.get(status_name, False):
                 update_kwargs = {
@@ -233,10 +248,12 @@ class Dispatch(models.Model):
         """Groups dispatches by messages.
 
         :param list dispatches:
-        :return:
+        :rtype: dict
         """
         by_messengers = {}
+
         for dispatch in dispatches:
+
             if dispatch.messenger not in by_messengers:
                 by_messengers[dispatch.messenger] = {}
 
@@ -244,6 +261,7 @@ class Dispatch(models.Model):
                 by_messengers[dispatch.messenger][dispatch.message.id] = (dispatch.message, [])
 
             by_messengers[dispatch.messenger][dispatch.message.id][1].append(dispatch)
+
         return by_messengers
 
     @classmethod
@@ -251,21 +269,19 @@ class Dispatch(models.Model):
         """Returns dispatches unsent (scheduled or with errors).
 
         :param int priority: Message priority filter
-        :return:
         """
         filter_kwargs = {
-            'dispatch_status__in': (cls.DISPATCH_STATUS_PENDING, cls.DISPATCH_STATUS_ERROR)
+            'dispatch_status__in': (cls.DISPATCH_STATUS_PENDING, cls.DISPATCH_STATUS_ERROR),
         }
+
         if priority is not None:
             filter_kwargs['message__priority'] = priority
+
         return cls.objects.select_related('message').filter(**filter_kwargs).order_by('-message__time_created').all()
 
     @classmethod
     def get_unread(cls):
-        """Returns unread dispatches.
-
-        :return:
-        """
+        """Returns unread dispatches."""
         return cls.objects.filter(read_status=cls.READ_STATUS_UNDREAD).select_related('message').all()
 
     @classmethod
@@ -276,9 +292,10 @@ class Dispatch(models.Model):
 
         :param Message message_model:
         :param recipients:
-        :return:
+        :rtype: list
         """
         objects = []
+
         if recipients:
             if not isinstance(recipients, (list, set)):
                 recipients = (recipients,)
@@ -315,12 +332,16 @@ class DispatchError(models.Model):
 class Subscription(models.Model):
 
     time_created = models.DateTimeField(_('Time created'), auto_now_add=True, editable=False)
-    message_cls = models.CharField(_('Message class'), max_length=250, db_index=True,
-                                   help_text=_('Message logic class identifier.'))
-    messenger_cls = models.CharField(_('Messenger'), max_length=250, db_index=True,
-                                     help_text=_('Messenger class identifier.'))
+
+    message_cls = models.CharField(
+        _('Message class'), max_length=250, db_index=True, help_text=_('Message logic class identifier.'))
+
+    messenger_cls = models.CharField(
+        _('Messenger'), max_length=250, db_index=True, help_text=_('Messenger class identifier.'))
+
     recipient = models.ForeignKey(
         USER_MODEL, verbose_name=_('Recipient'), null=True, blank=True, on_delete=models.CASCADE)
+
     address = models.CharField(_('Address'), max_length=250, null=True, help_text=_('Recipient address.'))
 
     class Meta:
@@ -336,7 +357,6 @@ class Subscription(models.Model):
         """Returns subscriptions for a given user.
 
         :param User user:
-        :return:
         """
         if user.id is None:
             return []
@@ -349,9 +369,10 @@ class Subscription(models.Model):
 
         :param User user:
         :param list prefs: List of tuples (message_cls, messenger_cls)
-        :return:
+        :rtype: bool
         """
         uid = user.id
+
         if uid is None:
             return False
 
@@ -374,8 +395,7 @@ class Subscription(models.Model):
     def get_for_message_cls(cls, message_cls):
         """Returns subscriptions for a given message class alias.
 
-        :param str message_cls:
-        :return:
+        :param str|unicode message_cls:
         """
         return cls.objects.select_related('recipient').filter(message_cls=message_cls)
 
@@ -392,11 +412,14 @@ class Subscription(models.Model):
             'message_cls': message_cls,
             'messenger_cls': messenger_cls,
         }
+
         if isinstance(recipient, string_types):
             base_kwargs['address'] = recipient
+
         else:
             if not isinstance(recipient, int):
                 recipient = recipient.id
+
             base_kwargs['recipient_id'] = recipient
 
         return base_kwargs
@@ -405,10 +428,10 @@ class Subscription(models.Model):
     def create(cls, uid_or_address, message_cls, messenger_cls):
         """Creates a subscription for a recipient.
 
-        :param int|str uid_or_address: User ID or address string.
-        :param str|MessageBase message_cls: Message type alias or class
-        :param str|MessengerBase messenger_cls: Messenger type alias or class
-        :return:
+        :param int|str|unicode uid_or_address: User ID or address string.
+        :param str|unicode|MessageBase message_cls: Message type alias or class
+        :param str|unicode|MessengerBase messenger_cls: Messenger type alias or class
+        :rtype: Subscription
         """
         obj = cls(**cls._get_base_kwargs(uid_or_address, message_cls, messenger_cls))
         obj.save()
@@ -418,10 +441,9 @@ class Subscription(models.Model):
     def cancel(cls, uid_or_address, message_cls, messenger_cls):
         """Cancels a subscription for a recipient.
 
-        :param int|str uid_or_address: User ID or address string.
-        :param str|MessageBase message_cls: Message type alias or class
-        :param str|MessengerBase messenger_cls: Messenger type alias or class
-        :return:
+        :param int|str|unicode uid_or_address: User ID or address string.
+        :param str|unicode|MessageBase message_cls: Message type alias or class
+        :param str|unicode|MessengerBase messenger_cls: Messenger type alias or class
         """
         cls.objects.filter(
             **cls._get_base_kwargs(uid_or_address, message_cls, messenger_cls)

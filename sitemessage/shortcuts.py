@@ -1,6 +1,6 @@
 from .messages.email import EmailHtmlMessage, EmailTextMessage
-from .toolbox import schedule_messages, recipients
 from .settings import DEFAULT_SHORTCUT_EMAIL_MESSAGES_TYPE
+from .toolbox import schedule_messages, recipients
 
 
 def schedule_email(message, to, subject=None, sender=None, priority=None):

@@ -1,7 +1,7 @@
 from django.core.mail.backends.base import BaseEmailBackend
 
-from .shortcuts import schedule_email
 from .settings import EMAIL_BACKEND_MESSAGES_PRIORITY
+from .shortcuts import schedule_email
 
 
 class EmailBackend(BaseEmailBackend):

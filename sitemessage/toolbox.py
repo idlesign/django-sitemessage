@@ -116,7 +116,8 @@ def get_user_preferences_for_ui(user, message_filter=None, messenger_filter=None
     :param User user:
     :param callable|None message_filter: A callable accepting a message object to filter out message types
     :param callable|None messenger_filter: A callable accepting a messenger object to filter out messengers
-    :return:
+    :rtype: tuple
+
     """
     if new_messengers_titles is None:
         new_messengers_titles = {}
@@ -159,6 +160,7 @@ def get_user_preferences_for_ui(user, message_filter=None, messenger_filter=None
                           for pref in Subscription.get_for_user(user)]
 
     for msg_title, msg_aliases in sort_titles(msg_titles).items():
+
         for __, msgr_alias in msgr_titles.items():
             msg_candidates = msgr_to_msg[msgr_alias].intersection(msg_aliases)
 
@@ -186,13 +188,17 @@ def set_user_preferences_from_request(request):
     :return: Flag, whether prefs were found in the request.
     """
     prefs = []
+
     for pref in request.POST.getlist(_PREF_POST_KEY):
         message_alias, messenger_alias = pref.split(_ALIAS_SEP)
+
         try:
             get_registered_message_type(message_alias)
             get_registered_messenger_object(messenger_alias)
+
         except (UnknownMessengerError, UnknownMessageTypeError):
             pass
+
         else:
             prefs.append((message_alias, messenger_alias))
 
