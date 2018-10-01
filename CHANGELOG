@@ -4,6 +4,7 @@ django-sitemessage changelog
 
 Unreleased
 ----------
++ Added 'sitemessage_cleanup' command and 'cleanup_sent_messages()' function (closes #5).
 + Sending became distributed system friendlier (closes #4).
 
 

@@ -1,8 +1,10 @@
+from datetime import timedelta
 from collections import OrderedDict, defaultdict
 from operator import itemgetter
+from itertools import chain
 
 from django import VERSION
-from django.utils import six
+from django.utils import six, timezone
 from django.conf.urls import url
 
 from .models import Message, Dispatch, Subscription
@@ -70,6 +72,41 @@ def send_scheduled_messages(priority=None, ignore_unknown_messengers=False, igno
             if ignore_unknown_messengers:
                 continue
             raise
+
+
+def cleanup_sent_messages(ago=None, dispatches_only=False):
+    """Cleans up DB : removes delivered dispatches (and messages).
+
+    :param int ago: Days. Allows cleanup messages sent X days ago. Defaults to None (cleanup all sent).
+    :param bool dispatches_only: Remove dispatches only (messages objects will stay intact).
+
+    """
+    filter_kwargs = {
+        'dispatch_status': Dispatch.DISPATCH_STATUS_SENT,
+    }
+
+    objects = Dispatch.objects
+
+    if ago:
+        filter_kwargs['time_dispatched__lte'] = timezone.now() - timedelta(days=int(ago))
+
+    dispatch_map = dict(objects.filter(**filter_kwargs).values_list('pk', 'message_id'))
+
+    # Remove dispatches
+    objects.filter(pk__in=list(dispatch_map.keys())).delete()
+
+    if not dispatches_only:
+        # Remove messages also.
+        messages_ids = set(dispatch_map.values())
+
+        if messages_ids:
+            messages_blocked = set(chain.from_iterable(
+                objects.filter(message_id__in=messages_ids).values_list('message_id')))
+
+            messages_stale = messages_ids.difference(messages_blocked)
+
+            if messages_stale:
+                Message.objects.filter(pk__in=messages_stale).delete()
 
 
 def prepare_dispatches():

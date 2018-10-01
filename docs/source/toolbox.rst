@@ -91,3 +91,24 @@ Nevertheless you can directly use **sitemessage.toolbox.send_scheduled_messages*
 
     # To send only messages of a certain priority use `priority` argument.
     send_scheduled_messages(priority=10)
+
+
+Cleanup sent messages and dispatches
+------------------------------------
+
+You can delete sent dispatches and message from DB using **sitemessage_cleanup**::
+
+    ./manage.py sitemessage_cleanup --ago 5
+
+
+Or you can use **sitemessage.toolbox.cleanup_sent_messages** from sitemessage toolbox:
+
+.. code-block:: python
+
+    from sitemessage.toolbox import cleanup_sent_messages
+
+    # Remove all dispatches (but not messages) 5 days old.
+    cleanup_sent_messages(ago=5, dispatches_only=True)
+
+    # Delete all sent messages and dispatches.
+    cleanup_sent_messages()

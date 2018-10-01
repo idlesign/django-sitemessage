@@ -28,7 +28,7 @@ class Command(BaseCommand):
         if priority is not None:
             priority_str = 'with priority %s ' % priority
 
-        self.stdout.write('Sending scheduled messages %s...\n' % priority_str)
+        self.stdout.write('Sending scheduled messages %s ...\n' % priority_str)
         try:
             send_scheduled_messages(priority=priority)
         except Exception as e:
