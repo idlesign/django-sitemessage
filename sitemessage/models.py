@@ -3,7 +3,7 @@ import json
 from django import VERSION
 from django.conf import settings
 from django.core import exceptions
-from django.db import models
+from django.db import models, transaction, DatabaseError, NotSupportedError
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.six import with_metaclass, string_types
@@ -15,6 +15,12 @@ if VERSION >= (1, 9, 0):
     ContextFieldBase = models.TextField
 else:
     ContextFieldBase = with_metaclass(models.SubfieldBase, models.TextField)
+
+if VERSION >= (1, 11, 0):
+    select_for_update_kwargs = {'skip_locked': True}
+
+else:
+    select_for_update_kwargs = {'nowait': True}
 
 
 class ContextField(ContextFieldBase):
@@ -143,9 +149,11 @@ class Dispatch(models.Model):
     DISPATCH_STATUS_SENT = 2
     DISPATCH_STATUS_ERROR = 3
     DISPATCH_STATUS_FAILED = 4
+    DISPATCH_STATUS_PROCESSING = 5
 
     DISPATCH_STATUSES = (
         (DISPATCH_STATUS_PENDING, _('Pending')),
+        (DISPATCH_STATUS_PROCESSING, _('Processing')),
         (DISPATCH_STATUS_SENT, _('Sent')),
         (DISPATCH_STATUS_ERROR, _('Error')),
         (DISPATCH_STATUS_FAILED, _('Failed')),
@@ -268,6 +276,8 @@ class Dispatch(models.Model):
     def get_unsent(cls, priority=None):
         """Returns dispatches unsent (scheduled or with errors).
 
+        .. warning:: This changes dispatch status to `Processing`.
+
         :param int priority: Message priority filter
         """
         filter_kwargs = {
@@ -277,12 +287,45 @@ class Dispatch(models.Model):
         if priority is not None:
             filter_kwargs['message__priority'] = priority
 
-        return cls.objects.select_related('message').filter(**filter_kwargs).order_by('-message__time_created').all()
+        dispatches = None
+
+        def get_dispatches(for_update):
+            dispatches = cls.objects.prefetch_related('message').filter(
+                **filter_kwargs
+            )
+
+            if for_update:
+                dispatches = dispatches.select_for_update(**select_for_update_kwargs)
+
+            dispatches = dispatches.order_by('-message__time_created').all()
+
+            return dispatches
+
+        with transaction.atomic():
+            try:
+                dispatches = get_dispatches(for_update=True)
+
+            except NotSupportedError:
+                dispatches = get_dispatches(for_update=False)
+
+            except DatabaseError:  # Probably locked
+                pass
+
+            if dispatches is None:
+                dispatches = []
+
+            else:
+                # Trigger update for 'select_for_update' setting the processing state.
+                cls.objects.filter(
+                    pk__in=[dispatch.pk for dispatch in dispatches]
+                ).update(dispatch_status=cls.DISPATCH_STATUS_PROCESSING)
+
+        return dispatches
 
     @classmethod
     def get_unread(cls):
         """Returns unread dispatches."""
-        return cls.objects.filter(read_status=cls.READ_STATUS_UNDREAD).select_related('message').all()
+        return cls.objects.filter(read_status=cls.READ_STATUS_UNDREAD).prefetch_related('message').all()
 
     @classmethod
     def create(cls, message_model, recipients):

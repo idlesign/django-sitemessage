@@ -2,6 +2,11 @@ django-sitemessage changelog
 ============================
 
 
+Unreleased
+----------
++ Sending became distributed system friendlier (closes #4).
+
+
 v0.9.1
 ------
 * Updated VKontakte messenger to conform to new rules.
