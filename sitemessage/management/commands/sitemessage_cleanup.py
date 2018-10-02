@@ -1,7 +1,9 @@
+from traceback import format_exc
+
 from django.core.management.base import BaseCommand
 
-from sitemessage.toolbox import cleanup_sent_messages
 from sitemessage.compat import CommandOption, options_getter
+from sitemessage.toolbox import cleanup_sent_messages
 
 
 get_options = options_getter((
@@ -42,7 +44,7 @@ class Command(BaseCommand):
             cleanup_sent_messages(ago=ago, dispatches_only=dispatches_only)
 
         except Exception as e:
-            self.stderr.write(self.style.ERROR('Error on cleanup: %s\n' % e))
+            self.stderr.write(self.style.ERROR('Error on cleanup: %s\n%s' % (e, format_exc())))
 
         else:
             self.stdout.write('Cleanup done.\n')

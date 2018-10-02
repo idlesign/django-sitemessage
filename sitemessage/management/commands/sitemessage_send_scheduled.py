@@ -1,7 +1,9 @@
+from traceback import format_exc
+
 from django.core.management.base import BaseCommand
 
-from sitemessage.toolbox import send_scheduled_messages
 from sitemessage.compat import CommandOption, options_getter
+from sitemessage.toolbox import send_scheduled_messages
 
 
 get_options = options_getter((
@@ -29,9 +31,12 @@ class Command(BaseCommand):
             priority_str = 'with priority %s ' % priority
 
         self.stdout.write('Sending scheduled messages %s ...\n' % priority_str)
+
         try:
             send_scheduled_messages(priority=priority)
+
         except Exception as e:
-            self.stderr.write(self.style.ERROR('Error on send: %s\n' % e))
+            self.stderr.write(self.style.ERROR('Error on send: %s\n%s' % (e, format_exc())))
+
         else:
             self.stdout.write('Sending done.\n')
