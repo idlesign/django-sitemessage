@@ -66,6 +66,24 @@ Scheduling messages
 
 
 
+Sending test messages
+---------------------
+
+When your messengers are configured you can try and send a test message using **sitemessage_probe**
+management command::
+
+    ./manage.py sitemessage_probe smtp --to someone@example.com
+
+
+Or you can use **sitemessage.toolbox.send_test_message** function:
+
+.. code-block:: python
+
+    from sitemessage.toolbox import send_test_message
+
+    send_test_message('smtp', to='someone@example.com')
+
+
 Sending messages
 ----------------
 

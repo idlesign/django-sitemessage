@@ -62,3 +62,13 @@ def test_sitemessage_cleanup(capsys, command_run, user_create):
 
     assert 'Cleaning up dispatches and messages' in out
     assert err == ''
+
+
+def test_sitemessage_probe(capsys, command_run):
+    command_run('sitemessage_probe', args=['test_messenger'], options={'to': 'someoner'})
+
+    out, err = capsys.readouterr()
+
+    assert 'Sending test message using test_messenger' in out
+    assert 'Probing function result: triggered send to `someoner`.' in out
+    assert err == ''

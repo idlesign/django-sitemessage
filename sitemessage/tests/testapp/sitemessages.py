@@ -76,6 +76,9 @@ class MessengerForTest(MessengerBase):
         self.login = login
         self.password = password
 
+    def _test_message(self, to, text):
+        return 'triggered send to `%s`' % to
+
     @classmethod
     def get_address(cls, recipient):
         from django.contrib.auth.models import User

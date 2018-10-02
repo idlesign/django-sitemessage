@@ -74,6 +74,17 @@ def send_scheduled_messages(priority=None, ignore_unknown_messengers=False, igno
             raise
 
 
+def send_test_message(messenger_id, to=None):
+    """Sends a test message using the given messenger.
+
+    :param str|unicode messenger_id: Messenger alias.
+    :param str|unicode to: Recipient address (if applicable).
+
+    """
+    messenger_obj = get_registered_messenger_object(messenger_id)
+    return messenger_obj.send_test_message(to=to, text='Test message from sitemessages.')
+
+
 def cleanup_sent_messages(ago=None, dispatches_only=False):
     """Cleans up DB : removes delivered dispatches (and messages).
 
