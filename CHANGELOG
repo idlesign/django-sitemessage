@@ -2,8 +2,8 @@ django-sitemessage changelog
 ============================
 
 
-Unreleased
-----------
+v0.10.0
+-------
 + Added 'sitemessage_cleanup' command and 'cleanup_sent_messages()' function (closes #5).
 + Added 'sitemessage_probe' command and 'send_test_message()' function (closes #6).
 + Sending became distributed system friendlier (closes #4).
