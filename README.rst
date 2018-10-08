@@ -44,9 +44,6 @@ Schedule and send messages with several easy steps, using concepts of:
         SMTPMessenger('user1@host.com', 'user1', 'user1password', host='smtp.host.com', use_tls=True)
     )
 
-    # And register built-in message types we'd use (for Django < 1.7).
-    register_builtin_message_types()
-
 
 2. Schedule messages for delivery when and where needed (e.g. in a view):
 
