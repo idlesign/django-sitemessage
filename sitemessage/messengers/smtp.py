@@ -52,21 +52,28 @@ class SMTPMessenger(MessengerBase):
         return self._send_message(self._build_message(to, text, mtype='html'))
 
     def before_send(self):
+        lib = self.lib
+
         try:
-            self.smtp = self.lib.SMTP(self.host, self.port)
-            self.smtp.set_debuglevel(self.debug)
+            smtp_cls = lib.SMTP
+            smtp = smtp_cls(self.host, self.port)
+
+            self.smtp = smtp
+
+            smtp.set_debuglevel(self.debug)
 
             if self.use_tls:
-                self.smtp.ehlo()
-                if self.smtp.has_extn('STARTTLS'):
-                    self.smtp.starttls()
-                    self.smtp.ehlo()  # This time over TLS.
+                smtp.ehlo()
+                if smtp.has_extn('STARTTLS'):
+                    smtp.starttls()
+                    smtp.ehlo()  # This time over TLS.
 
             if self.login:
-                self.smtp.login(self.login, self.password)
+                smtp.login(self.login, self.password)
 
             self._session_started = True
-        except self.lib.SMTPException as e:
+
+        except lib.SMTPException as e:
             raise MessengerWarmupException('SMTP Error: %s' % e)
 
     def after_send(self):
