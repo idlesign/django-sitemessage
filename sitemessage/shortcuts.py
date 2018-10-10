@@ -1,6 +1,6 @@
 from .messages.email import EmailHtmlMessage, EmailTextMessage
-from .settings import SHORTCUT_EMAIL_MESSENGER_TYPE
-from .toolbox import schedule_messages, recipients
+from .settings import SHORTCUT_EMAIL_MESSENGER_TYPE, SHORTCUT_EMAIL_MESSAGE_TYPE
+from .toolbox import schedule_messages, recipients, get_registered_message_type
 
 
 def schedule_email(message, to, subject=None, sender=None, priority=None):
@@ -13,10 +13,16 @@ def schedule_email(message, to, subject=None, sender=None, priority=None):
     :param User sender: User model heir instance
     :param int priority: number describing message priority. If set overrides priority provided with message type.
     """
-    if isinstance(message, dict):
-        message_cls = EmailHtmlMessage
+
+    if SHORTCUT_EMAIL_MESSAGE_TYPE:
+        message_cls = get_registered_message_type(SHORTCUT_EMAIL_MESSAGE_TYPE)
+
     else:
-        message_cls = EmailTextMessage
+
+        if isinstance(message, dict):
+            message_cls = EmailHtmlMessage
+        else:
+            message_cls = EmailTextMessage
 
     schedule_messages(
         message_cls(subject, message),

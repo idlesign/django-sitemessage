@@ -13,5 +13,8 @@ EMAIL_BACKEND_MESSAGES_PRIORITY = getattr(settings, 'SITEMESSAGE_EMAIL_BACKEND_M
 # Messenger type alias for messages sent with `schedule_email` shortcut.
 SHORTCUT_EMAIL_MESSENGER_TYPE = getattr(settings, 'SITEMESSAGE_SHORTCUT_EMAIL_MESSENGER_TYPE', 'smtp')
 
+# Message type alias to be used for messages sent with `schedule_email` shortcut.
+SHORTCUT_EMAIL_MESSAGE_TYPE = getattr(settings, 'SITEMESSAGE_SHORTCUT_EMAIL_MESSAGE_TYPE', None)
+
 # Site URL to use in messages.
 SITE_URL = getattr(settings, 'SITEMESSAGE_SITE_URL', None)
