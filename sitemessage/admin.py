@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.translation import ugettext_lazy as _
 
 from .models import Message, Dispatch, DispatchError, Subscription
 
@@ -35,7 +36,16 @@ class DispatchAdmin(admin.ModelAdmin):
     raw_id_fields = ('recipient',)
     readonly_fields = ('retry_count',)
 
+    actions = [
+        'schedule_failed',
+    ]
+
     inlines = (DispatchErrorInlineAdmin,)
+
+    def schedule_failed(self, request, queryset):
+        queryset.update(dispatch_status=Dispatch.DISPATCH_STATUS_PENDING)
+
+    schedule_failed.short_description = _('Make selected dispatches pending')
 
 
 class DispatchErrorAdmin(admin.ModelAdmin):

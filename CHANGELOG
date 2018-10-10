@@ -4,6 +4,7 @@ django-sitemessage changelog
 
 Unreleased
 ----------
++ Added dispaches delivery retry in admin (closes #8).
 + SMTPMessenger. Added SSL support (closes #10).
 + SMTPMessenger. Added timeout support (closes #9).
 
