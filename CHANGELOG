@@ -5,6 +5,7 @@ django-sitemessage changelog
 Unreleased
 ----------
 ! Renamed bogus 'SITEMESSAGE_DEFAULT_SHORTCUT_EMAIL_MESSAGES_TYPE' setting into 'SITEMESSAGE_SHORTCUT_EMAIL_MESSENGER_TYPE'.
++ Added 'sitemessage_check_undelivered' command and 'check_undelivered()' function (closes #7).
 + Added 'SITEMESSAGE_SHORTCUT_EMAIL_MESSAGE_TYPE' to replace 'SITEMESSAGE_DEFAULT_SHORTCUT_EMAIL_MESSAGES_TYPE'.
 + Added dispaches delivery retry in admin (closes #8).
 + SMTPMessenger. Added SSL support (closes #10).

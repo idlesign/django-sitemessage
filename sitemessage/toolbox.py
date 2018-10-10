@@ -5,6 +5,7 @@ from itertools import chain
 
 from django import VERSION
 from django.utils import six, timezone
+from django.conf import settings
 from django.conf.urls import url
 
 from .models import Message, Dispatch, Subscription
@@ -83,6 +84,42 @@ def send_test_message(messenger_id, to=None):
     """
     messenger_obj = get_registered_messenger_object(messenger_id)
     return messenger_obj.send_test_message(to=to, text='Test message from sitemessages.')
+
+
+def check_undelivered(to=None):
+    """Sends a notification email if any undelivered dispatches.
+
+    Returns undelivered (failed) dispatches count.
+
+    :param str|unicode to: Recipient address. If not set Django ADMINS setting is used.
+    :rtype: int
+
+    """
+    failed_count = Dispatch.objects.filter(dispatch_status=Dispatch.DISPATCH_STATUS_FAILED).count()
+
+    if failed_count:
+        from sitemessage.shortcuts import schedule_email
+        from sitemessage.messages.email import EmailTextMessage
+
+        if to is None:
+            admins = settings.ADMINS
+
+            if admins:
+                to = list(dict(admins).values())
+
+        if to:
+            priority = 999
+
+            register_message_types(EmailTextMessage)
+
+            schedule_email(
+                'You have %s undelivered dispatch(es) at %s' % (failed_count, get_site_url()),
+                subject='[SITEMESSAGE] Undelivered dispatches',
+                to=to, priority=priority)
+
+            send_scheduled_messages(priority=priority)
+
+    return failed_count
 
 
 def cleanup_sent_messages(ago=None, dispatches_only=False):

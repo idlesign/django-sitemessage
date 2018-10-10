@@ -72,3 +72,25 @@ def test_sitemessage_probe(capsys, command_run):
     assert 'Sending test message using test_messenger' in out
     assert 'Probing function result: triggered send to `someoner`.' in out
     assert err == ''
+
+
+def test_sitemessage_check_undelivered(capsys, command_run):
+
+    message = Message(cls='test_message')
+    message.save()
+
+    Dispatch.create(message, recipients('test_messenger', 'someoner'))
+
+    dispatch = Dispatch.objects.all()
+    assert len(dispatch) == 1
+
+    dispatch = dispatch[0]
+    dispatch.dispatch_status = dispatch.DISPATCH_STATUS_FAILED
+    dispatch.save()
+
+    command_run('sitemessage_check_undelivered')
+
+    out, err = capsys.readouterr()
+
+    assert 'Undelivered dispatches count: 1' in out
+    assert err == ''
