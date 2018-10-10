@@ -18,7 +18,7 @@ Quickstart
 
     .. code-block:: python
 
-        from sitemessage.toolbox import register_messenger_objects, register_builtin_message_types
+        from sitemessage.toolbox import register_messenger_objects
         from sitemessage.messengers.smtp import SMTPMessenger
         from sitemessage.messengers.xmpp import XMPPSleekMessenger
 
@@ -48,6 +48,6 @@ Quickstart
             ...
 
 
-3. Periodically run Django management command from wherever you like (cli, cron, Celery, etc.)::
+3. Periodically run Django management command from wherever you like (cli, cron, Celery, uWSGI, etc.)::
 
     ./manage.py sitemessage_send_scheduled

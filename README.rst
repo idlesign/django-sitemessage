@@ -36,12 +36,13 @@ Schedule and send messages with several easy steps, using concepts of:
 
 .. code-block:: python
 
-    from sitemessage.toolbox import register_messenger_objects, register_builtin_message_types
+    from sitemessage.toolbox import register_messenger_objects
     from sitemessage.messengers.smtp import SMTPMessenger
 
     register_messenger_objects(
-        # Here we register only one messenger to deliver emails.
-        SMTPMessenger('user1@host.com', 'user1', 'user1password', host='smtp.host.com', use_tls=True)
+        # Here we register one messenger to deliver emails.
+        # By default it uses mailing related settings from Django settings file.
+        SMTPMessenger()
     )
 
 
@@ -63,7 +64,7 @@ Schedule and send messages with several easy steps, using concepts of:
         ...
 
 
-3. Periodically run Django management command from wherever you like (cli, cron, Celery, etc.):
+3. Periodically run Django management command from wherever you like (cli, cron, Celery, uWSGI, etc.):
 
     ./manage.py sitemessage_send_scheduled
 
