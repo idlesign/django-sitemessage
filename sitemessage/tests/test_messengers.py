@@ -86,6 +86,9 @@ def assert_called_n(func, n=1):
 
 class TestSMTPMessenger(object):
 
+    def setup_method(self, method):
+        messenger_smtp.smtp.sendmail.call_count = 0
+
     def test_get_address(self):
         r = object()
         assert messenger_smtp.get_address(r) == r
