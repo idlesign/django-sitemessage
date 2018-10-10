@@ -55,7 +55,7 @@ class SMTPMessenger(MessengerBase):
         lib = self.lib
 
         try:
-            smtp_cls = lib.SMTP
+            smtp_cls = lib.SMTP_SSL if self.use_ssl else lib.SMTP
             smtp = smtp_cls(self.host, self.port)
 
             self.smtp = smtp
