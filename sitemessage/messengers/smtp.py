@@ -1,6 +1,6 @@
 from django.conf import settings
-from django.utils.translation import ugettext as _
 from django.utils.html import strip_tags
+from django.utils.translation import ugettext as _
 
 from .base import MessengerBase
 from ..exceptions import MessengerWarmupException
@@ -104,6 +104,7 @@ class SMTPMessenger(MessengerBase):
             text_part.attach(self.mime_text(strip_tags(text), _charset='utf-8'))
             text_part.attach(self.mime_text(text, 'html', _charset='utf-8'))
             msg.attach(text_part)
+
         else:
             msg = self.mime_text(text, _charset='utf-8')
 
@@ -120,22 +121,28 @@ class SMTPMessenger(MessengerBase):
         return self.smtp.sendmail(msg['From'], msg['To'], msg.as_string())
 
     def send(self, message_cls, message_model, dispatch_models):
-        if self._session_started:
-            for dispatch_model in dispatch_models:
 
-                msg = self._build_message(
-                    dispatch_model.address,
-                    dispatch_model.message_cache,
-                    message_model.context.get('subject'),
-                    message_model.context.get('type'),
-                    message_cls.get_unsubscribe_directive(message_model, dispatch_model)
-                )
+        if not self._session_started:
+            return
 
-                try:
-                    refused = self._send_message(msg)
-                    if refused:
-                        self.mark_failed(dispatch_model, '`%s` address is rejected by server' % msg['To'])
-                        continue
-                    self.mark_sent(dispatch_model)
-                except Exception as e:
-                    self.mark_error(dispatch_model, e, message_cls)
+        for dispatch_model in dispatch_models:
+
+            msg = self._build_message(
+                dispatch_model.address,
+                dispatch_model.message_cache,
+                message_model.context.get('subject'),
+                message_model.context.get('type'),
+                message_cls.get_unsubscribe_directive(message_model, dispatch_model)
+            )
+
+            try:
+                refused = self._send_message(msg)
+
+                if refused:
+                    self.mark_failed(dispatch_model, '`%s` address is rejected by server' % msg['To'])
+                    continue
+
+                self.mark_sent(dispatch_model)
+
+            except Exception as e:
+                self.mark_error(dispatch_model, e, message_cls)
