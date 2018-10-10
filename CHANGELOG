@@ -5,6 +5,7 @@ django-sitemessage changelog
 Unreleased
 ----------
 + SMTPMessenger. Added SSL support (closes #10).
++ SMTPMessenger. Added timeout support (closes #9).
 
 
 v0.10.0

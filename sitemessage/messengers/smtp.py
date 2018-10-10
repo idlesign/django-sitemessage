@@ -12,9 +12,12 @@ class SMTPMessenger(MessengerBase):
     alias = 'smtp'
     smtp = None
     title = _('E-mail')
+
     _session_started = False
 
-    def __init__(self, from_email=None, login=None, password=None, host=None, port=None, use_tls=None, use_ssl=None, debug=False):
+    def __init__(
+            self, from_email=None, login=None, password=None, host=None, port=None,
+            use_tls=None, use_ssl=None, debug=False, timeout=None):
         """Configures messenger.
 
         :param str from_email: e-mail address to send messages from
@@ -25,6 +28,8 @@ class SMTPMessenger(MessengerBase):
         :param bool use_tls: whether to use TLS
         :param bool use_ssl: whether to use SSL
         :param bool debug: whether to switch smtplib into debug mode.
+        :param int timeout: timeout to establish s connection.
+
         """
         import smtplib
 
@@ -43,6 +48,7 @@ class SMTPMessenger(MessengerBase):
         self.port = port or getattr(settings, 'EMAIL_PORT')
         self.use_tls = use_tls or getattr(settings, 'EMAIL_USE_TLS')
         self.use_ssl = use_ssl or getattr(settings, 'EMAIL_USE_SSL', False)  # False as default to support Django < 1.7
+        self.timeout = timeout or getattr(settings, 'EMAIL_TIMEOUT', None)  # None as default to support Django < 1.8
 
     @classmethod
     def get_address(cls, recipient):
@@ -56,7 +62,13 @@ class SMTPMessenger(MessengerBase):
 
         try:
             smtp_cls = lib.SMTP_SSL if self.use_ssl else lib.SMTP
-            smtp = smtp_cls(self.host, self.port)
+            kwargs = {}
+            timeout = self.timeout
+
+            if timeout:
+                kwargs['timeout'] = timeout
+
+            smtp = smtp_cls(self.host, self.port, **kwargs)
 
             self.smtp = smtp
 
