@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from datetime import timedelta
 from django.utils import timezone
 
-from sitemessage.models import Message, Dispatch
+from sitemessage.models import Message, Dispatch, GET_DISPATCHES_ARGS, _get_dispatches_for_update, _get_dispatches
 from sitemessage.toolbox import recipients
 
 
@@ -88,9 +88,24 @@ def test_sitemessage_check_undelivered(capsys, command_run):
     dispatch.dispatch_status = dispatch.DISPATCH_STATUS_FAILED
     dispatch.save()
 
-    command_run('sitemessage_check_undelivered')
+    def run_command(count=1):
 
-    out, err = capsys.readouterr()
+        command_run('sitemessage_check_undelivered')
 
-    assert 'Undelivered dispatches count: 1' in out
-    assert err == ''
+        out, err = capsys.readouterr()
+
+        assert 'Undelivered dispatches count: %s' % count in out
+        assert err == ''
+
+    run_command()
+
+    # Now let's check a fallback works.
+    try:
+        GET_DISPATCHES_ARGS[0] = lambda kwargs: None
+
+        run_command(3)
+        assert GET_DISPATCHES_ARGS[0] is _get_dispatches
+
+    finally:
+        GET_DISPATCHES_ARGS[0] = _get_dispatches_for_update
+

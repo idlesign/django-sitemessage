@@ -13,14 +13,50 @@ USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
 if VERSION >= (1, 9, 0):
     ContextFieldBase = models.TextField
+
 else:
     ContextFieldBase = with_metaclass(models.SubfieldBase, models.TextField)
 
-if VERSION >= (1, 11, 0):
-    select_for_update_kwargs = {'skip_locked': True}
 
-else:
-    select_for_update_kwargs = {'nowait': True}
+def _get_dispatches(filter_kwargs):
+    """Simplified version. Not distributed friendly."""
+
+    dispatches = Dispatch.objects.prefetch_related('message').filter(
+        **filter_kwargs
+    ).order_by('-message__time_created')
+
+    return list(dispatches)
+
+
+def _get_dispatches_for_update(filter_kwargs):
+    """Distributed friendly version using ``select for update``."""
+
+    dispatches = Dispatch.objects.prefetch_related('message').filter(
+        **filter_kwargs
+
+    ).select_for_update(
+        **GET_DISPATCHES_ARGS[1]
+
+    ).order_by('-message__time_created')
+
+    try:
+        dispatches = list(dispatches)
+
+    except NotSupportedError:
+        return None
+
+    except DatabaseError:  # Probably locked. That's fine.
+        return []
+
+    return dispatches
+
+
+GET_DISPATCHES_ARGS = [
+    _get_dispatches_for_update,
+    {'skip_locked': True} if VERSION >= (1, 11, 0) else {'nowait': True}
+
+]  # type: list
+"""This could be set runtime in Dispatch.get_unsent()"""
 
 
 class ContextField(ContextFieldBase):
@@ -287,38 +323,31 @@ class Dispatch(models.Model):
         if priority is not None:
             filter_kwargs['message__priority'] = priority
 
-        dispatches = None
-
-        def get_dispatches(for_update):
-            dispatches = cls.objects.prefetch_related('message').filter(
-                **filter_kwargs
-            )
-
-            if for_update:
-                dispatches = dispatches.select_for_update(**select_for_update_kwargs)
-
-            dispatches = dispatches.order_by('-message__time_created').all()
-
-            return dispatches
-
         with transaction.atomic():
-            try:
-                dispatches = get_dispatches(for_update=True)
 
-            except NotSupportedError:
-                dispatches = get_dispatches(for_update=False)
-
-            except DatabaseError:  # Probably locked
-                pass
+            dispatches = GET_DISPATCHES_ARGS[0](filter_kwargs)
 
             if dispatches is None:
-                dispatches = []
+                # Try graceful degradation.
+                # This branch normally runs only once to adapt to DB capabilities.
 
-            else:
-                # Trigger update for 'select_for_update' setting the processing state.
-                cls.objects.filter(
-                    pk__in=[dispatch.pk for dispatch in dispatches]
-                ).update(dispatch_status=cls.DISPATCH_STATUS_PROCESSING)
+                # 1. drop skip_locked/no_wait
+                GET_DISPATCHES_ARGS[1] = {}
+                dispatches = GET_DISPATCHES_ARGS[0](filter_kwargs)
+
+                if dispatches is None:
+                    # 2. drop for update entirely
+                    GET_DISPATCHES_ARGS[0] = _get_dispatches
+                    dispatches = _get_dispatches(filter_kwargs)
+
+            if not dispatches:
+                return []
+
+            # Trigger update for 'select_for_update' setting the processing state.
+            cls.objects.filter(
+                pk__in=[dispatch.pk for dispatch in dispatches]
+
+            ).update(dispatch_status=cls.DISPATCH_STATUS_PROCESSING)
 
         return dispatches
 
