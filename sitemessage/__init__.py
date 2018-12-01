@@ -1,4 +1,4 @@
-VERSION = (0, 11, 0)
+VERSION = (0, 11, 1)
 
 
 default_app_config = 'sitemessage.config.SitemessageConfig'
