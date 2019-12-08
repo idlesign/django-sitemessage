@@ -20,10 +20,6 @@ https://github.com/idlesign/django-sitemessage
 .. image:: https://travis-ci.org/idlesign/django-sitemessage.svg?branch=master
     :target: https://travis-ci.org/idlesign/django-sitemessage
 
-.. image:: https://landscape.io/github/idlesign/django-sitemessage/master/landscape.svg?style=flat
-   :target: https://landscape.io/github/idlesign/django-sitemessage/master
-
-
 
 Description
 -----------
