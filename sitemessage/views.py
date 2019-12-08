@@ -1,4 +1,4 @@
-from django.contrib.staticfiles.templatetags.staticfiles import static as get_static_url
+from django.templatetags.static import static as get_static_url
 from django.shortcuts import redirect
 
 from .exceptions import UnknownMessageTypeError

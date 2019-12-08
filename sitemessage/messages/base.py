@@ -8,7 +8,6 @@ from django.utils.crypto import salted_hmac
 from django.utils.translation import ugettext as _
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
-from django.utils.six import string_types
 
 from ..utils import Recipient, recipients, get_site_url, get_registered_messenger_object
 from ..models import Message, Dispatch, Subscription
@@ -149,7 +148,7 @@ class MessageBase(object):
                 except UnknownMessengerError:
                     pass
 
-            if address and isinstance(address, string_types):
+            if address and isinstance(address, str):
                 subscribers.append(Recipient(messenger_cls, recipient, address))
 
         return subscribers

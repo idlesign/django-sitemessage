@@ -1,8 +1,6 @@
 from collections import namedtuple, defaultdict, OrderedDict
 from threading import local
 
-from django.utils import six
-
 try:
     from django.utils.module_loading import import_module
 except ImportError:
@@ -173,7 +171,7 @@ def is_iterable(v):
     NB: strings do not count even on Py3.
 
     """
-    return hasattr(v, '__iter__') and not isinstance(v, six.string_types)
+    return hasattr(v, '__iter__') and not isinstance(v, str)
 
 
 # Class used to represent message recipients.
@@ -191,6 +189,6 @@ def recipients(messenger, addresses):
     :rtype: list[Recipient]
 
     """
-    if isinstance(messenger, six.string_types):
+    if isinstance(messenger, str):
         messenger = get_registered_messenger_object(messenger)
     return messenger._structure_recipients_data(addresses)

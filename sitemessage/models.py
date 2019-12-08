@@ -5,17 +5,10 @@ from django.conf import settings
 from django.core import exceptions
 from django.db import models, transaction, DatabaseError, NotSupportedError
 from django.utils import timezone
-from django.utils.encoding import python_2_unicode_compatible
-from django.utils.six import with_metaclass, string_types
 from django.utils.translation import ugettext_lazy as _
 
 USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
-if VERSION >= (1, 9, 0):
-    ContextFieldBase = models.TextField
-
-else:
-    ContextFieldBase = with_metaclass(models.SubfieldBase, models.TextField)
 
 
 def _get_dispatches(filter_kwargs):
@@ -59,7 +52,7 @@ GET_DISPATCHES_ARGS = [
 """This could be set runtime in Dispatch.get_unsent()"""
 
 
-class ContextField(ContextFieldBase):
+class ContextField(models.TextField):
 
     @classmethod
     def parse_value(cls, value):
@@ -92,7 +85,6 @@ class ContextField(ContextFieldBase):
         return json.dumps(value)
 
 
-@python_2_unicode_compatible
 class Message(models.Model):
 
     time_created = models.DateTimeField(_('Time created'), auto_now_add=True, editable=False)
@@ -178,7 +170,6 @@ class Message(models.Model):
         return message_model, dispatch_models
 
 
-@python_2_unicode_compatible
 class Dispatch(models.Model):
 
     DISPATCH_STATUS_PENDING = 1
@@ -385,7 +376,6 @@ class Dispatch(models.Model):
         return objects
 
 
-@python_2_unicode_compatible
 class DispatchError(models.Model):
 
     time_created = models.DateTimeField(_('Time created'), auto_now_add=True, editable=False)
@@ -400,7 +390,6 @@ class DispatchError(models.Model):
         return 'Dispatch ID %s error entry' % self.dispatch_id
 
 
-@python_2_unicode_compatible
 class Subscription(models.Model):
 
     time_created = models.DateTimeField(_('Time created'), auto_now_add=True, editable=False)
@@ -474,10 +463,10 @@ class Subscription(models.Model):
     @classmethod
     def _get_base_kwargs(cls, recipient, message_cls, messenger_cls):
 
-        if not isinstance(message_cls, string_types):
+        if not isinstance(message_cls, str):
             message_cls = message_cls.alias
 
-        if not isinstance(messenger_cls, string_types):
+        if not isinstance(messenger_cls, str):
             messenger_cls = messenger_cls.alias
 
         base_kwargs = {
@@ -485,7 +474,7 @@ class Subscription(models.Model):
             'messenger_cls': messenger_cls,
         }
 
-        if isinstance(recipient, string_types):
+        if isinstance(recipient, str):
             base_kwargs['address'] = recipient
 
         else:

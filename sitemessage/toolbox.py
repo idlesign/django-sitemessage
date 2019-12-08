@@ -4,7 +4,7 @@ from operator import itemgetter
 from itertools import chain
 
 from django import VERSION
-from django.utils import six, timezone
+from django.utils import timezone
 from django.conf import settings
 from django.conf.urls import url
 
@@ -43,7 +43,7 @@ def schedule_messages(messages, recipients=None, sender=None, priority=None):
 
     results = []
     for message in messages:
-        if isinstance(message, six.string_types):
+        if isinstance(message, str):
             message = PlainTextMessage(message)
 
         resulting_priority = message.priority
