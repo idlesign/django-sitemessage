@@ -1,6 +1,6 @@
 from django.utils.translation import ugettext as _
 
-from .base import MessengerBase
+from .base import RequestsMessengerBase
 from ..exceptions import MessengerException
 
 
@@ -8,11 +8,9 @@ class VKontakteMessengerException(MessengerException):
     """Exceptions raised by VKontakte messenger."""
 
 
-class VKontakteMessenger(MessengerBase):
+class VKontakteMessenger(RequestsMessengerBase):
     """Implements VKontakte page wall message publishing.
 
-    Uses `requests` module: https://pypi.python.org/pypi/requests
-    
     Steps to be done:
 
     1. Create a user/community page.
@@ -36,56 +34,34 @@ class VKontakteMessenger(MessengerBase):
 
     _url_wall = 'https://api.vk.com/method/wall.post'
 
-    def __init__(self, access_token):
+    def __init__(self, access_token, proxy=None):
         """Configures messenger.
 
         :param str access_token: Unique authentication token to access your VK user/community page.
+        :param dict|Callable: Dictionary of proxy settings,
+            or a callable returning such a dictionary.
 
         """
-        import requests
-
-        self.lib = requests
+        super().__init__(proxy=proxy)
         self.access_token = access_token
 
-    @classmethod
-    def get_address(cls, recipient):
-        return getattr(recipient, 'vkontakte', None) or recipient
+    def _send_message(self, msg, to=None):
 
-    def _test_message(self, to, text):
-        return self._send_message(to, text)
+        # Automatically deduce message type.
+        message_type = 'attachments' if msg.startswith('http') else 'message'
 
-    def _send_message(self, to, text):
+        json = self.post(
+            url=self._url_wall,
+            data={
+                message_type: msg,
+                'owner_id': to,
+                'from_group': 1,
+                'access_token': self.access_token,
+                'v': '5.73',
+            })
 
-        try:
-            # Automatically deduce message type.
-            message_type = 'attachments' if text.startswith('http') else 'message'
+        if 'error' in json:
+            error = json['error']
+            raise VKontakteMessengerException('%s: %s' % (error['error_code'], error['error_msg']))
 
-            response = self.lib.post(
-                self._url_wall,
-                data={
-                    message_type: text,
-                    'owner_id': to,
-                    'from_group': 1,
-                    'access_token': self.access_token,
-                    'v': '5.73',
-                })
-
-            json = response.json()
-
-            if 'error' in json:
-                error = json['error']
-                raise VKontakteMessengerException('%s: %s' % (error['error_code'], error['error_msg']))
-
-            return json['response']['post_id']  # Returns post ID.
-
-        except self.lib.exceptions.RequestException as e:
-            raise VKontakteMessengerException(e)
-
-    def send(self, message_cls, message_model, dispatch_models):
-        for dispatch_model in dispatch_models:
-            try:
-                self._send_message(dispatch_model.address, dispatch_model.message_cache)
-                self.mark_sent(dispatch_model)
-
-            except Exception as e:
-                self.mark_error(dispatch_model, e, message_cls)
+        return json['response']['post_id']  # Returns post ID.

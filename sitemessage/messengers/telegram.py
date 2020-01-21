@@ -1,6 +1,6 @@
 from django.utils.translation import ugettext as _
 
-from .base import MessengerBase
+from .base import RequestsMessengerBase
 from ..exceptions import MessengerWarmupException, MessengerException
 
 
@@ -8,12 +8,8 @@ class TelegramMessengerException(MessengerException):
     """Exceptions raised by Telegram messenger."""
 
 
-class TelegramMessenger(MessengerBase):
-    """Implements Telegram message delivery via Telegram Bot API.
-
-    Uses `requests` module: https://pypi.python.org/pypi/requests
-
-    """
+class TelegramMessenger(RequestsMessengerBase):
+    """Implements Telegram message delivery via Telegram Bot API."""
 
     alias = 'telegram'
     title = _('Telegram')
@@ -23,24 +19,15 @@ class TelegramMessenger(MessengerBase):
     _session_started = False
     _tpl_url = 'https://api.telegram.org/bot%(token)s/%(method)s'
 
-    def __init__(self, auth_token):
+    def __init__(self, auth_token, proxy=None):
         """Configures messenger.
 
         Register a Telegram Bot using instructions from https://core.telegram.org/bots/api
 
         :param auth_token: Bot unique authentication token
         """
-        import requests
-
-        self.lib = requests
+        super().__init__(proxy=proxy)
         self.auth_token = auth_token
-
-    @classmethod
-    def get_address(cls, recipient):
-        return getattr(recipient, 'telegram', None) or recipient
-
-    def _test_message(self, to, text):
-        return self._send_message(self._build_message(to, text))
 
     def _verify_bot(self):
         """Sends an API command to test whether bot is authorized."""
@@ -80,8 +67,7 @@ class TelegramMessenger(MessengerBase):
         except TelegramMessengerException as e:
             raise MessengerWarmupException('Telegram Error: %s' % e)
 
-    @classmethod
-    def _build_message(cls, to, text):
+    def _build_message(self, text, to=None):
         return {'chat_id': to, 'text': text}
 
     def _send_command(self, method_name, data=None):
@@ -91,27 +77,17 @@ class TelegramMessenger(MessengerBase):
         :param dict data:
         :return:
         """
-        try:
-            response = self.lib.post(self._tpl_url % {'token': self.auth_token, 'method': method_name}, data=data)
-            json = response.json()
+        json = self.post(url=self._tpl_url % {'token': self.auth_token, 'method': method_name}, data=data)
 
-            if not json['ok']:
-                raise TelegramMessengerException(json['description'])
+        if not json['ok']:
+            raise TelegramMessengerException(json['description'])
 
-            return json['result']
+        return json['result']
 
-        except self.lib.exceptions.RequestException as e:
-            raise TelegramMessengerException(e)
-
-    def _send_message(self, msg):
+    def _send_message(self, msg, to=None):
         return self._send_command('sendMessage', msg)
 
     def send(self, message_cls, message_model, dispatch_models):
-        if self._session_started:
-            for dispatch_model in dispatch_models:
-                msg = self._build_message(dispatch_model.address, dispatch_model.message_cache)
-                try:
-                    self._send_message(msg)
-                    self.mark_sent(dispatch_model)
-                except Exception as e:
-                    self.mark_error(dispatch_model, e, message_cls)
+        if not self._session_started:
+            return
+        super().send(message_cls, message_model, dispatch_models)

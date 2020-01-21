@@ -1,6 +1,6 @@
 from django.utils.translation import ugettext as _
 
-from .base import MessengerBase
+from .base import RequestsMessengerBase
 from ..exceptions import MessengerException
 
 
@@ -8,10 +8,8 @@ class FacebookMessengerException(MessengerException):
     """Exceptions raised by Facebook messenger."""
 
 
-class FacebookMessenger(MessengerBase):
+class FacebookMessenger(RequestsMessengerBase):
     """Implements Facebook page wall message publishing.
-
-    Uses `requests` module: https://pypi.python.org/pypi/requests
 
     Steps to be done:
 
@@ -38,16 +36,14 @@ class FacebookMessenger(MessengerBase):
     _url_versioned = _url_base + '/v' + _graph_version
     _tpl_url_feed = _url_versioned + '/%(page_id)s/feed'
 
-    def __init__(self, page_access_token):
+    def __init__(self, page_access_token, proxy=None):
         """Configures messenger.
 
         :param str page_access_token: Unique authentication token of your FB page.
             One could be generated from User token using .get_page_access_token().
 
         """
-        import requests
-
-        self.lib = requests
+        super().__init__(proxy=proxy)
         self.access_token = page_access_token
 
     def get_page_access_token(self, app_id, app_secret, user_token):
@@ -63,46 +59,26 @@ class FacebookMessenger(MessengerBase):
             self._url_base + '/oauth/access_token?grant_type=fb_exchange_token&'
                              'client_id=%(app_id)s&client_secret=%(app_secret)s&fb_exchange_token=%(user_token)s')
 
-        response = self.lib.get(url_extend % {'app_id': app_id, 'app_secret': app_secret, 'user_token': user_token})
+        response = self.get(url_extend % {'app_id': app_id, 'app_secret': app_secret, 'user_token': user_token})
+        user_token_long_lived = response.split('=')[-1]
 
-        user_token_long_lived = response.text.split('=')[-1]
-
-        response = self.lib.get(self._url_versioned + '/me/accounts?access_token=%s' % user_token_long_lived)
-        json = response.json()
+        json = self.get(self._url_versioned + '/me/accounts?access_token=%s' % user_token_long_lived, json=True)
 
         tokens = {item['name']: item['access_token'] for item in json['data'] if item.get('access_token')}
 
         return tokens
 
-    def _test_message(self, to, text):
-        return self._send_message(text)
+    def _send_message(self, msg, to=None):
 
-    def _send_message(self, text):
+        # Automatically deduce message type.
+        message_type = 'link' if msg.startswith('http') else 'message'
 
-        try:
-            # Automatically deduce message type.
-            message_type = 'link' if text.startswith('http') else 'message'
+        json = self.post(
+            url=self._tpl_url_feed % {'page_id': 'me'},
+            data={'access_token': self.access_token, message_type: msg})
 
-            response = self.lib.post(
-                self._tpl_url_feed % {'page_id': 'me'},
-                data={'access_token': self.access_token, message_type: text})
+        if 'error' in json:
+            error = json['error']
+            raise FacebookMessengerException('%s: %s' % (error['code'], error['message']))
 
-            json = response.json()
-
-            if 'error' in json:
-                error = json['error']
-                raise FacebookMessengerException('%s: %s' % (error['code'], error['message']))
-
-            return json['id']  # Returns post ID.
-
-        except self.lib.exceptions.RequestException as e:
-            raise FacebookMessengerException(e)
-
-    def send(self, message_cls, message_model, dispatch_models):
-        for dispatch_model in dispatch_models:
-            try:
-                self._send_message(dispatch_model.message_cache)
-                self.mark_sent(dispatch_model)
-
-            except Exception as e:
-                self.mark_error(dispatch_model, e, message_cls)
+        return json['id']  # Returns post ID.
