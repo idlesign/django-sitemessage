@@ -222,7 +222,7 @@ class TestTelegramMessenger(object):
         schedule_messages('text', recipients('telegram', '1234567'))
         send_scheduled_messages()
         assert_called_n(messenger_telegram.lib.post, 2)
-        assert messenger_telegram.lib.post.call_args[1]['proxy'] == {'https': 'socks5://user:pass@host:port'}
+        assert messenger_telegram.lib.post.call_args[1]['proxies'] == {'https': 'socks5://user:pass@host:port'}
 
     def test_send_test_message(self):
         messenger_telegram.send_test_message('someone', 'sometext')
@@ -264,7 +264,7 @@ class TestFacebookMessenger(object):
         schedule_messages('text', recipients('fb', ''))
         send_scheduled_messages()
         assert_called_n(messenger_fb.lib.post)
-        assert messenger_fb.lib.post.call_args[1]['proxy'] == {'https': '0.0.0.0'}
+        assert messenger_fb.lib.post.call_args[1]['proxies'] == {'https': '0.0.0.0'}
 
     def test_send_test_message(self):
         messenger_fb.send_test_message('', 'sometext')

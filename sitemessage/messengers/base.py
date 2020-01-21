@@ -276,7 +276,7 @@ class RequestsMessengerBase(MessengerBase):
 
         params = {
             'timeout': self.timeout,
-            'proxy': proxy or None
+            'proxies': proxy or None
         }
 
         return params
