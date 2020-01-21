@@ -1,16 +1,17 @@
-from datetime import timedelta
 from collections import OrderedDict, defaultdict
-from operator import itemgetter
+from datetime import timedelta
 from itertools import chain
+from operator import itemgetter
 
 from django import VERSION
-from django.utils import timezone
 from django.conf import settings
 from django.conf.urls import url
+from django.utils import timezone
+from django.utils.translation import gettext as _
 
-from .models import Message, Dispatch, Subscription
 from .exceptions import UnknownMessengerError, UnknownMessageTypeError
 from .messages.plain import PlainTextMessage
+from .models import Message, Dispatch, Subscription
 from .views import mark_read, unsubscribe
 
 # NB: Some of these unused imports are exposed as part of toolbox API.
@@ -21,7 +22,6 @@ from .utils import (
     register_message_types, get_registered_message_type, get_registered_message_types,
     get_message_type_for_app, override_message_type_for_app,
 )
-
 
 _ALIAS_SEP = '|'
 _PREF_POST_KEY = 'sm_user_pref'
@@ -113,8 +113,11 @@ def check_undelivered(to=None):
             register_message_types(EmailTextMessage)
 
             schedule_email(
-                'You have %s undelivered dispatch(es) at %s' % (failed_count, get_site_url()),
-                subject='[SITEMESSAGE] Undelivered dispatches',
+                _('You have %(count)s undelivered dispatch(es) at %(url)s') % {
+                    'count': failed_count,
+                    'url': get_site_url(),
+                },
+                subject=_('[SITEMESSAGE] Undelivered dispatches'),
                 to=to, priority=priority)
 
             send_scheduled_messages(priority=priority)

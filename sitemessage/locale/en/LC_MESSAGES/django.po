@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-10-10 19:06+0700\n"
+"POT-Creation-Date: 2020-01-21 19:08+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,7 +25,7 @@ msgstr ""
 msgid "Messaging"
 msgstr ""
 
-#: messages/base.py:35
+#: messages/base.py:34
 msgid "Notification"
 msgstr ""
 
@@ -37,7 +37,7 @@ msgstr ""
 msgid "Text notification"
 msgstr ""
 
-#: messengers/facebook.py:33
+#: messengers/facebook.py:31
 msgid "Facebook"
 msgstr ""
 
@@ -45,11 +45,11 @@ msgstr ""
 msgid "E-mail"
 msgstr ""
 
-#: messengers/smtp.py:99
+#: messengers/smtp.py:97
 msgid "No Subject"
 msgstr ""
 
-#: messengers/telegram.py:19
+#: messengers/telegram.py:15
 msgid "Telegram"
 msgstr ""
 
@@ -57,7 +57,7 @@ msgstr ""
 msgid "Tweet"
 msgstr ""
 
-#: messengers/vkontakte.py:33
+#: messengers/vkontakte.py:31
 msgid "VKontakte"
 msgstr ""
 
@@ -65,160 +65,160 @@ msgstr ""
 msgid "XMPP"
 msgstr ""
 
-#: models.py:35
+#: models.py:64
 #, python-format
 msgid "Value `%r` is not a valid context."
 msgstr ""
 
-#: models.py:62 models.py:173 models.py:362 models.py:377
+#: models.py:90 models.py:200 models.py:381 models.py:395
 msgid "Time created"
 msgstr ""
 
-#: models.py:65
+#: models.py:93
 msgid "Sender"
 msgstr ""
 
-#: models.py:68 models.py:380
+#: models.py:96 models.py:398
 msgid "Message class"
 msgstr ""
 
-#: models.py:69 models.py:380
+#: models.py:97 models.py:398
 msgid "Message logic class identifier."
 msgstr ""
 
-#: models.py:71
+#: models.py:99
 msgid "Message context"
 msgstr ""
 
-#: models.py:74
+#: models.py:102
 msgid "Priority"
 msgstr ""
 
-#: models.py:75
+#: models.py:103
 msgid ""
 "Number describing message sending priority. Messages with different "
 "priorities can be sent with different periodicity."
 msgstr ""
 
-#: models.py:79
+#: models.py:107
 msgid "Dispatches ready"
 msgstr ""
 
-#: models.py:80
+#: models.py:108
 msgid ""
 "Indicates whether dispatches for this message are already formed and ready "
 "to delivery."
 msgstr ""
 
-#: models.py:83 models.py:178
+#: models.py:111 models.py:205
 msgid "Message"
 msgstr ""
 
-#: models.py:84
+#: models.py:112
 msgid "Messages"
 msgstr ""
 
-#: models.py:155
+#: models.py:182
 msgid "Pending"
 msgstr ""
 
-#: models.py:156
+#: models.py:183
 msgid "Processing"
 msgstr ""
 
-#: models.py:157
+#: models.py:184
 msgid "Sent"
 msgstr ""
 
-#: models.py:158
+#: models.py:185
 msgid "Error"
 msgstr ""
 
-#: models.py:159
+#: models.py:186
 msgid "Failed"
 msgstr ""
 
-#: models.py:166
+#: models.py:193
 msgid "Unread"
 msgstr ""
 
-#: models.py:167
+#: models.py:194
 msgid "Read"
 msgstr ""
 
-#: models.py:176
+#: models.py:203
 msgid "Time dispatched"
 msgstr ""
 
-#: models.py:176
+#: models.py:203
 msgid "Time of the last delivery attempt."
 msgstr ""
 
-#: models.py:181 models.py:383
+#: models.py:208 models.py:401
 msgid "Messenger"
 msgstr ""
 
-#: models.py:181 models.py:383
+#: models.py:208 models.py:401
 msgid "Messenger class identifier."
 msgstr ""
 
-#: models.py:184 models.py:386
+#: models.py:211 models.py:404
 msgid "Recipient"
 msgstr ""
 
-#: models.py:186 models.py:388
+#: models.py:213 models.py:406
 msgid "Address"
 msgstr ""
 
-#: models.py:186 models.py:388
+#: models.py:213 models.py:406
 msgid "Recipient address."
 msgstr ""
 
-#: models.py:189
+#: models.py:216
 msgid "Retry count"
 msgstr ""
 
-#: models.py:189
+#: models.py:216
 msgid "A number of delivery retries has already been made."
 msgstr ""
 
-#: models.py:191
+#: models.py:218
 msgid "Message cache"
 msgstr ""
 
-#: models.py:194
+#: models.py:221
 msgid "Dispatch status"
 msgstr ""
 
-#: models.py:196
+#: models.py:223
 msgid "Read status"
 msgstr ""
 
-#: models.py:199 models.py:363
+#: models.py:226 models.py:382
 msgid "Dispatch"
 msgstr ""
 
-#: models.py:200
+#: models.py:227
 msgid "Dispatches"
 msgstr ""
 
-#: models.py:364
+#: models.py:383
 msgid "Text"
 msgstr ""
 
-#: models.py:367
+#: models.py:386
 msgid "Dispatch error"
 msgstr ""
 
-#: models.py:368
+#: models.py:387
 msgid "Dispatch errors"
 msgstr ""
 
-#: models.py:391
+#: models.py:409
 msgid "Subscription"
 msgstr ""
 
-#: models.py:392
+#: models.py:410
 msgid "Subscriptions"
 msgstr ""
 
@@ -228,4 +228,13 @@ msgstr ""
 
 #: templates/sitemessage/messages/_base.html:21
 msgid "this link"
+msgstr ""
+
+#: toolbox.py:116
+#, python-format
+msgid "You have %(count)s undelivered dispatch(es) at %(url)s"
+msgstr ""
+
+#: toolbox.py:120
+msgid "[SITEMESSAGE] Undelivered dispatches"
 msgstr ""
