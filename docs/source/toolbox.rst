@@ -130,3 +130,16 @@ Or you can use **sitemessage.toolbox.cleanup_sent_messages** from sitemessage to
 
     # Delete all sent messages and dispatches.
     cleanup_sent_messages()
+
+
+Use sitemessage to send Django-generated e-mails
+------------------------------------------------
+
+In `settings.py` of your project set `EMAIL_BACKEND` to a backend shipped with **sitemessage**.
+
+.. code-block:: python
+
+    EMAIL_BACKEND = 'sitemessage.backends.EmailBackend'
+
+
+After that Django's `send_mail()` function will schedule e-mails using **sitemessage** machinery.
