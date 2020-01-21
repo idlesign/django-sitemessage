@@ -5,7 +5,7 @@ from django.conf import settings
 from django.core import exceptions
 from django.db import models, transaction, DatabaseError, NotSupportedError
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
@@ -133,7 +133,7 @@ class Message(models.Model):
 
         Returns a tuple: (message_model, list_of_dispatches)
 
-        :param str|unicode message_class: alias of MessageBase heir
+        :param str message_class: alias of MessageBase heir
 
         :param dict context: context for a message
 
@@ -456,7 +456,7 @@ class Subscription(models.Model):
     def get_for_message_cls(cls, message_cls):
         """Returns subscriptions for a given message class alias.
 
-        :param str|unicode message_cls:
+        :param str message_cls:
         """
         return cls.objects.select_related('recipient').filter(message_cls=message_cls)
 
@@ -489,9 +489,9 @@ class Subscription(models.Model):
     def create(cls, uid_or_address, message_cls, messenger_cls):
         """Creates a subscription for a recipient.
 
-        :param int|str|unicode uid_or_address: User ID or address string.
-        :param str|unicode|MessageBase message_cls: Message type alias or class
-        :param str|unicode|MessengerBase messenger_cls: Messenger type alias or class
+        :param int|str uid_or_address: User ID or address string.
+        :param str|MessageBase message_cls: Message type alias or class
+        :param str|MessengerBase messenger_cls: Messenger type alias or class
         :rtype: Subscription
         """
         obj = cls(**cls._get_base_kwargs(uid_or_address, message_cls, messenger_cls))
@@ -502,9 +502,9 @@ class Subscription(models.Model):
     def cancel(cls, uid_or_address, message_cls, messenger_cls):
         """Cancels a subscription for a recipient.
 
-        :param int|str|unicode uid_or_address: User ID or address string.
-        :param str|unicode|MessageBase message_cls: Message type alias or class
-        :param str|unicode|MessengerBase messenger_cls: Messenger type alias or class
+        :param int|str uid_or_address: User ID or address string.
+        :param str|MessageBase message_cls: Message type alias or class
+        :param str|MessengerBase messenger_cls: Messenger type alias or class
         """
         cls.objects.filter(
             **cls._get_base_kwargs(uid_or_address, message_cls, messenger_cls)

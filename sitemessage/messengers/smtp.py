@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.utils.html import strip_tags
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 from .base import MessengerBase
 from ..exceptions import MessengerWarmupException
@@ -94,7 +94,7 @@ class SMTPMessenger(MessengerBase):
         # TODO Maybe file attachments handling through `files` message_model context var.
 
         if subject is None:
-            subject = u'%s' % _('No Subject')
+            subject = '%s' % _('No Subject')
 
         if mtype == 'html':
             msg = self.mime_multipart()

@@ -29,7 +29,7 @@ _THREAD_SITE_URL = 'sitemessage_site_url'
 def get_site_url():
     """Returns a URL for current site.
 
-    :rtype: str|unicode
+    :rtype: str
 
     """
     site_url = getattr(_THREAD_LOCAL, _THREAD_SITE_URL, None)
@@ -47,8 +47,8 @@ def get_message_type_for_app(app_name, default_message_type_alias):
     to get message type objects which may be overridden by project authors
     using `override_message_type_for_app`.
 
-    :param str|unicode app_name:
-    :param str|unicode default_message_type_alias:
+    :param str app_name:
+    :param str default_message_type_alias:
 
     :return: a message type object overridden is so, or the default
     :rtype: MessageBase
@@ -69,9 +69,9 @@ def override_message_type_for_app(app_name, app_message_type_alias, new_message_
     of a certain thirdparty app (supporting this feature).
     To be used in conjunction with `get_message_type_for_app`.
 
-    :param str|unicode app_name:
-    :param str|unicode app_message_type_alias:
-    :param str|unicode new_message_type_alias:
+    :param str app_name:
+    :param str app_message_type_alias:
+    :param str new_message_type_alias:
 
     """
     global _MESSAGES_FOR_APPS
@@ -103,7 +103,7 @@ def get_registered_messenger_objects():
 def get_registered_messenger_object(messenger):
     """Returns registered (configured) messenger by alias,
 
-    :param str|unicode messenger: messenger alias
+    :param str messenger: messenger alias
 
     :return: MessengerBase heirs instances.
     :rtype: MessengerBase
@@ -139,7 +139,7 @@ def get_registered_message_types():
 def get_registered_message_type(message_type):
     """Returns registered message type (class) by alias,
 
-    :param str|unicode message_type: message type alias
+    :param str message_type: message type alias
 
     :return: MessageBase heirs instances.
     :rtype: MessageBase
@@ -153,7 +153,7 @@ def get_registered_message_type(message_type):
 def import_app_sitemessage_module(app):
     """Returns a submodule of a given app
 
-    :param str|unicode app: application name
+    :param str app: application name
 
     :return: submodule or None
     :rtype: module or None
@@ -181,8 +181,8 @@ Recipient = namedtuple('Recipient', ('messenger', 'user', 'address'))
 def recipients(messenger, addresses):
     """Structures recipients data.
 
-    :param str|unicode, MessageBase messenger: MessengerBase heir
-    :param list[str|unicode]|str|unicode addresses: recipients addresses or Django User
+    :param str, MessageBase messenger: MessengerBase heir
+    :param list[str]|str addresses: recipients addresses or Django User
         model heir instances (NOTE: if supported by a messenger)
 
     :return: list of Recipient

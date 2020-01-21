@@ -2,6 +2,11 @@ django-sitemessage changelog
 ============================
 
 
+Unreleased
+----------
+! Dropped Python 2 support.
+
+
 v1.1.0 [2019-12-08]
 -------------------
 ! Dropped QA for Django 1.7.

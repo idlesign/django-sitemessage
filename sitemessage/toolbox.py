@@ -78,8 +78,8 @@ def send_scheduled_messages(priority=None, ignore_unknown_messengers=False, igno
 def send_test_message(messenger_id, to=None):
     """Sends a test message using the given messenger.
 
-    :param str|unicode messenger_id: Messenger alias.
-    :param str|unicode to: Recipient address (if applicable).
+    :param str messenger_id: Messenger alias.
+    :param str to: Recipient address (if applicable).
 
     """
     messenger_obj = get_registered_messenger_object(messenger_id)
@@ -91,7 +91,7 @@ def check_undelivered(to=None):
 
     Returns undelivered (failed) dispatches count.
 
-    :param str|unicode to: Recipient address. If not set Django ADMINS setting is used.
+    :param str to: Recipient address. If not set Django ADMINS setting is used.
     :rtype: int
 
     """

@@ -5,7 +5,7 @@ except ImportError:  # Django<2.0
     from django.core.urlresolvers import reverse, NoReverseMatch
 
 from django.utils.crypto import salted_hmac
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
 
