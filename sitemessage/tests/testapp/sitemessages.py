@@ -39,11 +39,12 @@ messenger_xmpp._session_started = True
 messenger_twitter = mock_thirdparty('twitter', lambda: TwitterMessenger('key', 'secret', 'token', 'token_secret'))
 messenger_twitter.lib = MagicMock()
 
-messenger_telegram = mock_thirdparty('requests', lambda: TelegramMessenger('bottoken'))
+messenger_telegram = mock_thirdparty('requests', lambda: TelegramMessenger(
+    'bottoken', proxy={'https': 'socks5://user:pass@host:port'}))
 messenger_telegram.lib = MagicMock()
 messenger_telegram.lib.exceptions.RequestException = MockException
 
-messenger_fb = mock_thirdparty('requests', lambda: FacebookMessenger('pagetoken'))
+messenger_fb = mock_thirdparty('requests', lambda: FacebookMessenger('pagetoken', proxy=lambda: {'https': '0.0.0.0'}))
 messenger_fb.lib = MagicMock()
 messenger_fb.lib.exceptions.RequestException = MockException
 
