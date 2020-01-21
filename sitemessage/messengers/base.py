@@ -2,7 +2,7 @@ from contextlib import contextmanager
 
 from ..utils import Recipient, is_iterable, get_registered_message_type
 from ..models import Dispatch
-from ..exceptions import UnknownMessageTypeError
+from ..exceptions import UnknownMessageTypeError, MessengerException
 
 
 class MessengerBase(object):
@@ -241,3 +241,109 @@ class MessengerBase(object):
         :param list dispatch_models: Dispatch models for this Message
         """
         raise NotImplementedError(self.__class__.__name__ + ' must implement `send()`.')
+
+
+class RequestsMessengerBase(MessengerBase):
+    """Shared requests-based messenger base class.
+
+    Uses `requests` module: https://pypi.python.org/pypi/requests
+
+    """
+    timeout = 10
+    """Request timeout."""
+
+    def __init__(self, proxy=None, **kwargs):
+        """Configures messenger.
+
+        :param dict|Callable: Dictionary of proxy settings,
+            or a callable returning such a dictionary.
+
+        """
+        import requests
+
+        self.lib = requests
+        self.proxy = proxy
+
+    def _get_common_params(self):
+        """Returns common parameters for every request."""
+
+        proxy = self.proxy
+
+        if proxy:
+
+            if callable(proxy):
+                proxy = proxy()
+
+        params = {
+            'timeout': self.timeout,
+            'proxy': proxy or None
+        }
+
+        return params
+
+    def get(self, url, json=True):
+        """Performs POST and returns data.
+
+        :param url:
+        :param json: Expect json data and return it as dict.
+
+        :rtype: str|dict
+
+        """
+        try:
+            params = self._get_common_params()
+            response = self.lib.get(url, **params)
+            result = response.json() if json else response.text
+            return result
+
+        except self.lib.exceptions.RequestException as e:
+            raise MessengerException(e)
+
+    def post(self, url, data):
+        """Performs POST and returns data.
+
+        :param url:
+        :param data: data to send.
+
+        """
+        try:
+            params = self._get_common_params()
+            response = self.lib.post(url, data=data, **params)
+            result = response.json()
+            return result
+
+        except self.lib.exceptions.RequestException as e:
+            raise MessengerException(e)
+
+    def _test_message(self, to, text):
+        return self._send_message(self._build_message(text, to=to))
+
+    def _build_message(self, text, to=None):
+        """Builds a message before send.
+
+        :param text: Contents to add to message.
+        :param to: Recipient address.
+
+        :rtype: str
+
+        """
+        return text
+
+    def _send_message(self, msg, to=None):
+        """Should implement actual sending.
+
+        :param msg: Contents to add to message.
+        :param to: Recipient address.
+
+        """
+        raise NotImplementedError  # pragma: nocover
+
+    def send(self, message_cls, message_model, dispatch_models):
+        for dispatch_model in dispatch_models:
+            try:
+                msg = self._build_message(dispatch_model.message_cache, to=dispatch_model.address)
+                self._send_message(msg)
+                self.mark_sent(dispatch_model)
+
+            except Exception as e:
+                self.mark_error(dispatch_model, e, message_cls)
