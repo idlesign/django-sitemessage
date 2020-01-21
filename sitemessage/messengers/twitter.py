@@ -13,6 +13,9 @@ class TwitterMessenger(MessengerBase):
 
     alias = 'twitter'
     title = _('Tweet')
+
+    address_attr = 'twitter'
+
     _session_started = False
 
     def __init__(self, api_key, api_secret, access_token, access_token_secret):
@@ -32,10 +35,6 @@ class TwitterMessenger(MessengerBase):
         self.api_secret = api_secret
         self.access_token = access_token
         self.access_token_secret = access_token_secret
-
-    @classmethod
-    def get_address(cls, recipient):
-        return getattr(recipient, 'twitter', None) or recipient
 
     def _test_message(self, to, text):
         return self._send_message(self._build_message(to, text))

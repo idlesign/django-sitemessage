@@ -32,6 +32,8 @@ class VKontakteMessenger(MessengerBase):
     alias = 'vk'
     title = _('VKontakte')
 
+    address_attr = 'vkontakte'
+
     _url_wall = 'https://api.vk.com/method/wall.post'
 
     def __init__(self, access_token):

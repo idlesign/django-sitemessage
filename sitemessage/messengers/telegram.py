@@ -18,6 +18,8 @@ class TelegramMessenger(MessengerBase):
     alias = 'telegram'
     title = _('Telegram')
 
+    address_attr = 'telegram'
+
     _session_started = False
     _tpl_url = 'https://api.telegram.org/bot%(token)s/%(method)s'
 

@@ -21,6 +21,9 @@ class MessengerBase(object):
     # Makes subscription for this messenger messages available for users (see get_user_preferences_for_ui())
     allow_user_subscription = True
 
+    address_attr = None
+    """User object attribute containing address."""
+
     # Dispatches by status dict will be here runtime. See init_delivery_statuses_dict().
     _st = None
 
@@ -81,9 +84,17 @@ class MessengerBase(object):
 
         :param object recipient: any object passed to `recipients()`
         :return: str
-        :rtype: str
+        :rtype: str|object
+
         """
-        return recipient
+        address = recipient
+
+        address_attr = cls.address_attr
+
+        if address_attr:
+            address = getattr(recipient, address_attr, None) or address
+
+        return address
 
     @classmethod
     def _structure_recipients_data(cls, recipients):

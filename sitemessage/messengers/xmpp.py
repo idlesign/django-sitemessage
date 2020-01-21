@@ -14,6 +14,9 @@ class XMPPSleekMessenger(MessengerBase):
     alias = 'xmppsleek'
     xmpp = None
     title = _('XMPP')
+
+    address_attr = 'jabber'
+
     _session_started = False
 
     def __init__(self, from_jid, password, host='localhost', port=5222, use_tls=True, use_ssl=False):
@@ -37,10 +40,6 @@ class XMPPSleekMessenger(MessengerBase):
         self.port = port
         self.use_tls = use_tls
         self.use_ssl = use_ssl
-
-    @classmethod
-    def get_address(cls, recipient):
-        return getattr(recipient, 'jabber', None) or recipient
 
     def _test_message(self, to, text):
         return self._send_message(to, text)
