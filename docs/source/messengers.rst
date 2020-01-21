@@ -10,15 +10,15 @@ You can either use builtin classes or define your own.
 Helper functions
 ----------------
 
-* **sitemessage.toolbox.register_messenger_objects(\*messengers)**
+* ``sitemessage.toolbox.register_messenger_objects(*messengers)``
 
   Registers (configures) messengers.
 
-* **sitemessage.toolbox.get_registered_messenger_objects()**
+* ``sitemessage.toolbox.get_registered_messenger_objects()``
 
   Returns registered (configured) messengers dict indexed by messenger aliases.
 
-* **sitemessage.toolbox.get_registered_messenger_object(messenger)**
+* ``sitemessage.toolbox.get_registered_messenger_object(messenger)``
 
   Returns registered (configured) messenger by alias,
 
@@ -30,7 +30,10 @@ Builtin messengers
 Builtin messengers are available from **sitemessage.messengers**:
 
 
-* **sitemessage.messengers.smtp.SMTPMessenger** aliased *smtp*
+smtp.SMTPMessenger
+~~~~~~~~~~~~~~~~~~
+
+aliased *smtp*
 
 .. warning::
 
@@ -38,7 +41,10 @@ Builtin messengers are available from **sitemessage.messengers**:
 
 
 
-* **sitemessage.messengers.xmpp.XMPPSleekMessenger** aliased *xmppsleek*
+xmpp.XMPPSleekMessenger
+~~~~~~~~~~~~~~~~~~~~~~~
+
+aliased *xmppsleek*
 
 .. warning::
 
@@ -54,7 +60,10 @@ Builtin messengers are available from **sitemessage.messengers**:
 
 
 
-* **sitemessage.messengers.twitter.TwitterMessenger** aliased *twitter*
+twitter.TwitterMessenger
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+aliased *twitter*
 
 .. warning::
 
@@ -73,7 +82,10 @@ Builtin messengers are available from **sitemessage.messengers**:
 
 
 
-* **sitemessage.messengers.telegram.TelegramMessenger** aliased *telegram*
+telegram.TelegramMessenger
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+aliased *telegram*
 
 .. warning::
 
@@ -96,7 +108,10 @@ Builtin messengers are available from **sitemessage.messengers**:
     schedule_messages('Hi all!', recipients('telegram', '@mychannel'))
 
 
-* **sitemessage.messengers.facebook.FacebookMessenger** aliased *fb*
+facebook.FacebookMessenger
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+aliased *fb*
 
 .. warning::
 
@@ -114,7 +129,10 @@ Builtin messengers are available from **sitemessage.messengers**:
     schedule_messages('Hi there!', recipients('fb', ''))
 
 
-* **sitemessage.messengers.vkontakte.VKontakteMessenger** aliased *vk*
+vkontakte.VKontakteMessenger
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+aliased *vk*
 
 .. warning::
 
@@ -131,6 +149,18 @@ Builtin messengers are available from **sitemessage.messengers**:
     # Schedule a message or a URL for VK page wall. 1245 - user_id; use -12345 (with minus) to post to community wall.
     schedule_messages('Hi there!', recipients('vk', '12345'))
 
+
+Proxying
+--------
+
+Some messengers (`vk`, `fb`, `telegram`) are able to use proxies (e.g. SOCKS5).
+
+One may pass `proxy` argument to use proxies.
+
+.. code-block:: python
+
+
+    TelegramMessenger('token', proxy={'https': 'socks5://user:pass@host:port'})
 
 
 Sending test messages

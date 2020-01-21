@@ -5,6 +5,7 @@ django-sitemessage changelog
 Unreleased
 ----------
 ! Dropped Python 2 support.
++ Messengers using 'requests' ('vk', 'fb', 'telegram') now support proxies.
 
 
 v1.1.0 [2019-12-08]
