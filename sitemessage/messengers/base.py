@@ -225,7 +225,13 @@ class MessengerBase(object):
                         except Exception as e:
                             self.mark_error(dispatch, e, message_cls)
 
-                self.send(message_cls, message_model, dispatch_models)
+                try:
+                    self.send(message_cls, message_model, dispatch_models)
+
+                except Exception as e:
+                    # Propagate unhandled exceptions to dispatches.
+                    for dispatch in dispatch_models:
+                        self.mark_error(dispatch, e, message_cls)
 
     def _update_dispatches(self):
         """Updates dispatched data in DB according to information gather by `mark_*` methods,"""
