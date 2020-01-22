@@ -23,10 +23,10 @@ def test_init_params():
 
 
 def test_alias():
-    messenger: MessengerBase = type('MyMessenger', (MessengerBase,), {'alias': 'myalias'})
+    messenger = type('MyMessenger', (MessengerBase,), {'alias': 'myalias'})
     assert messenger.get_alias() == 'myalias'
 
-    messenger: MessengerBase = type('MyMessenger', (MessengerBase,), {})
+    messenger = type('MyMessenger', (MessengerBase,), {})
     assert messenger.get_alias() == 'MyMessenger'
 
 
