@@ -68,7 +68,8 @@ def send_scheduled_messages(priority=None, ignore_unknown_messengers=False, igno
     for messenger_id, messages in dispatches_by_messengers.items():
         try:
             messenger_obj = get_registered_messenger_object(messenger_id)
-            messenger_obj._process_messages(messages, ignore_unknown_message_types=ignore_unknown_message_types)
+            messenger_obj.process_messages(messages, ignore_unknown_message_types=ignore_unknown_message_types)
+
         except UnknownMessengerError:
             if ignore_unknown_messengers:
                 continue

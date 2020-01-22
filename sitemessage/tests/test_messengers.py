@@ -4,7 +4,6 @@ from sitemessage.messengers.base import MessengerBase
 from sitemessage.models import Subscription, DispatchError
 from sitemessage.toolbox import recipients, schedule_messages, send_scheduled_messages
 from sitemessage.utils import get_registered_messenger_objects
-
 from .testapp.sitemessages import (
     WONDERLAND_DOMAIN, MessagePlainForTest, MessengerForTest, BuggyMessenger,
     messenger_fb,
@@ -24,10 +23,10 @@ def test_init_params():
 
 
 def test_alias():
-    messenger = type('MyMessenger', (MessengerBase,), {'alias': 'myalias'})  # type: MessengerBase
+    messenger: MessengerBase = type('MyMessenger', (MessengerBase,), {'alias': 'myalias'})
     assert messenger.get_alias() == 'myalias'
 
-    messenger = type('MyMessenger', (MessengerBase,), {})
+    messenger: MessengerBase = type('MyMessenger', (MessengerBase,), {})
     assert messenger.get_alias() == 'MyMessenger'
 
 
@@ -35,7 +34,7 @@ def test_get_recipients_data(user_create):
     user = user_create(attributes=dict(username='myuser'))
     to = ['gogi', 'givi', user]
 
-    r1 = MessengerForTest._structure_recipients_data(to)
+    r1 = MessengerForTest.structure_recipients_data(to)
 
     assert len(r1) == len(to)
     assert r1[0].address == 'gogi%s' % WONDERLAND_DOMAIN
@@ -82,6 +81,22 @@ def test_subscription(user_create):
 def assert_called_n(func, n=1):
     assert func.call_count == n
     func.call_count = 0
+
+
+def test_exception_propagation(monkeypatch):
+    schedule_messages('text', recipients('telegram', ''))
+    schedule_messages('text', recipients('telegram', ''))
+
+    def new_method(*args, **kwargs):
+        raise Exception('telegram beforesend failed')
+
+    monkeypatch.setattr(messenger_telegram, 'before_send', new_method)
+    send_scheduled_messages()
+
+    errors = list(DispatchError.objects.all())
+    assert len(errors) == 2
+    assert errors[0].error_log == 'telegram beforesend failed'
+    assert errors[1].error_log == 'telegram beforesend failed'
 
 
 class TestSMTPMessenger(object):

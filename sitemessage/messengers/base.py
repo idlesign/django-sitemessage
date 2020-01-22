@@ -1,8 +1,51 @@
 from contextlib import contextmanager
+from functools import partial
+from itertools import chain
+from typing import List, Optional, Tuple, Dict
 
-from ..utils import Recipient, is_iterable, get_registered_message_type
-from ..models import Dispatch
+from django.contrib.auth.base_user import AbstractBaseUser
+
 from ..exceptions import UnknownMessageTypeError, MessengerException
+from ..models import Dispatch, Message
+from ..utils import Recipient, is_iterable
+
+MessagesList = List[Tuple[Message, List[Dispatch]]]
+
+
+
+class DispatchProcessingHandler:
+    """Context manager to facilitate exception handling on various
+    messages processing stages.
+
+    """
+    def __init__(
+        self,
+        *,
+        messenger: 'MessengerBase',
+        messages: Optional[MessagesList] = None
+    ):
+        self.messenger = messenger
+
+        self.dispatches = (
+            chain.from_iterable((dispatch for dispatch in (item[1] for item in messages)))
+            if messages else None)
+
+    def __enter__(self):
+        messenger = self.messenger
+
+        with messenger._exception_handling(self.dispatches):
+            messenger._init_delivery_statuses_dict()
+            messenger.before_send()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        messenger = self.messenger
+
+        with messenger._exception_handling(self.dispatches):
+            messenger.after_send()
+
+        messenger._update_dispatches()
+
+        return True
 
 
 class MessengerBase(object):
@@ -42,20 +85,27 @@ class MessengerBase(object):
         return self.__class__.get_alias()
 
     @contextmanager
-    def before_after_send_handling(self):
+    def before_after_send_handling(self, messages: Optional[MessagesList] = None):
         """Context manager that allows to execute send wrapped
         in before_send() and after_send().
 
         """
-        self._init_delivery_statuses_dict()
-        self.before_send()
+        with DispatchProcessingHandler(messenger=self, messages=messages):
+            yield
 
+    @contextmanager
+    def _exception_handling(self, dispatches: Optional[List[Dispatch]]):
+        """Propagates unhandled exceptions to dispatches log.
+
+        :param dispatches:
+
+        """
         try:
             yield
 
-        finally:
-            self.after_send()
-            self._update_dispatches()
+        except Exception as e:
+            for dispatch in dispatches or []:
+                self.mark_error(dispatch, e)
 
     def send_test_message(self, to, text):
         """Sends a test message using messengers settings.
@@ -97,29 +147,24 @@ class MessengerBase(object):
         return address
 
     @classmethod
-    def _structure_recipients_data(cls, recipients):
+    def structure_recipients_data(cls, recipients):
         """Converts recipients data into a list of Recipient objects.
 
         :param list recipients: list of objects
         :return: list of Recipient
         :rtype: list
         """
-        try:  # That's all due Django 1.7 apps loading.
-            from django.contrib.auth import get_user_model
-            USER_MODEL = get_user_model()
-        except ImportError:
-            # Django 1.4 fallback.
-            from django.contrib.auth.models import User as USER_MODEL
-
         if not is_iterable(recipients):
             recipients = (recipients,)
 
         objects = []
-        for r in recipients:
+        for recipient in recipients:
             user = None
-            if isinstance(r, USER_MODEL):
-                user = r
-            address = cls.get_address(r)  # todo maybe raise an exception of not a string?
+
+            if isinstance(recipient, AbstractBaseUser):
+                user = recipient
+
+            address = cls.get_address(recipient)
 
             objects.append(Recipient(cls.get_alias(), user, address))
 
@@ -152,18 +197,23 @@ class MessengerBase(object):
         """
         self._st['sent'].append(dispatch)
 
-    def mark_error(self, dispatch, error_log, message_cls):
+    def mark_error(self, dispatch, error_log, message_cls=None):
         """Marks a dispatch as having error or consequently as failed
         if send retry limit for that message type is exhausted.
 
         Should be used within send().
 
         :param Dispatch dispatch: a Dispatch
-        :param str error_log: error message
-        :param MessageBase message_cls: MessageBase heir
+        :param str|Exception error_log: error message or exception object
+        :param Optional[Type[MessageBase]] message_cls: MessageBase heir
+
         """
+        if message_cls is None:
+            message_cls = dispatch.message.get_type()
+
         if message_cls.send_retry_limit is not None and (dispatch.retry_count + 1) >= message_cls.send_retry_limit:
             self.mark_failed(dispatch, error_log)
+
         else:
             dispatch.error_log = error_log
             self._st['error'].append(dispatch)
@@ -193,45 +243,52 @@ class MessengerBase(object):
 
         """
 
-    def _process_messages(self, messages, ignore_unknown_message_types=False):
+    def process_messages(self, messages: Dict[int, MessagesList], ignore_unknown_message_types: bool = False):
         """Performs message processing.
 
-        :param dict messages: indexed by message id dict with messages data
-        :param bool ignore_unknown_message_types: whether to silence exceptions
+        :param messages: indexed by message id dict with messages data
+        :param ignore_unknown_message_types: whether to silence exceptions
+
         :raises UnknownMessageTypeError:
+
         """
-        with self.before_after_send_handling():
-            for message_id, message_data in messages.items():
-                message_model, dispatch_models = message_data
+        send = self.send
+        exception_handling = self._exception_handling
+
+        messages = list(messages.values())
+
+        with self.before_after_send_handling(messages=messages):
+
+            for message, dispatches in messages:
+
                 try:
-                    message_cls = get_registered_message_type(message_model.cls)
+                    message_cls = message.get_type()
+                    compile_message = partial(message_cls.compile, message=message, messenger=self)
+
                 except UnknownMessageTypeError:
                     if ignore_unknown_message_types:
                         continue
                     raise
 
                 message_type_cache = None
-                for dispatch in dispatch_models:
-                    if not dispatch.message_cache:  # Create actual message text for further usage.
-                        try:
-                            if message_type_cache is None and not message_cls.has_dynamic_context:
-                                # If a message class doesn't depend upon a dispatch data for message compilation,
-                                # we'd compile a message just once.
-                                message_type_cache = message_cls.compile(message_model, self, dispatch=dispatch)
 
-                            dispatch.message_cache = message_type_cache or message_cls.compile(
-                                message_model, self, dispatch=dispatch)
+                for dispatch in dispatches:
 
-                        except Exception as e:
-                            self.mark_error(dispatch, e, message_cls)
+                    if dispatch.message_cache:
+                        continue
 
-                try:
-                    self.send(message_cls, message_model, dispatch_models)
+                    # Create actual message text for further usage.
+                    with exception_handling(dispatches=[dispatch]):
+                        if message_type_cache is None and not message_cls.has_dynamic_context:
+                            # If a message class doesn't depend upon a dispatch data for message compilation,
+                            # we'd compile a message just once.
+                            message_type_cache = compile_message(dispatch=dispatch)
 
-                except Exception as e:
-                    # Propagate unhandled exceptions to dispatches.
-                    for dispatch in dispatch_models:
-                        self.mark_error(dispatch, e, message_cls)
+                        dispatch.message_cache = message_type_cache or compile_message(dispatch=dispatch)
+
+                with exception_handling(dispatches=dispatches):
+                    # Batch send to cover wider messenger scenarios.
+                    send(message_cls, message, dispatches)
 
     def _update_dispatches(self):
         """Updates dispatched data in DB according to information gather by `mark_*` methods,"""

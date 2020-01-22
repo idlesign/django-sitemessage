@@ -1,4 +1,5 @@
 import json
+from typing import Type
 
 from django import VERSION
 from django.conf import settings
@@ -7,8 +8,12 @@ from django.db import models, transaction, DatabaseError, NotSupportedError
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
+from .utils import get_registered_message_type
 
+if False:  # pragma: nocover
+    from .messages.base import MessageBase
+
+USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
 
 def _get_dispatches(filter_kwargs):
@@ -117,10 +122,10 @@ class Message(models.Model):
     def get_type(self):
         """Returns message type (class) associated with the message.
 
+        :rtype: Type[MessageBase]
         :raises UnknownMessageTypeError:
         """
-        from .toolbox import get_registered_message_type
-        return get_registered_message_type(self.cls)
+        return get_registered_message_type(str(self.cls))
 
     @classmethod
     def get_without_dispatches(cls):

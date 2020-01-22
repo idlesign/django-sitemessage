@@ -191,4 +191,4 @@ def recipients(messenger, addresses):
     """
     if isinstance(messenger, str):
         messenger = get_registered_messenger_object(messenger)
-    return messenger._structure_recipients_data(addresses)
+    return messenger.structure_recipients_data(addresses)

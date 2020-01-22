@@ -2,10 +2,15 @@ django-sitemessage changelog
 ============================
 
 
+Unreleased
+----------
+* Fixed loosing dispatch errors in some cases.
+
+
 v1.2.1 [2020-01-21]
 -------------------
 * Fixed 'proxies' parameter passing.
-* Fixed possible dispatches stucking in 'Processing' status.
+* Fixed possible dispatches jamming in 'Processing' status.
 
 
 v1.2.0 [2020-01-21]
