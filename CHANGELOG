@@ -2,8 +2,8 @@ django-sitemessage changelog
 ============================
 
 
-Unreleased
-----------
+v1.3.0 [2020-01-22]
+-------------------
 + Added basic type annotations.
 + VKontakteMessenger. Added auxiliary '.get_access_token()' method.
 * Fixed loosing dispatch errors in some cases.
