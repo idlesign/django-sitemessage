@@ -311,7 +311,7 @@ class TestFacebookMessenger(object):
             messenger_fb.lib.post = old_method
 
 
-class TestVKontakteMessenger(object):
+class TestVKontakteMessenger:
 
     def setup_method(self, method):
         messenger_vk.lib.post.call_count = 0
@@ -321,6 +321,11 @@ class TestVKontakteMessenger(object):
         schedule_messages('text', recipients('vk', '12345'))
         send_scheduled_messages()
         assert_called_n(messenger_vk.lib.post)
+
+    def test_get_access_token(self, monkeypatch):
+        monkeypatch.setattr('webbrowser.open', lambda *args: None)
+        result = messenger_vk.get_access_token(app_id='00000')
+        assert '00000&scope=wall,' in result
 
     def test_send_test_message(self):
         messenger_vk.send_test_message('12345', 'sometext')

@@ -16,14 +16,14 @@ class VKontakteMessenger(RequestsMessengerBase):
     1. Create a user/community page.
     2. Create `Standalone` application at http://vk.com/apps?act=manage
     3. Get your Application ID (under Settings menu item in left menu)
-    4. To generate an access token go to using your browser:
+    4. To generate an access token:
 
-        https://oauth.vk.com/authorize?client_id={app_id}&scope=wall,offline&display=page&response_type=token
-        &v=5.52&redirect_uri=https://oauth.vk.com/blank.html
-        
-        * Replace {app_id} with actual application ID.
+        VKontakteMessenger.get_access_token(app_id=APP_ID)
 
-    5. Copy token from URL in browser (symbols after `access_token=` but before &)
+        * Replace APP_ID with actual application ID.
+        * This will open browser window.
+
+    5. Confirm and copy token from URL in browser (symbols after `access_token=` but before &)
     6. Use this token.
 
     """
@@ -33,6 +33,7 @@ class VKontakteMessenger(RequestsMessengerBase):
     address_attr = 'vkontakte'
 
     _url_wall = 'https://api.vk.com/method/wall.post'
+    _api_version = '5.103'
 
     def __init__(self, access_token, proxy=None):
         """Configures messenger.
@@ -44,6 +45,33 @@ class VKontakteMessenger(RequestsMessengerBase):
         """
         super().__init__(proxy=proxy)
         self.access_token = access_token
+
+    @classmethod
+    def get_access_token(self, *, app_id: str) -> str:
+        """Return an URL to get access token.
+
+        Opens browser, trying to redirect to a page
+        from location URL of which one can extract access_token
+        (see the messenger class docstring).
+
+        :param app_id: Application ID.
+
+        """
+        url = (
+            'https://oauth.vk.com/authorize?'
+            'client_id=%(app_id)s&'
+            'scope=wall,offline&'
+            'display=page&'
+            'response_type=token&'
+            'v=%(api_version)s&'
+            'redirect_uri=https://oauth.vk.com/blank.html'
+
+        ) % {'app_id': app_id, 'api_version': self._api_version}
+
+        import webbrowser
+        webbrowser.open(url)
+
+        return url
 
     def _send_message(self, msg, to=None):
 
@@ -57,7 +85,7 @@ class VKontakteMessenger(RequestsMessengerBase):
                 'owner_id': to,
                 'from_group': 1,
                 'access_token': self.access_token,
-                'v': '5.73',
+                'v': self._api_version,
             })
 
         if 'error' in json:
