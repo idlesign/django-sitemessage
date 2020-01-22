@@ -1,7 +1,7 @@
 from django import VERSION
 
 
-class CommandOption(object):
+class CommandOption:
     """Command line option wrapper."""
 
     def __init__(self, *args, **kwargs):

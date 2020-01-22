@@ -99,7 +99,7 @@ def test_exception_propagation(monkeypatch):
     assert errors[1].error_log == 'telegram beforesend failed'
 
 
-class TestSMTPMessenger(object):
+class TestSMTPMessenger:
 
     def setup_method(self, method):
         messenger_smtp.smtp.sendmail.call_count = 0
@@ -139,7 +139,7 @@ class TestSMTPMessenger(object):
         assert_called_n(messenger_smtp.smtp.sendmail)
 
 
-class TestTwitterMessenger(object):
+class TestTwitterMessenger:
 
     def test_get_address(self):
         r = object()
@@ -179,7 +179,7 @@ class TestTwitterMessenger(object):
             messenger_twitter.api.statuses.update = old_method
 
 
-class TestXMPPSleekMessenger(object):
+class TestXMPPSleekMessenger:
 
     def test_get_address(self):
         r = object()
@@ -220,7 +220,7 @@ class TestXMPPSleekMessenger(object):
             messenger_xmpp.xmpp.send_message = old_method
 
 
-class TestTelegramMessenger(object):
+class TestTelegramMessenger:
 
     def setup_method(self, method):
         messenger_telegram._verify_bot()
@@ -269,7 +269,7 @@ class TestTelegramMessenger(object):
             messenger_telegram.lib.post = old_method
 
 
-class TestFacebookMessenger(object):
+class TestFacebookMessenger:
 
     def setup_method(self, method):
         messenger_fb.lib.post.call_count = 0

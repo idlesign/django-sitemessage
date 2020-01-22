@@ -23,7 +23,7 @@ from .testapp.sitemessages import MessagePlainForTest, MessageForTest, \
     MessengerForTest
 
 
-class TestMessageSuite(object):
+class TestMessageSuite:
 
     def test_alias(self):
         message = type('MyMessage', (MessageBase,), {'alias': 'myalias'})  # type: MessageBase
@@ -67,13 +67,13 @@ class TestMessageSuite(object):
         assert model.sender == user
 
 
-class TestCommands(object):
+class TestCommands:
 
     def test_send_scheduled(self, command_run):
         command_run('sitemessage_send_scheduled', options=dict(priority=1))
 
 
-class TestBackends(object):
+class TestBackends:
 
     def test_email_backend(self, settings):
         settings.EMAIL_BACKEND = 'sitemessage.backends.EmailBackend'
@@ -89,7 +89,7 @@ class TestBackends(object):
         assert dispatches[0].message.context['contents'] == 'message'
 
 
-class TestShortcuts(object):
+class TestShortcuts:
 
     def test_schedule_email(self):
         schedule_email('some text', 'some@one.here')

@@ -21,7 +21,7 @@ from sitemessage.signals import (
 from .testapp.sitemessages import MessagePlainForTest, MessengerForTest
 
 
-class TestViews(object):
+class TestViews:
 
     STATUS_SUCCESS = 'success'
     STATUS_FAIL = 'fail'

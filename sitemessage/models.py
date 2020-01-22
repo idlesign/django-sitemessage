@@ -1,22 +1,25 @@
 import json
-from typing import Type
+from typing import Type, List, Optional, Union, Tuple, Dict, Iterable
 
 from django import VERSION
 from django.conf import settings
+from django.contrib.auth.base_user import AbstractBaseUser
 from django.core import exceptions
 from django.db import models, transaction, DatabaseError, NotSupportedError
+from django.db.models import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from .utils import get_registered_message_type
+from .utils import get_registered_message_type, Recipient
 
 if False:  # pragma: nocover
     from .messages.base import MessageBase
+    from .messengers.base import MessengerBase
 
 USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
 
-def _get_dispatches(filter_kwargs):
+def _get_dispatches(filter_kwargs: dict) -> List['Dispatch']:
     """Simplified version. Not distributed friendly."""
 
     dispatches = Dispatch.objects.prefetch_related('message').filter(
@@ -26,7 +29,7 @@ def _get_dispatches(filter_kwargs):
     return list(dispatches)
 
 
-def _get_dispatches_for_update(filter_kwargs):
+def _get_dispatches_for_update(filter_kwargs: dict) -> Optional[List['Dispatch']]:
     """Distributed friendly version using ``select for update``."""
 
     dispatches = Dispatch.objects.prefetch_related('message').filter(
@@ -60,7 +63,7 @@ GET_DISPATCHES_ARGS = [
 class ContextField(models.TextField):
 
     @classmethod
-    def parse_value(cls, value):
+    def parse_value(cls, value: str):
         try:
             return json.loads(value)
 
@@ -77,7 +80,7 @@ class ContextField(models.TextField):
 
         return self.parse_value(value)
 
-    def to_python(self, value):
+    def to_python(self, value: Union[dict, str]):
         if not value:
             return {}
 
@@ -86,7 +89,7 @@ class ContextField(models.TextField):
 
         return self.parse_value(value)
 
-    def get_prep_value(self, value):
+    def get_prep_value(self, value: dict):
         return json.dumps(value)
 
 
@@ -116,42 +119,46 @@ class Message(models.Model):
         verbose_name = _('Message')
         verbose_name_plural = _('Messages')
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.cls
 
-    def get_type(self):
+    def get_type(self) -> Type['MessageBase']:
         """Returns message type (class) associated with the message.
 
-        :rtype: Type[MessageBase]
         :raises UnknownMessageTypeError:
+
         """
-        return get_registered_message_type(str(self.cls))
+        return get_registered_message_type(self.cls)
 
     @classmethod
-    def get_without_dispatches(cls):
+    def get_without_dispatches(cls) -> Union[List['Message'], QuerySet]:
         """Returns messages with no dispatches created."""
         return cls.objects.filter(dispatches_ready=False).all()
 
     @classmethod
-    def create(cls, message_class, context, recipients=None, sender=None, priority=None):
+    def create(
+            cls,
+            message_class: str,
+            context: dict,
+            recipients: Optional[Union[Iterable[Recipient], Recipient]] = None,
+            sender: Optional[AbstractBaseUser] = None,
+            priority: Optional[int] = None
+    ) -> Tuple['Message', List['Dispatch']]:
         """Creates a message (and dispatches).
 
         Returns a tuple: (message_model, list_of_dispatches)
 
-        :param str message_class: alias of MessageBase heir
+        :param message_class: alias of MessageBase heir
 
-        :param dict context: context for a message
+        :param context: context for a message
 
-        :param list recipients: recipient (or a list) or None.
+        :param recipients: recipient (or a list) or None.
             If `None` Dispatches should be created before send using `prepare_dispatches()`.
 
-        :param User sender: Django User model heir instance
+        :param sender: Django User model heir instance
 
-        :param int priority: number describing message priority
+        :param priority: number describing message priority
 
-        :return: a tuple with message model and a list of dispatch models.
-
-        :rtype: tuple
         """
         dispatches_ready = False
 
@@ -200,6 +207,7 @@ class Dispatch(models.Model):
     )
 
     error_log = None
+    """Dynamic attribute. Populated in .mark_error()."""
 
     time_created = models.DateTimeField(
         _('Time created'), auto_now_add=True, editable=False)
@@ -231,14 +239,11 @@ class Dispatch(models.Model):
         verbose_name = _('Dispatch')
         verbose_name_plural = _('Dispatches')
 
-    def __str__(self):
+    def __str__(self) -> str:
         return '%s [%s]' % (self.address, self.messenger)
 
-    def is_read(self):
-        """Returns message read flag.
-
-        :rtype: bool
-        """
+    def is_read(self) -> bool:
+        """Returns message read flag."""
         return self.read_status == self.READ_STATUS_READ
 
     def mark_read(self):
@@ -246,10 +251,11 @@ class Dispatch(models.Model):
         self.read_status = self.READ_STATUS_READ
 
     @classmethod
-    def log_dispatches_errors(cls, dispatches):
+    def log_dispatches_errors(cls, dispatches: List['Dispatch']):
         """Batch logs dispatches delivery errors into DB.
 
-        :param list dispatches:
+        :param dispatches:
+
         """
         error_entries = []
 
@@ -261,11 +267,12 @@ class Dispatch(models.Model):
         DispatchError.objects.bulk_create(error_entries)
 
     @classmethod
-    def set_dispatches_statuses(cls, **statuses):
+    def set_dispatches_statuses(cls, **statuses: List['Dispatch']):
         """Batch set dispatches delivery statuses using a [kwargs] dictionary
         of dispatch lists indexed by statuses.
 
         :param statuses:
+
         """
         kwarg_status_map = {
             'sent': cls.DISPATCH_STATUS_SENT,
@@ -275,20 +282,24 @@ class Dispatch(models.Model):
         }
 
         for status_name, real_status in kwarg_status_map.items():
+
             if statuses.get(status_name, False):
                 update_kwargs = {
                     'time_dispatched': timezone.now(),
                     'dispatch_status': real_status,
                     'retry_count': models.F('retry_count') + 1
                 }
-                cls.objects.filter(id__in=[d.id for d in statuses[status_name]]).update(**update_kwargs)
+
+                cls.objects.filter(
+                    id__in=[d.id for d in statuses[status_name]]
+                ).update(**update_kwargs)
 
     @staticmethod
-    def group_by_messengers(dispatches):
+    def group_by_messengers(dispatches: List['Dispatch']) -> Dict[str, Dict[int, Tuple[Message, List['Dispatch']]]]:
         """Groups dispatches by messages.
 
-        :param list dispatches:
-        :rtype: dict
+        :param dispatches:
+
         """
         by_messengers = {}
 
@@ -305,12 +316,13 @@ class Dispatch(models.Model):
         return by_messengers
 
     @classmethod
-    def get_unsent(cls, priority=None):
+    def get_unsent(cls, priority: Optional[int] = None) -> Union[List['Dispatch'], QuerySet]:
         """Returns dispatches unsent (scheduled or with errors).
 
         .. warning:: This changes dispatch status to `Processing`.
 
-        :param int priority: Message priority filter
+        :param priority: Message priority filter
+
         """
         filter_kwargs = {
             'dispatch_status__in': (cls.DISPATCH_STATUS_PENDING, cls.DISPATCH_STATUS_ERROR),
@@ -348,19 +360,23 @@ class Dispatch(models.Model):
         return dispatches
 
     @classmethod
-    def get_unread(cls):
+    def get_unread(cls) -> Union[List['Dispatch'], QuerySet]:
         """Returns unread dispatches."""
         return cls.objects.filter(read_status=cls.READ_STATUS_UNDREAD).prefetch_related('message').all()
 
     @classmethod
-    def create(cls, message_model, recipients):
+    def create(
+            cls,
+            message_model: Message,
+            recipients: Optional[Union[Iterable[Recipient], Recipient]]
+    ) -> List['Dispatch']:
         """Creates dispatches for given recipients.
 
         NB: dispatch models are bulk created and do not have IDs.
 
-        :param Message message_model:
+        :param message_model:
         :param recipients:
-        :rtype: list
+
         """
         objects = []
 
@@ -391,7 +407,7 @@ class DispatchError(models.Model):
         verbose_name = _('Dispatch error')
         verbose_name_plural = _('Dispatch errors')
 
-    def __str__(self):
+    def __str__(self) -> str:
         return 'Dispatch ID %s error entry' % self.dispatch_id
 
 
@@ -414,15 +430,16 @@ class Subscription(models.Model):
         verbose_name = _('Subscription')
         verbose_name_plural = _('Subscriptions')
 
-    def __str__(self):
+    def __str__(self) -> str:
         recipient = self.recipient_id or self.address
         return '%s [%s - %s]' % (recipient, self.message_cls, self.messenger_cls)
 
     @classmethod
-    def get_for_user(cls, user):
+    def get_for_user(cls, user: AbstractBaseUser) -> Union[List['Subscription'], QuerySet]:
         """Returns subscriptions for a given user.
 
-        :param User user:
+        :param user:
+
         """
         if user.id is None:
             return []
@@ -430,12 +447,16 @@ class Subscription(models.Model):
         return cls.objects.filter(recipient=user)
 
     @classmethod
-    def replace_for_user(cls, user, prefs):
+    def replace_for_user(
+            cls,
+            user: AbstractBaseUser,
+            prefs: List[Tuple[Type['MessageBase'], Type['MessengerBase']]]
+    ) -> bool:
         """Set subscription preferences for a given user.
 
-        :param User user:
-        :param list prefs: List of tuples (message_cls, messenger_cls)
-        :rtype: bool
+        :param user:
+        :param prefs: List of tuples (message_cls, messenger_cls)
+
         """
         uid = user.id
 
@@ -458,15 +479,21 @@ class Subscription(models.Model):
         return True
 
     @classmethod
-    def get_for_message_cls(cls, message_cls):
+    def get_for_message_cls(cls, message_cls: str) -> Union[List['Subscription'], QuerySet]:
         """Returns subscriptions for a given message class alias.
 
-        :param str message_cls:
+        :param message_cls:
+
         """
         return cls.objects.select_related('recipient').filter(message_cls=message_cls)
 
     @classmethod
-    def _get_base_kwargs(cls, recipient, message_cls, messenger_cls):
+    def _get_base_kwargs(
+            cls,
+            recipient: Union[Recipient, int, str],
+            message_cls: Type['MessageBase'],
+            messenger_cls: Type['MessengerBase']
+    ) -> dict:
 
         if not isinstance(message_cls, str):
             message_cls = message_cls.alias
@@ -491,25 +518,36 @@ class Subscription(models.Model):
         return base_kwargs
 
     @classmethod
-    def create(cls, uid_or_address, message_cls, messenger_cls):
+    def create(
+            cls,
+            uid_or_address: Union[int, str],
+            message_cls: Union[str, Type['MessageBase']],
+            messenger_cls: Union[str, Type['MessengerBase']]
+    ) -> 'Subscription':
         """Creates a subscription for a recipient.
 
-        :param int|str uid_or_address: User ID or address string.
-        :param str|MessageBase message_cls: Message type alias or class
-        :param str|MessengerBase messenger_cls: Messenger type alias or class
-        :rtype: Subscription
+        :param uid_or_address: User ID or address string.
+        :param message_cls: Message type alias or class
+        :param messenger_cls: Messenger type alias or class
+
         """
         obj = cls(**cls._get_base_kwargs(uid_or_address, message_cls, messenger_cls))
         obj.save()
         return obj
 
     @classmethod
-    def cancel(cls, uid_or_address, message_cls, messenger_cls):
+    def cancel(
+            cls,
+            uid_or_address: Union[int, str],
+            message_cls: Union[str, Type['MessageBase']],
+            messenger_cls: Union[str, Type['MessengerBase']]
+    ):
         """Cancels a subscription for a recipient.
 
-        :param int|str uid_or_address: User ID or address string.
-        :param str|MessageBase message_cls: Message type alias or class
-        :param str|MessengerBase messenger_cls: Messenger type alias or class
+        :param uid_or_address: User ID or address string.
+        :param message_cls: Message type alias or class
+        :param messenger_cls: Messenger type alias or class
+
         """
         cls.objects.filter(
             **cls._get_base_kwargs(uid_or_address, message_cls, messenger_cls)

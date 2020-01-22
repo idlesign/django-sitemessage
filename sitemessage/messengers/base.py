@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 from functools import partial
 from itertools import chain
-from typing import List, Optional, Tuple, Dict
+from typing import List, Optional, Tuple, Dict, Any, Type, Union, Callable
 
 from django.contrib.auth.base_user import AbstractBaseUser
 
@@ -9,8 +9,11 @@ from ..exceptions import UnknownMessageTypeError, MessengerException
 from ..models import Dispatch, Message
 from ..utils import Recipient, is_iterable
 
-MessagesList = List[Tuple[Message, List[Dispatch]]]
+MessageTuple = Tuple[Message, List[Dispatch]]
 
+
+if False:  # pragma: nocover
+    from ..messages.base import MessageBase
 
 
 class DispatchProcessingHandler:
@@ -22,7 +25,7 @@ class DispatchProcessingHandler:
         self,
         *,
         messenger: 'MessengerBase',
-        messages: Optional[MessagesList] = None
+        messages: Optional[List[MessageTuple]] = None
     ):
         self.messenger = messenger
 
@@ -48,21 +51,21 @@ class DispatchProcessingHandler:
         return True
 
 
-class MessengerBase(object):
+class MessengerBase:
     """Base class for messengers used by sitemessage.
 
     Custom messenger classes, implementing various message delivery
     mechanics, other messenger classes must inherit from this one.
 
     """
-
-    # Messenger alias to address it from different places, Should rather be quite unique %)
     alias = None
-    # Title to show to user.
-    title = None
+    """Messenger alias to address it from different places, Should rather be quite unique %)"""
 
-    # Makes subscription for this messenger messages available for users (see get_user_preferences_for_ui())
+    title = None
+    """Title to show to user."""
+
     allow_user_subscription = True
+    """Makes subscription for this messenger messages available for users (see get_user_preferences_for_ui())"""
 
     address_attr = None
     """User object attribute containing address."""
@@ -71,21 +74,19 @@ class MessengerBase(object):
     _st = None
 
     @classmethod
-    def get_alias(cls):
-        """Returns messenger alias.
+    def get_alias(cls) -> str:
+        """Returns messenger alias."""
 
-        :return: str
-        :rtype: str
-        """
         if cls.alias is None:
             cls.alias = cls.__name__
+
         return cls.alias
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.__class__.get_alias()
 
     @contextmanager
-    def before_after_send_handling(self, messages: Optional[MessagesList] = None):
+    def before_after_send_handling(self, messages: Optional[List[MessageTuple]] = None):
         """Context manager that allows to execute send wrapped
         in before_send() and after_send().
 
@@ -107,34 +108,35 @@ class MessengerBase(object):
             for dispatch in dispatches or []:
                 self.mark_error(dispatch, e)
 
-    def send_test_message(self, to, text):
+    def send_test_message(self, to: str, text: str) -> Any:
         """Sends a test message using messengers settings.
 
-        :param str to: an address to send test message to
-        :param str text: text to send
+        :param to: an address to send test message to
+        :param text: text to send
+
         """
         with self.before_after_send_handling():
             result = self._test_message(to, text)
+
         return result
 
-    def _test_message(self, to, text):
+    def _test_message(self, to: str, text: str) -> Any:
         """This method should be implemented by a heir to send a test message.
 
-        :param str to: an address to send test message to
-        :param str text: text to send
+        :param to: an address to send test message to
+        :param text: text to send
+
         """
         raise NotImplementedError(self.__class__.__name__ + ' must implement `test_message()`.')
 
     @classmethod
-    def get_address(cls, recipient):
+    def get_address(cls, recipient: Any) -> Any:
         """Returns recipient address.
 
         Heirs may override this to deduce address from `recipient` data
         (e.g. to get address from Django User model instance).
 
-        :param object recipient: any object passed to `recipients()`
-        :return: str
-        :rtype: str|object
+        :param recipient: any object passed to `recipients()`
 
         """
         address = recipient
@@ -147,12 +149,11 @@ class MessengerBase(object):
         return address
 
     @classmethod
-    def structure_recipients_data(cls, recipients):
+    def structure_recipients_data(cls, recipients) -> List[Recipient]:
         """Converts recipients data into a list of Recipient objects.
 
         :param list recipients: list of objects
-        :return: list of Recipient
-        :rtype: list
+
         """
         if not is_iterable(recipients):
             recipients = (recipients,)
@@ -179,33 +180,40 @@ class MessengerBase(object):
             'failed': []
         }
 
-    def mark_pending(self, dispatch):
+    def mark_pending(self, dispatch: Dispatch):
         """Marks a dispatch as pending.
 
         Should be used within send().
 
-        :param Dispatch dispatch: a Dispatch
+        :param dispatch: a Dispatch
+
         """
         self._st['pending'].append(dispatch)
 
-    def mark_sent(self, dispatch):
+    def mark_sent(self, dispatch: Dispatch):
         """Marks a dispatch as successfully sent.
 
         Should be used within send().
 
-        :param Dispatch dispatch: a Dispatch
+        :param dispatch: a Dispatch
+
         """
         self._st['sent'].append(dispatch)
 
-    def mark_error(self, dispatch, error_log, message_cls=None):
+    def mark_error(
+            self,
+            dispatch: Dispatch,
+            error_log: Union[str, Exception],
+            message_cls: Optional[Type['MessageBase']] = None
+    ):
         """Marks a dispatch as having error or consequently as failed
         if send retry limit for that message type is exhausted.
 
         Should be used within send().
 
-        :param Dispatch dispatch: a Dispatch
-        :param str|Exception error_log: error message or exception object
-        :param Optional[Type[MessageBase]] message_cls: MessageBase heir
+        :param dispatch: a Dispatch
+        :param error_log: error message or exception object
+        :param message_cls: MessageBase heir
 
         """
         if message_cls is None:
@@ -218,15 +226,16 @@ class MessengerBase(object):
             dispatch.error_log = error_log
             self._st['error'].append(dispatch)
 
-    def mark_failed(self, dispatch, error_log):
+    def mark_failed(self, dispatch: Dispatch, error_log: Union[str, Exception]):
         """Marks a dispatch as failed.
 
         Sitemessage won't try to deliver already failed messages.
 
         Should be used within send().
 
-        :param Dispatch dispatch: a Dispatch
-        :param str error_log: str - error message
+        :param dispatch: a Dispatch
+        :param error_log: str - error message
+
         """
         dispatch.error_log = error_log
         self._st['failed'].append(dispatch)
@@ -243,7 +252,7 @@ class MessengerBase(object):
 
         """
 
-    def process_messages(self, messages: Dict[int, MessagesList], ignore_unknown_message_types: bool = False):
+    def process_messages(self, messages: Dict[int, MessageTuple], ignore_unknown_message_types: bool = False):
         """Performs message processing.
 
         :param messages: indexed by message id dict with messages data
@@ -296,12 +305,13 @@ class MessengerBase(object):
         Dispatch.set_dispatches_statuses(**self._st)
         self._init_delivery_statuses_dict()
 
-    def send(self, message_cls, message_model, dispatch_models):
+    def send(self, message_cls: Type['MessageBase'], message_model: Message, dispatch_models: List[Dispatch]):
         """Main send method must be implement by all heirs.
 
-        :param MessageBase message_cls: a MessageBase heir
-        :param Message message_model: message model
-        :param list dispatch_models: Dispatch models for this Message
+        :param message_cls: a MessageBase heir
+        :param message_model: message model
+        :param dispatch_models: Dispatch models for this Message
+
         """
         raise NotImplementedError(self.__class__.__name__ + ' must implement `send()`.')
 
@@ -315,7 +325,7 @@ class RequestsMessengerBase(MessengerBase):
     timeout = 10
     """Request timeout."""
 
-    def __init__(self, proxy=None, **kwargs):
+    def __init__(self, proxy: Optional[Union[Callable, dict]] = None, **kwargs):
         """Configures messenger.
 
         :param dict|Callable: Dictionary of proxy settings,
@@ -327,7 +337,7 @@ class RequestsMessengerBase(MessengerBase):
         self.lib = requests
         self.proxy = proxy
 
-    def _get_common_params(self):
+    def _get_common_params(self) -> dict:
         """Returns common parameters for every request."""
 
         proxy = self.proxy
@@ -344,13 +354,11 @@ class RequestsMessengerBase(MessengerBase):
 
         return params
 
-    def get(self, url, json=True):
+    def get(self, url: str, json: bool = True) -> Union[dict, str]:
         """Performs POST and returns data.
 
         :param url:
         :param json: Expect json data and return it as dict.
-
-        :rtype: str|dict
 
         """
         try:
@@ -362,7 +370,7 @@ class RequestsMessengerBase(MessengerBase):
         except self.lib.exceptions.RequestException as e:
             raise MessengerException(e)
 
-    def post(self, url, data):
+    def post(self, url: str, data: dict) -> dict:
         """Performs POST and returns data.
 
         :param url:
@@ -378,21 +386,19 @@ class RequestsMessengerBase(MessengerBase):
         except self.lib.exceptions.RequestException as e:
             raise MessengerException(e)
 
-    def _test_message(self, to, text):
+    def _test_message(self, to: str, text: str):
         return self._send_message(self._build_message(text, to=to))
 
-    def _build_message(self, text, to=None):
+    def _build_message(self, text: str, to: Optional[str] = None) -> str:
         """Builds a message before send.
 
         :param text: Contents to add to message.
         :param to: Recipient address.
 
-        :rtype: str
-
         """
         return text
 
-    def _send_message(self, msg, to=None):
+    def _send_message(self, msg: str, to: Optional[str] = None):
         """Should implement actual sending.
 
         :param msg: Contents to add to message.
@@ -401,7 +407,7 @@ class RequestsMessengerBase(MessengerBase):
         """
         raise NotImplementedError  # pragma: nocover
 
-    def send(self, message_cls, message_model, dispatch_models):
+    def send(self, message_cls: Type['MessageBase'], message_model: Message, dispatch_models: List[Dispatch]):
         for dispatch_model in dispatch_models:
             try:
                 msg = self._build_message(dispatch_model.message_cache, to=dispatch_model.address)

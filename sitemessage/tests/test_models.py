@@ -5,7 +5,7 @@ from sitemessage.utils import Recipient
 from .testapp.sitemessages import MessageForTest
 
 
-class TestSubscriptionModel(object):
+class TestSubscriptionModel:
 
     def test_create(self, user):
 
@@ -84,7 +84,7 @@ class TestSubscriptionModel(object):
         assert 'aaa' in str(s)
 
 
-class TestDispatchErrorModel(object):
+class TestDispatchErrorModel:
 
     def test_str(self):
         e = DispatchError()
@@ -93,7 +93,7 @@ class TestDispatchErrorModel(object):
         assert '444' in str(e)
 
 
-class TestDispatchModel(object):
+class TestDispatchModel:
 
     def test_create(self, user):
 
@@ -178,7 +178,7 @@ class TestDispatchModel(object):
         assert d.read_status == d.READ_STATUS_READ
 
 
-class TestMessageModel(object):
+class TestMessageModel:
 
     def test_create(self, user):
         m, _ = Message.create('some', {'abc': 'abc'}, sender=user, priority=22)

@@ -1,3 +1,8 @@
+from typing import Union, Optional, List, Iterable, Tuple
+
+from django.contrib.auth.base_user import AbstractBaseUser
+from django.http import HttpRequest, HttpResponse
+
 try:
     from django.urls import reverse, NoReverseMatch
 
@@ -15,56 +20,65 @@ from ..signals import sig_unsubscribe_success, sig_unsubscribe_failed, sig_mark_
 from ..exceptions import UnknownMessengerError
 
 
+if False:  # pragma: nocover
+    from ..messengers.base import MessengerBase
+
+
 APP_URLS_ATTACHED = None
 
 
-class MessageBase(object):
+class MessageBase:
     """Base class for messages used by sitemessage.
     Customized message handling is available through inheritance.
 
     """
 
-    # List of supported messengers (aliases).
     supported_messengers = []
+    """List of supported messengers (aliases)."""
 
-    # Message type alias to address it from different places, Should rather be quite unique %)
     alias = None
+    """Message type alias to address it from different places, Should rather be quite unique %)"""
 
-    # Title to show to user.
     title = _('Notification')
+    """Title to show to user."""
 
-    # Number describing message priority. Can be overridden by `priority` provided with schedule_messages().
     priority = None
+    """Number describing message priority. Can be overridden by `priority` provided with schedule_messages()."""
 
-    # This flag is used to optimize template compilation process.
-    # If True template will be compiled for every dispatch (and dispatch data will be available in it)
-    # instead of just once per message.
     has_dynamic_context = False
+    """This flag is used to optimize template compilation process.
+    If True template will be compiled for every dispatch (and dispatch data will be available in it)
+    instead of just once per message.
 
-    # Template file extension. Considered when the below mentioned `template` field is not set.
+    """
+
     template_ext = 'tpl'
+    """Template file extension. Considered when the below mentioned `template` field is not set."""
 
-    # Path to the template to be used for message rendering.
-    # If not set, will be deduced from message, messenger data (e.g. `sitemessage/plain_smtp.txt`)
-    # and `template_ext` (see above).
     template = None
+    """Path to the template to be used for message rendering.
+    If not set, will be deduced from message, messenger data (e.g. `sitemessage/plain_smtp.txt`)
+    and `template_ext` (see above).
 
-    # This limits the number of send attempts before message delivery considered failed.
+    """
+
     send_retry_limit = 10
+    """This limits the number of send attempts before message delivery considered failed."""
 
-    # Makes subscription for this message type available for users (see get_user_preferences_for_ui())
     allow_user_subscription = True
+    """Makes subscription for this message type available for users (see get_user_preferences_for_ui())"""
 
     _message_model = None
     _dispatch_models = None
 
     SIMPLE_TEXT_ID = 'stext_'
 
-    def __init__(self, context=None, template_path=None):
+    def __init__(self, context: Union[str, dict] = None, template_path: str = None):
         """Initializes a message.
 
-        :param dict, str context: data to be used for message rendering (e.g. in templates)
-        :param str template_path: template path
+        :param context: data to be used for message rendering (e.g. in templates)
+        :param template_path: template path
+
         """
         context_base = {
             'tpl': None,  # Template path to use
@@ -77,37 +91,38 @@ class MessageBase(object):
         self.context = context_base
 
     @classmethod
-    def get_alias(cls):
-        """Returns message type alias.
+    def get_alias(cls) -> str:
+        """Returns message type alias."""
 
-        :return: str
-        :rtype: str
-        """
         if cls.alias is None:
             cls.alias = cls.__name__
+
         return cls.alias
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.__class__.get_alias()
 
-    def get_context(self):
-        """Returns message context.
-
-        :return: dict
-        :rtype: dict
-        """
+    def get_context(self) -> dict:
+        """Returns message context."""
         return self.context
 
-    def schedule(self, recipients=None, sender=None, priority=None):
+    def schedule(
+            self,
+            recipients: Optional[Union[Iterable[Recipient], Recipient]] = None,
+            sender: Optional[AbstractBaseUser] = None,
+            priority: Optional[int] = None
+    ) -> Tuple[Message, List[Dispatch]]:
         """Schedules message for a delivery.
         Puts message (and dispatches if any) data into DB.
+        Returns a tuple with message model and a list of dispatch models.
 
-        :param list|None recipients: recipient (or a list) or None.
+        :param recipients: recipient (or a list) or None.
             If `None` Dispatches should be created before send using `prepare_dispatches()`.
-        :param User|None sender: Django User model heir instance
-        :param int|None priority: number describing message priority
-        :return: a tuple with message model and a list of dispatch models.
-        :rtype: tuple
+
+        :param sender: Django User model heir instance
+
+        :param priority: number describing message priority
+
         """
         if priority is None:
             priority = self.priority
@@ -118,16 +133,16 @@ class MessageBase(object):
         return self._message_model, self._dispatch_models
 
     @classmethod
-    def recipients(cls, messenger, addresses):
+    def recipients(cls, messenger: Union[str, 'MessengerBase'], addresses: Union[List[str], str]) -> List[Recipient]:
         """Shortcut method. See `recipients()`,"""
         return recipients(messenger, addresses)
 
     @classmethod
-    def get_subscribers(cls, active_only=True):
+    def get_subscribers(cls, active_only: bool = True) -> List[Recipient]:
         """Returns a list of Recipient objects subscribed for this message type.
 
-        :param bool active_only: Flag whether
-        :return:
+        :param active_only: Flag whether to return only active subscribers.
+
         """
         subscribers_raw = Subscription.get_for_message_cls(cls.alias)
         subscribers = []
@@ -154,43 +169,43 @@ class MessageBase(object):
         return subscribers
 
     @classmethod
-    def get_dispatch_hash(cls, dispatch_id, message_id):
+    def get_dispatch_hash(cls, dispatch_id: int, message_id: int) -> str:
         """Returns a hash string for validation purposes.
 
-        :param int dispatch_id:
-        :param int message_id:
-        :return:
+        :param dispatch_id:
+        :param message_id:
+
         """
         return salted_hmac('%s' % dispatch_id, '%s|%s' % (message_id, dispatch_id)).hexdigest()
 
     @classmethod
-    def get_mark_read_directive(cls, message_model, dispatch_model):
+    def get_mark_read_directive(cls, message_model: Message, dispatch_model: Dispatch) -> str:
         """Returns mark read directive (command, URL, etc.) string.
 
-        :param Message message_model:
-        :param Dispatch dispatch_model:
-        :return:
+        :param message_model:
+        :param dispatch_model:
+
         """
         return cls._get_url('sitemessage_mark_read', message_model, dispatch_model)
 
     @classmethod
-    def get_unsubscribe_directive(cls, message_model, dispatch_model):
+    def get_unsubscribe_directive(cls, message_model: Message, dispatch_model: Dispatch) -> str:
         """Returns an unsubscribe directive (command, URL, etc.) string.
 
-        :param Message message_model:
-        :param Dispatch dispatch_model:
-        :return:
+        :param message_model:
+        :param dispatch_model:
+
         """
         return cls._get_url('sitemessage_unsubscribe', message_model, dispatch_model)
 
     @classmethod
-    def _get_url(cls, name, message_model, dispatch_model):
+    def _get_url(cls, name: str, message_model: Message, dispatch_model: Optional[Dispatch]) -> str:
         """Returns a common pattern sitemessage URL.
 
-        :param str name: URL name
-        :param Message message_model:
-        :param Dispatch|None dispatch_model:
-        :return:
+        :param name: URL name
+        :param message_model:
+        :param dispatch_model:
+
         """
         global APP_URLS_ATTACHED
 
@@ -213,30 +228,45 @@ class MessageBase(object):
         return url
 
     @classmethod
-    def handle_unsubscribe_request(cls, request, message, dispatch, hash_is_valid, redirect_to):
+    def handle_unsubscribe_request(
+            cls,
+            request: HttpRequest,
+            message: Message,
+            dispatch: Dispatch,
+            hash_is_valid: bool,
+            redirect_to: str
+    ) -> HttpResponse:
         """Handles user subscription cancelling request.
 
-        :param Request request: Request instance
-        :param Message message: Message model instance
-        :param Dispatch dispatch: Dispatch model instance
-        :param bool hash_is_valid: Flag indicating that user supplied request signature is correct
-        :param str redirect_to: Redirection URL
-        :rtype: list
-        """
+        :param request: Request instance
+        :param message: Message model instance
+        :param dispatch: Dispatch model instance
+        :param hash_is_valid: Flag indicating that user supplied request signature is correct
+        :param redirect_to: Redirection URL
 
+        """
         if hash_is_valid:
             Subscription.cancel(
                 dispatch.recipient_id or dispatch.address, cls.alias, dispatch.messenger
             )
             signal = sig_unsubscribe_success
+
         else:
             signal = sig_unsubscribe_failed
 
         signal.send(cls, request=request, message=message, dispatch=dispatch)
+
         return redirect(redirect_to)
 
     @classmethod
-    def handle_mark_read_request(cls, request, message, dispatch, hash_is_valid, redirect_to):
+    def handle_mark_read_request(
+            cls,
+            request: HttpRequest,
+            message: Message,
+            dispatch: Dispatch,
+            hash_is_valid: bool,
+            redirect_to: str
+    ) -> HttpResponse:
         """Handles a request to mark a message as read.
 
         :param Request request: Request instance
@@ -251,14 +281,16 @@ class MessageBase(object):
             dispatch.mark_read()
             dispatch.save()
             signal = sig_mark_read_success
+
         else:
             signal = sig_mark_read_failed
 
         signal.send(cls, request=request, message=message, dispatch=dispatch)
+
         return redirect(redirect_to)
 
     @classmethod
-    def get_template(cls, message, messenger):
+    def get_template(cls, message: Message, messenger: 'MessengerBase') -> str:
         """Get a template path to compile a message.
 
         1. `tpl` field of message context;
@@ -266,10 +298,9 @@ class MessageBase(object):
         3. deduced from message, messenger data and `template_ext` message type field
            (e.g. `sitemessage/messages/plain__smtp.txt` for `plain` message type).
 
-        :param Message message: Message model
-        :param MessengerBase messenger: a MessengerBase heir
-        :return: str
-        :rtype: str
+        :param message: Message model
+        :param messenger: a MessengerBase heir
+
         """
         template = message.context.get('tpl', None)
 
@@ -278,12 +309,12 @@ class MessageBase(object):
 
         if cls.template is None:
             cls.template = 'sitemessage/messages/%s__%s.%s' % (
-                cls.get_alias(), messenger.get_alias(), cls.template_ext
-            )
+                cls.get_alias(), messenger.get_alias(), cls.template_ext)
+
         return cls.template
 
     @classmethod
-    def compile(cls, message, messenger, dispatch=None):
+    def compile(cls, message: Message, messenger: 'MessengerBase', dispatch: Optional[Dispatch] = None) -> str:
         """Compiles and returns a message text.
 
         Considers `use_tpl` field from message context to decide whether
@@ -291,11 +322,12 @@ class MessageBase(object):
 
         Otherwise a SIMPLE_TEXT_ID field from message context is used as message contents.
 
-        :param Message message: model instance
-        :param MessengerBase messenger: MessengerBase heir instance
-        :param Dispatch dispatch: model instance to consider context from
-        :return: str
-        :rtype: str
+        :param message: model instance
+
+        :param messenger: MessengerBase heir instance
+
+        :param dispatch: model instance to consider context from
+
         """
         if message.context.get('use_tpl', False):
             context = message.context
@@ -307,34 +339,40 @@ class MessageBase(object):
                 'dispatch_model': dispatch
             })
             context = cls.get_template_context(context)
+
             return render_to_string(cls.get_template(message, messenger), context)
+
         return message.context[cls.SIMPLE_TEXT_ID]
 
     @classmethod
-    def get_template_context(cls, context):
+    def get_template_context(cls, context: dict) -> dict:
         """Returns context dict for template compilation.
 
         This method might be reimplemented by a heir to add some data into
         context before template compilation.
 
-        :param dict context: Initial context
-        :return:
+        :param context: Initial context
+
         """
         return context
 
     @classmethod
-    def update_context(cls, base_context, str_or_dict, template_path=None):
+    def update_context(cls, base_context: dict, str_or_dict: Union[dict, str], template_path: str = None):
         """Helper method to structure initial message context data.
 
         NOTE: updates `base_context` inplace.
 
-        :param dict base_context: context dict to update
-        :param dict, str str_or_dict: text representing a message, or a dict to be placed into message context.
-        :param str template_path: template path to be used for message rendering
+        :param base_context: context dict to update
+
+        :param str_or_dict: text representing a message, or a dict to be placed into message context.
+
+        :param template_path: template path to be used for message rendering
+
         """
         if isinstance(str_or_dict, dict):
             base_context.update(str_or_dict)
             base_context['use_tpl'] = True
+
         else:
             base_context[cls.SIMPLE_TEXT_ID] = str_or_dict
 
@@ -344,12 +382,12 @@ class MessageBase(object):
         base_context['tpl'] = template_path
 
     @classmethod
-    def prepare_dispatches(cls, message, recipients=None):
+    def prepare_dispatches(cls, message: Message, recipients: Optional[List[Recipient]] = None) -> List[Dispatch]:
         """Creates Dispatch models for a given message and return them.
 
-        :param Message message: Message model instance
-        :param list|None recipients: A list or Recipient objects
-        :return: list of created Dispatch models
-        :rtype: list
+        :param message: Message model instance
+
+        :param recipients: A list or Recipient objects
+
         """
         return Dispatch.create(message, recipients or cls.get_subscribers())
