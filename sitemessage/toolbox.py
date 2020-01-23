@@ -2,14 +2,18 @@ from collections import OrderedDict, defaultdict
 from datetime import timedelta
 from itertools import chain
 from operator import itemgetter
+from typing import Optional, List, Tuple, Union, Iterable, Any, Callable, Dict, Mapping
 
 from django import VERSION
 from django.conf import settings
 from django.conf.urls import url
+from django.contrib.auth.base_user import AbstractBaseUser
+from django.http import HttpRequest
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from .exceptions import UnknownMessengerError, UnknownMessageTypeError
+from .messages.base import MessageBase
 from .messages.plain import PlainTextMessage
 from .models import Message, Dispatch, Subscription
 from .views import mark_read, unsubscribe
@@ -20,23 +24,31 @@ from .utils import (
     is_iterable, import_project_sitemessage_modules, get_site_url, recipients,
     register_messenger_objects, get_registered_messenger_object, get_registered_messenger_objects,
     register_message_types, get_registered_message_type, get_registered_message_types,
-    get_message_type_for_app, override_message_type_for_app,
+    get_message_type_for_app, override_message_type_for_app, Recipient
 )
 
 _ALIAS_SEP = '|'
 _PREF_POST_KEY = 'sm_user_pref'
 
 
-def schedule_messages(messages, recipients=None, sender=None, priority=None):
+def schedule_messages(
+        messages: Union[str, MessageBase, List[Union[str, MessageBase]]],
+        recipients: Optional[Union[Iterable[Recipient], Recipient]] = None,
+        sender: Optional[AbstractBaseUser] = None,
+        priority: Optional[int] = None
+) -> List[Tuple[Message, List[Dispatch]]]:
     """Schedules a message or messages.
 
-    :param MessageBase|str|list messages: str or MessageBase heir or list - use str to create PlainTextMessage.
-    :param list|None recipients: recipients addresses or Django User model heir instances
+    :param messages: str or MessageBase heir or list - use str to create PlainTextMessage.
+
+    :param recipients: recipients addresses or Django User model heir instances
         If `None` Dispatches should be created before send using `prepare_dispatches()`.
+
     :param User|None sender: User model heir instance
-    :param int priority: number describing message priority. If set overrides priority provided with message type.
-    :return: list of tuples - (message_model, dispatches_models)
-    :rtype: list
+
+    :param priority: number describing message priority. If set overrides priority provided with message type.
+
+
     """
     if not is_iterable(messages):
         messages = (messages,)
@@ -54,14 +66,22 @@ def schedule_messages(messages, recipients=None, sender=None, priority=None):
     return results
 
 
-def send_scheduled_messages(priority=None, ignore_unknown_messengers=False, ignore_unknown_message_types=False):
+def send_scheduled_messages(
+        priority: Optional[int] = None,
+        ignore_unknown_messengers: bool = False,
+        ignore_unknown_message_types: bool = False
+):
     """Sends scheduled messages.
 
-    :param int, None priority: number to limit sending message by this priority.
-    :param bool ignore_unknown_messengers: to silence UnknownMessengerError
-    :param bool ignore_unknown_message_types: to silence UnknownMessageTypeError
+    :param priority: number to limit sending message by this priority.
+
+    :param ignore_unknown_messengers: to silence UnknownMessengerError
+
+    :param ignore_unknown_message_types: to silence UnknownMessageTypeError
+
     :raises UnknownMessengerError:
     :raises UnknownMessageTypeError:
+
     """
     dispatches_by_messengers = Dispatch.group_by_messengers(Dispatch.get_unsent(priority=priority))
 
@@ -76,24 +96,23 @@ def send_scheduled_messages(priority=None, ignore_unknown_messengers=False, igno
             raise
 
 
-def send_test_message(messenger_id, to=None):
+def send_test_message(messenger_id: str, to: Optional[str] = None) -> Any:
     """Sends a test message using the given messenger.
 
-    :param str messenger_id: Messenger alias.
-    :param str to: Recipient address (if applicable).
+    :param messenger_id: Messenger alias.
+    :param to: Recipient address (if applicable).
 
     """
     messenger_obj = get_registered_messenger_object(messenger_id)
     return messenger_obj.send_test_message(to=to, text='Test message from sitemessages.')
 
 
-def check_undelivered(to=None):
+def check_undelivered(to: Optional[str] = None) -> int:
     """Sends a notification email if any undelivered dispatches.
 
     Returns undelivered (failed) dispatches count.
 
-    :param str to: Recipient address. If not set Django ADMINS setting is used.
-    :rtype: int
+    :param to: Recipient address. If not set Django ADMINS setting is used.
 
     """
     failed_count = Dispatch.objects.filter(dispatch_status=Dispatch.DISPATCH_STATUS_FAILED).count()
@@ -126,11 +145,11 @@ def check_undelivered(to=None):
     return failed_count
 
 
-def cleanup_sent_messages(ago=None, dispatches_only=False):
+def cleanup_sent_messages(ago: Optional[int] = None, dispatches_only: bool = False):
     """Cleans up DB : removes delivered dispatches (and messages).
 
-    :param int ago: Days. Allows cleanup messages sent X days ago. Defaults to None (cleanup all sent).
-    :param bool dispatches_only: Remove dispatches only (messages objects will stay intact).
+    :param ago: Days. Allows cleanup messages sent X days ago. Defaults to None (cleanup all sent).
+    :param dispatches_only: Remove dispatches only (messages objects will stay intact).
 
     """
     filter_kwargs = {
@@ -161,12 +180,9 @@ def cleanup_sent_messages(ago=None, dispatches_only=False):
                 Message.objects.filter(pk__in=messages_stale).delete()
 
 
-def prepare_dispatches():
-    """Automatically creates dispatches for messages without them.
+def prepare_dispatches() -> List[Dispatch]:
+    """Automatically creates dispatches for messages without them."""
 
-    :return: list of Dispatch
-    :rtype: list
-    """
     dispatches = []
     target_messages = Message.get_without_dispatches()
 
@@ -186,7 +202,12 @@ def prepare_dispatches():
     return dispatches
 
 
-def get_user_preferences_for_ui(user, message_filter=None, messenger_filter=None, new_messengers_titles=None):
+def get_user_preferences_for_ui(
+        user: AbstractBaseUser,
+        message_filter: Optional[Callable] = None,
+        messenger_filter: Optional[Callable] = None,
+        new_messengers_titles: Optional[Dict[str, str]] = None
+) -> Tuple[List[str], Mapping]:
     """Returns a two element tuple with user subscription preferences to render in UI.
 
     Message types with the same titles are merged into one row.
@@ -202,10 +223,13 @@ def get_user_preferences_for_ui(user, message_filter=None, messenger_filter=None
         Example:
             {'My message type': [('test_message|smtp', True, False), ...]}
 
-    :param User user:
-    :param callable|None message_filter: A callable accepting a message object to filter out message types
-    :param callable|None messenger_filter: A callable accepting a messenger object to filter out messengers
-    :rtype: tuple
+    :param user:
+
+    :param message_filter: A callable accepting a message object to filter out message types
+
+    :param messenger_filter: A callable accepting a messenger object to filter out messengers
+
+    :param new_messengers_titles: Mapping of messenger aliases to a new titles.
 
     """
     if new_messengers_titles is None:
@@ -264,17 +288,17 @@ def get_user_preferences_for_ui(user, message_filter=None, messenger_filter=None
 
             user_prefs.setdefault(msg_title, []).append((alias, msg_supported, subscribed))
 
-    return msgr_titles.keys(), user_prefs
+    return list(msgr_titles.keys()), user_prefs
 
 
-def set_user_preferences_from_request(request):
+def set_user_preferences_from_request(request: HttpRequest) -> bool:
     """Sets user subscription preferences using data from a request.
 
     Expects data sent by form built with `sitemessage_prefs_table` template tag.
+    Returns a flag, whether prefs were found in the request.
 
     :param request:
-    :rtype: bool
-    :return: Flag, whether prefs were found in the request.
+
     """
     prefs = []
 
@@ -296,7 +320,7 @@ def set_user_preferences_from_request(request):
     return bool(prefs)
 
 
-def get_sitemessage_urls():
+def get_sitemessage_urls() -> List:
     """Returns sitemessage urlpatterns, that can be attached to urlpatterns of a project:
 
         # Example from urls.py.
