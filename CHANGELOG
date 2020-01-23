@@ -2,6 +2,11 @@ django-sitemessage changelog
 ============================
 
 
+Unreleased
+----------
+* Fixed regression in VKontakte targeted wall post.
+
+
 v1.3.0 [2020-01-22]
 -------------------
 + Added basic type annotations.

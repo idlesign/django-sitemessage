@@ -321,6 +321,7 @@ class TestVKontakteMessenger:
         schedule_messages('text', recipients('vk', '12345'))
         send_scheduled_messages()
         assert_called_n(messenger_vk.lib.post)
+        assert messenger_vk.lib.post.call_args[1]['data']['owner_id'] == '12345'
 
     def test_get_access_token(self, monkeypatch):
         monkeypatch.setattr('webbrowser.open', lambda *args: None)

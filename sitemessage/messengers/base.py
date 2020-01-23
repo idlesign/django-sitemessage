@@ -410,8 +410,9 @@ class RequestsMessengerBase(MessengerBase):
     def send(self, message_cls: Type['MessageBase'], message_model: Message, dispatch_models: List[Dispatch]):
         for dispatch_model in dispatch_models:
             try:
-                msg = self._build_message(dispatch_model.message_cache, to=dispatch_model.address)
-                self._send_message(msg)
+                recipient = dispatch_model.address
+                msg = self._build_message(dispatch_model.message_cache, to=recipient)
+                self._send_message(msg, to=recipient)
                 self.mark_sent(dispatch_model)
 
             except Exception as e:
