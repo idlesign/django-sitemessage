@@ -2,6 +2,11 @@ django-sitemessage changelog
 ============================
 
 
+Unreleased
+----------
+* Drop support for Python 3.5.
+
+
 v1.3.1 [2020-01-23]
 -------------------
 * Fixed regression in VKontakte targeted wall post.

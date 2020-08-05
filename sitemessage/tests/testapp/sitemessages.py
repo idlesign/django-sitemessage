@@ -78,16 +78,16 @@ class MessengerForTest(MessengerBase):
         self.password = password
 
     def _test_message(self, to, text):
-        return 'triggered send to `%s`' % to
+        return f'triggered send to `{to}`'
 
     @classmethod
     def get_address(cls, recipient):
         from django.contrib.auth.models import User
 
         if isinstance(recipient, User):
-            recipient = 'user_%s' % recipient.username
+            recipient = f'user_{recipient.username}'
 
-        return '%s%s' % (recipient, WONDERLAND_DOMAIN)
+        return f'{recipient}{WONDERLAND_DOMAIN}'
 
     def send(self, message_cls, message_model, dispatch_models):
         self.last_send = {
@@ -127,7 +127,7 @@ class MessagePlainDynamicForTest(PlainTextMessage):
 
     @classmethod
     def compile(cls, message, messenger, dispatch=None):
-        return '%s -- %s' % (message.context[MessageBase.SIMPLE_TEXT_ID], dispatch.address)
+        return f'{message.context[MessageBase.SIMPLE_TEXT_ID]} -- {dispatch.address}'
 
 
 register_messenger_objects(

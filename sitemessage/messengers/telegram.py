@@ -64,8 +64,9 @@ class TelegramMessenger(RequestsMessengerBase):
         try:
             self._verify_bot()
             self._session_started = True
+
         except TelegramMessengerException as e:
-            raise MessengerWarmupException('Telegram Error: %s' % e)
+            raise MessengerWarmupException(f'Telegram Error: {e}')
 
     def _build_message(self, text, to=None):
         return {'chat_id': to, 'text': text}

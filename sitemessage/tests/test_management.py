@@ -92,7 +92,7 @@ def test_sitemessage_check_undelivered(capsys, command_run):
 
         out, err = capsys.readouterr()
 
-        assert 'Undelivered dispatches count: %s' % count in out
+        assert f'Undelivered dispatches count: {count}' in out
         assert err == ''
 
     run_command()

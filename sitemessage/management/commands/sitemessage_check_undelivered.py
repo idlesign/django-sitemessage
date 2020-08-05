@@ -32,10 +32,10 @@ class Command(BaseCommand):
         try:
             undelivered_count = check_undelivered(to=to)
 
-            self.stdout.write('Undelivered dispatches count: %s.\n' % undelivered_count)
+            self.stdout.write(f'Undelivered dispatches count: {undelivered_count}.\n')
 
         except Exception as e:
-            self.stderr.write(self.style.ERROR('Error on check: %s\n%s' % (e, format_exc())))
+            self.stderr.write(self.style.ERROR(f'Error on check: {e}\n{format_exc()}'))
 
         else:
             self.stdout.write('Check done.\n')

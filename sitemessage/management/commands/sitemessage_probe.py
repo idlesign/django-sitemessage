@@ -29,14 +29,14 @@ class Command(BaseCommand):
 
         to = options.get('to', None)
 
-        self.stdout.write('Sending test message using %s ...\n' % messenger)
+        self.stdout.write(f'Sending test message using {messenger} ...\n')
 
         try:
             result = send_test_message(messenger, to=to)
-            self.stdout.write('Probing function result: %s.\n' % result)
+            self.stdout.write(f'Probing function result: {result}.\n')
 
         except Exception as e:
-            self.stderr.write(self.style.ERROR('Error on probe: %s\n%s' % (e, format_exc())))
+            self.stderr.write(self.style.ERROR(f'Error on probe: {e}\n{format_exc()}'))
 
         else:
             self.stdout.write('Probing done.\n')

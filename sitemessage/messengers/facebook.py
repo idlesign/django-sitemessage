@@ -62,7 +62,7 @@ class FacebookMessenger(RequestsMessengerBase):
         response = self.get(url_extend % {'app_id': app_id, 'app_secret': app_secret, 'user_token': user_token})
         user_token_long_lived = response.split('=')[-1]
 
-        json = self.get(self._url_versioned + '/me/accounts?access_token=%s' % user_token_long_lived, json=True)
+        json = self.get(self._url_versioned + f'/me/accounts?access_token={user_token_long_lived}', json=True)
 
         tokens = {item['name']: item['access_token'] for item in json['data'] if item.get('access_token')}
 
@@ -79,6 +79,6 @@ class FacebookMessenger(RequestsMessengerBase):
 
         if 'error' in json:
             error = json['error']
-            raise FacebookMessengerException('%s: %s' % (error['code'], error['message']))
+            raise FacebookMessengerException(f"{error['code']}: {error['message']}")
 
         return json['id']  # Returns post ID.

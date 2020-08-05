@@ -1,4 +1,4 @@
-from collections import OrderedDict, defaultdict
+from collections import defaultdict
 from datetime import timedelta
 from itertools import chain
 from operator import itemgetter
@@ -236,8 +236,8 @@ def get_user_preferences_for_ui(
         new_messengers_titles = {}
 
     msgr_to_msg = defaultdict(set)
-    msg_titles = OrderedDict()
-    msgr_titles = OrderedDict()
+    msg_titles = {}
+    msgr_titles = {}
 
     for msgr in get_registered_messenger_objects().values():
         if not (messenger_filter is None or messenger_filter(msgr)) or not msgr.allow_user_subscription:
@@ -257,20 +257,21 @@ def get_user_preferences_for_ui(
                 continue
 
             msg_alias = msg.alias
-            msg_titles.setdefault('%s' % msg.title, []).append(msg_alias)
+            msg_titles.setdefault(f'{msg.title}', []).append(msg_alias)
 
             msgr_to_msg[msgr_alias].update((msg_alias,))
             msgr_titles[msgr_title] = msgr_alias
 
     def sort_titles(titles):
-        return OrderedDict(sorted([(k, v) for k, v in titles.items()], key=itemgetter(0)))
+        return dict(sorted([(k, v) for k, v in titles.items()], key=itemgetter(0)))
 
     msgr_titles = sort_titles(msgr_titles)
 
-    user_prefs = OrderedDict()
+    user_prefs = {}
 
-    user_subscriptions = ['%s%s%s' % (pref.message_cls, _ALIAS_SEP, pref.messenger_cls)
-                          for pref in Subscription.get_for_user(user)]
+    user_subscriptions = [
+        f'{pref.message_cls}{_ALIAS_SEP}{pref.messenger_cls}'
+        for pref in Subscription.get_for_user(user)]
 
     for msg_title, msg_aliases in sort_titles(msg_titles).items():
 
@@ -282,7 +283,7 @@ def get_user_preferences_for_ui(
             subscribed = False
 
             if msg_candidates:
-                alias = '%s%s%s' % (msg_candidates.pop(), _ALIAS_SEP, msgr_alias)
+                alias = f'{msg_candidates.pop()}{_ALIAS_SEP}{msgr_alias}'
                 msg_supported = True
                 subscribed = alias in user_subscriptions
 

@@ -37,11 +37,11 @@ def test_get_recipients_data(user_create):
     r1 = MessengerForTest.structure_recipients_data(to)
 
     assert len(r1) == len(to)
-    assert r1[0].address == 'gogi%s' % WONDERLAND_DOMAIN
+    assert r1[0].address == f'gogi{WONDERLAND_DOMAIN}'
     assert r1[0].messenger == 'test_messenger'
-    assert r1[1].address == 'givi%s' % WONDERLAND_DOMAIN
+    assert r1[1].address == f'givi{WONDERLAND_DOMAIN}'
     assert r1[1].messenger == 'test_messenger'
-    assert r1[2].address == 'user_myuser%s' % WONDERLAND_DOMAIN
+    assert r1[2].address == f'user_myuser{WONDERLAND_DOMAIN}'
     assert r1[2].messenger == 'test_messenger'
 
 

@@ -29,11 +29,11 @@ def test_recipients(user_create):
     r1 = recipients('test_messenger', to)
 
     assert len(r1) == len(to)
-    assert r1[0].address == 'gogi%s' % WONDERLAND_DOMAIN
+    assert r1[0].address == f'gogi{WONDERLAND_DOMAIN}'
     assert r1[0].messenger == 'test_messenger'
-    assert r1[1].address == 'givi%s' % WONDERLAND_DOMAIN
+    assert r1[1].address == f'givi{WONDERLAND_DOMAIN}'
     assert r1[1].messenger == 'test_messenger'
-    assert r1[2].address == 'user_myuser%s' % WONDERLAND_DOMAIN
+    assert r1[2].address == f'user_myuser{WONDERLAND_DOMAIN}'
     assert r1[2].messenger == 'test_messenger'
 
 
@@ -76,8 +76,8 @@ def test_send_scheduled_messages_dynamic_context():
     assert len(msgr.last_send['dispatch_models']) == 2
     assert msgr.last_send['message_model'].cls == 'testplain_dyn'
     assert msgr.last_send['message_cls'] == MessagePlainDynamicForTest
-    assert msgr.last_send['dispatch_models'][0].message_cache == 'my_dyn_msg -- three%s' % WONDERLAND_DOMAIN
-    assert msgr.last_send['dispatch_models'][1].message_cache == 'my_dyn_msg -- four%s' % WONDERLAND_DOMAIN
+    assert msgr.last_send['dispatch_models'][0].message_cache == f'my_dyn_msg -- three{WONDERLAND_DOMAIN}'
+    assert msgr.last_send['dispatch_models'][1].message_cache == f'my_dyn_msg -- four{WONDERLAND_DOMAIN}'
 
 
 def test_schedule_message(user):
@@ -108,7 +108,7 @@ def test_schedule_message(user):
     assert model.dispatches_ready
 
     assert len(dispatch_models) == 2
-    assert dispatch_models[0].address == 'gogi%s' % WONDERLAND_DOMAIN
+    assert dispatch_models[0].address == f'gogi{WONDERLAND_DOMAIN}'
     assert dispatch_models[0].messenger == 'test_messenger'
 
 

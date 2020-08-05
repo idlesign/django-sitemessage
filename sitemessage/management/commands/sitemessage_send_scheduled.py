@@ -28,15 +28,15 @@ class Command(BaseCommand):
         priority_str = ''
 
         if priority is not None:
-            priority_str = 'with priority %s ' % priority
+            priority_str = f'with priority {priority} '
 
-        self.stdout.write('Sending scheduled messages %s ...\n' % priority_str)
+        self.stdout.write(f'Sending scheduled messages {priority_str} ...\n')
 
         try:
             send_scheduled_messages(priority=priority)
 
         except Exception as e:
-            self.stderr.write(self.style.ERROR('Error on send: %s\n%s' % (e, format_exc())))
+            self.stderr.write(self.style.ERROR(f'Error on send: {e}\n{format_exc()}'))
 
         else:
             self.stdout.write('Sending done.\n')

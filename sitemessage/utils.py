@@ -1,9 +1,10 @@
-from collections import namedtuple, defaultdict, OrderedDict
+from collections import namedtuple, defaultdict
 from threading import local
 from typing import Union, List, Type, Dict
 
 try:
     from django.utils.module_loading import import_module
+
 except ImportError:
     # Django <=1.9.0
     from django.utils.importlib import import_module
@@ -18,8 +19,8 @@ if False:  # pragma: nocover
     from .messengers.base import MessengerBase
 
 
-_MESSENGERS_REGISTRY = OrderedDict()
-_MESSAGES_REGISTRY = OrderedDict()
+_MESSENGERS_REGISTRY = {}
+_MESSAGES_REGISTRY = {}
 
 _MESSAGES_FOR_APPS = defaultdict(dict)
 
@@ -105,7 +106,7 @@ def get_registered_messenger_object(messenger: str) -> 'MessengerBase':
         return _MESSENGERS_REGISTRY[messenger]
 
     except KeyError:
-        raise UnknownMessengerError('`%s` messenger is not registered' % messenger)
+        raise UnknownMessengerError(f'`{messenger}` messenger is not registered')
 
 
 def register_message_types(*message_types: Type['MessageBase']):
@@ -135,7 +136,7 @@ def get_registered_message_type(message_type: str) -> Type['MessageBase']:
         return _MESSAGES_REGISTRY[message_type]
 
     except KeyError:
-        raise UnknownMessageTypeError('`%s` message class is not registered' % message_type)
+        raise UnknownMessageTypeError(f'`{message_type}` message class is not registered')
 
 
 def import_app_sitemessage_module(app: str):

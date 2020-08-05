@@ -240,7 +240,7 @@ class Dispatch(models.Model):
         verbose_name_plural = _('Dispatches')
 
     def __str__(self) -> str:
-        return '%s [%s]' % (self.address, self.messenger)
+        return f'{self.address} [{self.messenger}]'
 
     def is_read(self) -> bool:
         """Returns message read flag."""
@@ -408,7 +408,7 @@ class DispatchError(models.Model):
         verbose_name_plural = _('Dispatch errors')
 
     def __str__(self) -> str:
-        return 'Dispatch ID %s error entry' % self.dispatch_id
+        return f'Dispatch ID {self.dispatch_id} error entry'
 
 
 class Subscription(models.Model):
@@ -432,7 +432,7 @@ class Subscription(models.Model):
 
     def __str__(self) -> str:
         recipient = self.recipient_id or self.address
-        return '%s [%s - %s]' % (recipient, self.message_cls, self.messenger_cls)
+        return f'{recipient} [{self.message_cls} - {self.messenger_cls}]'
 
     @classmethod
     def get_for_user(cls, user: AbstractBaseUser) -> Union[List['Subscription'], QuerySet]:

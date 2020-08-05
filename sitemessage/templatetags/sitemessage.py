@@ -38,18 +38,23 @@ class sitemessage_prefs_tableNode(template.Node):
         resolve = lambda arg: arg.resolve(context) if isinstance(arg, FilterExpression) else arg
 
         prefs_obj = resolve(self.prefs_obj)
+
         if not isinstance(prefs_obj, tuple):
+
             if settings.DEBUG:
                 raise SiteMessageConfigurationError(
                     '`sitemessage_prefs_table` template tag expects a tuple generated '
-                    'by `get_user_preferences_for_ui` but `%s` is given.' % type(prefs_obj))
+                    f'by `get_user_preferences_for_ui` but `{type(prefs_obj)}` is given.')
+
             return ''  # Silent fall.
 
         context.push()
         context['sitemessage_user_prefs'] = prefs_obj
+
         contents = get_template(
             resolve(self.use_template or 'sitemessage/user_prefs_table.html')
         ).render(context.flatten() if _CONTEXT_FLATTEN else context)
+
         context.pop()
 
         return contents

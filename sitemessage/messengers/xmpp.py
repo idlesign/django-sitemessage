@@ -53,8 +53,9 @@ class XMPPSleekMessenger(MessengerBase):
                 self.xmpp.send_presence()
                 self.xmpp.get_roster()
                 self._session_started = True
+
             except self.lib.exceptions.XMPPError as e:
-                raise MessengerWarmupException('XMPP Error: %s' % e)
+                raise MessengerWarmupException(f'XMPP Error: {e}')
 
         self.xmpp = self.lib.ClientXMPP(self.from_jid, self.password)
         self.xmpp.add_event_handler('session_start', on_session_start)

@@ -176,7 +176,7 @@ class MessageBase:
         :param message_id:
 
         """
-        return salted_hmac('%s' % dispatch_id, '%s|%s' % (message_id, dispatch_id)).hexdigest()
+        return salted_hmac(f'{dispatch_id}', f'{message_id}|{dispatch_id}').hexdigest()
 
     @classmethod
     def get_mark_read_directive(cls, message_model: Message, dispatch_model: Dispatch) -> str:
@@ -220,7 +220,8 @@ class MessageBase:
 
             try:
                 url = reverse(name, args=[message_model.id, dispatch_model.id, hashed])
-                url = '%s%s' % (get_site_url(), url)
+                url = f'{get_site_url()}{url}'
+
             except NoReverseMatch:
                 if APP_URLS_ATTACHED is None:
                     APP_URLS_ATTACHED = False
@@ -308,8 +309,7 @@ class MessageBase:
             return template
 
         if cls.template is None:
-            cls.template = 'sitemessage/messages/%s__%s.%s' % (
-                cls.get_alias(), messenger.get_alias(), cls.template_ext)
+            cls.template = f'sitemessage/messages/{cls.get_alias()}__{messenger.get_alias()}.{cls.template_ext}'
 
         return cls.template
 

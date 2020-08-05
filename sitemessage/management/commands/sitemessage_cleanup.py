@@ -36,15 +36,15 @@ class Command(BaseCommand):
             suffix.append('and messages')
 
         if ago:
-            suffix.append('sent %s days ago' % ago)
+            suffix.append(f'sent {ago} days ago')
 
-        self.stdout.write('Cleaning up dispatches %s ...\n' % ' '.join(suffix))
+        self.stdout.write(f"Cleaning up dispatches {' '.join(suffix)} ...\n")
 
         try:
             cleanup_sent_messages(ago=ago, dispatches_only=dispatches_only)
 
         except Exception as e:
-            self.stderr.write(self.style.ERROR('Error on cleanup: %s\n%s' % (e, format_exc())))
+            self.stderr.write(self.style.ERROR(f'Error on cleanup: {e}\n{format_exc()}'))
 
         else:
             self.stdout.write('Cleanup done.\n')

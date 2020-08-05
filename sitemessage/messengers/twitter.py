@@ -43,19 +43,22 @@ class TwitterMessenger(MessengerBase):
         try:
             self.api = self.lib.Twitter(auth=self.lib.OAuth(self.access_token, self.access_token_secret, self.api_key, self.api_secret))
             self._session_started = True
+
         except self.lib.api.TwitterError as e:
-            raise MessengerWarmupException('Twitter Error: %s' % e)
+            raise MessengerWarmupException(f'Twitter Error: {e}')
     
     @classmethod
     def _build_message(cls, to, text):
         if to:
             if not to.startswith('@'):
-                to = '@%s' % to
-            to = '%s ' % to
+                to = f'@{to}'
+
+            to = f'{to} '
+
         else:
             to = ''
-        msg = '%s%s' % (to, text)
-        return msg
+
+        return f'{to}{text}'
 
     def _send_message(self, msg):
         return self.api.statuses.update(status=msg)

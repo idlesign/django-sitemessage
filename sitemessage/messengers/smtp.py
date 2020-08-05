@@ -84,7 +84,7 @@ class SMTPMessenger(MessengerBase):
             self._session_started = True
 
         except lib.SMTPException as e:
-            raise MessengerWarmupException('SMTP Error: %s' % e)
+            raise MessengerWarmupException(f'SMTP Error: {e}')
 
     def after_send(self):
         self.smtp.quit()
@@ -111,7 +111,7 @@ class SMTPMessenger(MessengerBase):
         msg['Subject'] = subject
 
         if unsubscribe_url:
-            msg['List-Unsubscribe'] = '<%s>' % unsubscribe_url
+            msg['List-Unsubscribe'] = f'<{unsubscribe_url}>'
 
         return msg
 
@@ -137,7 +137,7 @@ class SMTPMessenger(MessengerBase):
                 refused = self._send_message(msg)
 
                 if refused:
-                    self.mark_failed(dispatch_model, '`%s` address is rejected by server' % msg['To'])
+                    self.mark_failed(dispatch_model, f"`{msg['To']}` address is rejected by server")
                     continue
 
                 self.mark_sent(dispatch_model)

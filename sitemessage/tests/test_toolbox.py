@@ -89,13 +89,13 @@ def test_send_scheduled_messages_unknown_messenger():
 
 def test_set_user_preferences_from_request(request_post, user):
     set_user_preferences_from_request(
-        request_post('/', data={_PREF_POST_KEY: 'aaa%sqqq' % _ALIAS_SEP}, user=user))
+        request_post('/', data={_PREF_POST_KEY: f'aaa{_ALIAS_SEP}qqq'}, user=user))
 
     subs = Subscription.objects.all()
     assert len(subs) == 0
 
     set_user_preferences_from_request(
-        request_post('/', data={_PREF_POST_KEY: 'test_message%stest_messenger' % _ALIAS_SEP}, user=user))
+        request_post('/', data={_PREF_POST_KEY: f'test_message{_ALIAS_SEP}test_messenger'}, user=user))
 
     subs = Subscription.objects.all()
     assert len(subs) == 1

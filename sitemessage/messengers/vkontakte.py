@@ -90,6 +90,6 @@ class VKontakteMessenger(RequestsMessengerBase):
 
         if 'error' in json:
             error = json['error']
-            raise VKontakteMessengerException('%s: %s' % (error['error_code'], error['error_msg']))
+            raise VKontakteMessengerException(f"{error['error_code']}: {error['error_msg']}")
 
         return json['response']['post_id']  # Returns post ID.
