@@ -1,4 +1,4 @@
-from django import template, VERSION
+from django import template
 from django.template.base import FilterExpression
 from django.template.loader import get_template
 from django.conf import settings
@@ -7,9 +7,6 @@ from ..exceptions import SiteMessageConfigurationError
 
 
 register = template.Library()
-
-
-_CONTEXT_FLATTEN = VERSION >= (1, 11)
 
 
 @register.tag
@@ -53,7 +50,7 @@ class sitemessage_prefs_tableNode(template.Node):
 
         contents = get_template(
             resolve(self.use_template or 'sitemessage/user_prefs_table.html')
-        ).render(context.flatten() if _CONTEXT_FLATTEN else context)
+        ).render(context.flatten())
 
         context.pop()
 

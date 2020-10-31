@@ -1,5 +1,3 @@
-from django import VERSION
-
 
 class CommandOption:
     """Command line option wrapper."""
@@ -17,17 +15,13 @@ def options_getter(command_options):
     """
     def get_options(option_func=None):
         from optparse import make_option
-        from django.core.management.base import BaseCommand
 
         func = option_func or make_option
 
         options = tuple([func(*option.args, **option.kwargs) for option in command_options])
 
         if option_func is None:
-            if VERSION < (1, 8):
-                result = BaseCommand.option_list + options
-            else:
-                result = []
+            result = []
 
         else:
             result = options

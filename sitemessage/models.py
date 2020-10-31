@@ -1,7 +1,6 @@
 import json
 from typing import Type, List, Optional, Union, Tuple, Dict, Iterable
 
-from django import VERSION
 from django.conf import settings
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.core import exceptions
@@ -13,7 +12,7 @@ from django.utils.translation import gettext_lazy as _
 from .utils import get_registered_message_type, Recipient
 
 if False:  # pragma: nocover
-    from .messages.base import MessageBase
+    from .messages.base import MessageBase  # noqa
     from .messengers.base import MessengerBase
 
 USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
@@ -54,7 +53,7 @@ def _get_dispatches_for_update(filter_kwargs: dict) -> Optional[List['Dispatch']
 
 GET_DISPATCHES_ARGS = [
     _get_dispatches_for_update,
-    {'skip_locked': True} if VERSION >= (1, 11, 0) else {'nowait': True}
+    {'skip_locked': True}
 
 ]  # type: list
 """This could be set runtime in Dispatch.get_unsent()"""

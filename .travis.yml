@@ -13,25 +13,12 @@ env:
   - DJANGO="Django>=2.2,<2.3"
   - DJANGO="Django>=2.1,<2.2"
   - DJANGO="Django>=2.0,<2.1"
-  - DJANGO="Django>=1.11,<1.12"
-  - DJANGO="Django>=1.10,<1.11"
-  - DJANGO="Django>=1.9,<1.10"
 
 
 install:
   - pip install -U coverage coveralls $DJANGO
 
 script: coverage run -a --source=sitemessage setup.py test
-
-matrix:
-
-  exclude:
-
-   - python: 3.8
-     env: DJANGO="Django>=1.10,<1.11"
-
-   - python: 3.8
-     env: DJANGO="Django>=1.9,<1.10"
 
 after_success:
   coveralls

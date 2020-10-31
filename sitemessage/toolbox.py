@@ -4,7 +4,6 @@ from itertools import chain
 from operator import itemgetter
 from typing import Optional, List, Tuple, Union, Iterable, Any, Callable, Dict, Mapping
 
-from django import VERSION
 from django.conf import settings
 from django.conf.urls import url
 from django.contrib.auth.base_user import AbstractBaseUser
@@ -19,8 +18,8 @@ from .models import Message, Dispatch, Subscription
 from .views import mark_read, unsubscribe
 
 # NB: Some of these unused imports are exposed as part of toolbox API.
-from .messages import register_builtin_message_types
-from .utils import (
+from .messages import register_builtin_message_types  # noqa
+from .utils import (  # noqa
     is_iterable, import_project_sitemessage_modules, get_site_url, recipients,
     register_messenger_objects, get_registered_messenger_object, get_registered_messenger_objects,
     register_message_types, get_registered_message_type, get_registered_message_types,
@@ -346,8 +345,4 @@ def get_sitemessage_urls() -> List:
         name='sitemessage_mark_read'
     )
 
-    if VERSION >= (1, 9):
-        return [url_unsubscribe, url_mark_read]
-
-    from django.conf.urls import patterns
-    return patterns('', url_unsubscribe, url_mark_read)
+    return [url_unsubscribe, url_mark_read]
