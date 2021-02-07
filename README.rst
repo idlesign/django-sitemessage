@@ -2,12 +2,6 @@ django-sitemessage
 ==================
 https://github.com/idlesign/django-sitemessage
 
-.. image:: https://idlesign.github.io/lbc/py2-lbc.svg
-   :target: https://idlesign.github.io/lbc/
-   :alt: LBC Python 2
-
-----
-
 .. image:: https://img.shields.io/pypi/v/django-sitemessage.svg
     :target: https://pypi.python.org/pypi/django-sitemessage
 
