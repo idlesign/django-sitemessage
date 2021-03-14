@@ -2,8 +2,8 @@ django-sitemessage changelog
 ============================
 
 
-Unreleased
-----------
+v1.3.3 [2021-03-14]
+-------------------
 * Added missing migration.
 
 
