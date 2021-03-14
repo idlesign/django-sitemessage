@@ -2,6 +2,11 @@ django-sitemessage changelog
 ============================
 
 
+Unreleased
+----------
+* Added missing migration.
+
+
 v1.3.2 [2020-10-31]
 -------------------
 * Drop support for Python 3.5.
