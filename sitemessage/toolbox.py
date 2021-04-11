@@ -5,7 +5,7 @@ from operator import itemgetter
 from typing import Optional, List, Tuple, Union, Iterable, Any, Callable, Dict, Mapping
 
 from django.conf import settings
-from django.conf.urls import url
+from django.conf.urls import re_path
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.http import HttpRequest
 from django.utils import timezone
@@ -333,13 +333,13 @@ def get_sitemessage_urls() -> List:
         ) + get_sitemessage_urls()  # Now attaching additional URLs.
 
     """
-    url_unsubscribe = url(
+    url_unsubscribe = re_path(
         r'^messages/unsubscribe/(?P<message_id>\d+)/(?P<dispatch_id>\d+)/(?P<hashed>[^/]+)/$',
         unsubscribe,
         name='sitemessage_unsubscribe'
     )
 
-    url_mark_read = url(
+    url_mark_read = re_path(
         r'^messages/ping/(?P<message_id>\d+)/(?P<dispatch_id>\d+)/(?P<hashed>[^/]+)/$',
         mark_read,
         name='sitemessage_mark_read'
