@@ -5,6 +5,7 @@ django-sitemessage changelog
 Unreleased
 ----------
 ! Fixed typo in Dispatch.READ_STATUS_UNDREAD. Now READ_STATUS_UNREAD.
+! Message.context does not use 'ensure_ascii' anymore for readability.
 
 
 v1.3.3 [2021-03-14]

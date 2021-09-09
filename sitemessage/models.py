@@ -88,7 +88,7 @@ class ContextField(models.TextField):
         return self.parse_value(value)
 
     def get_prep_value(self, value: dict):
-        return json.dumps(value)
+        return json.dumps(value, ensure_ascii=False)
 
 
 class Message(models.Model):
