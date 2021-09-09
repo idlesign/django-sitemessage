@@ -26,39 +26,39 @@ class MessageBase:
 
     """
 
-    supported_messengers = []
+    supported_messengers: List[str] = []
     """List of supported messengers (aliases)."""
 
-    alias = None
+    alias: str = None
     """Message type alias to address it from different places, Should rather be quite unique %)"""
 
-    title = _('Notification')
+    title: str = _('Notification')
     """Title to show to user."""
 
-    priority = None
+    priority: Optional[int] = None
     """Number describing message priority. Can be overridden by `priority` provided with schedule_messages()."""
 
-    has_dynamic_context = False
+    has_dynamic_context: bool = False
     """This flag is used to optimize template compilation process.
     If True template will be compiled for every dispatch (and dispatch data will be available in it)
     instead of just once per message.
 
     """
 
-    template_ext = 'tpl'
+    template_ext: str = 'tpl'
     """Template file extension. Considered when the below mentioned `template` field is not set."""
 
-    template = None
+    template: str = None
     """Path to the template to be used for message rendering.
     If not set, will be deduced from message, messenger data (e.g. `sitemessage/plain_smtp.txt`)
     and `template_ext` (see above).
 
     """
 
-    send_retry_limit = 10
+    send_retry_limit: int = 10
     """This limits the number of send attempts before message delivery considered failed."""
 
-    allow_user_subscription = True
+    allow_user_subscription: bool = True
     """Makes subscription for this message type available for users (see get_user_preferences_for_ui())"""
 
     _message_model = None
@@ -263,14 +263,13 @@ class MessageBase:
     ) -> HttpResponse:
         """Handles a request to mark a message as read.
 
-        :param Request request: Request instance
-        :param Message message: Message model instance
-        :param Dispatch dispatch: Dispatch model instance
-        :param bool hash_is_valid: Flag indicating that user supplied request signature is correct
-        :param str redirect_to: Redirection URL
-        :rtype: list
-        """
+        :param request: Request instance
+        :param message: Message model instance
+        :param dispatch: Dispatch model instance
+        :param hash_is_valid: Flag indicating that user supplied request signature is correct
+        :param redirect_to: Redirection URL
 
+        """
         if hash_is_valid:
             dispatch.mark_read()
             dispatch.save()

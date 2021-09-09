@@ -1,9 +1,14 @@
+from typing import Type, List
+
 from django.conf import settings
 from django.utils.html import strip_tags
 from django.utils.translation import gettext as _
 
-from .base import MessengerBase
+from .base import MessengerBase, Message, Dispatch
 from ..exceptions import MessengerWarmupException
+
+if False:  # pragma: nocover
+    from ..messages.base import MessageBase  # noqa
 
 
 class SMTPMessenger(MessengerBase):
@@ -18,19 +23,28 @@ class SMTPMessenger(MessengerBase):
     _session_started = False
 
     def __init__(
-            self, from_email=None, login=None, password=None, host=None, port=None,
-            use_tls=None, use_ssl=None, debug=False, timeout=None):
+            self,
+            from_email: str = None,
+            login: str = None,
+            password: str = None,
+            host: str = None,
+            port: str = None,
+            use_tls: bool = None,
+            use_ssl: bool = None,
+            debug: bool = False,
+            timeout: int = None
+    ):
         """Configures messenger.
 
-        :param str from_email: e-mail address to send messages from
-        :param str login: login to log into SMTP server
-        :param str password: password to log into SMTP server
-        :param str host: string - SMTP server host
-        :param int port:  SMTP server port
-        :param bool use_tls: whether to use TLS
-        :param bool use_ssl: whether to use SSL
-        :param bool debug: whether to switch smtplib into debug mode.
-        :param int timeout: timeout to establish s connection.
+        :param from_email: e-mail address to send messages from
+        :param login: login to log into SMTP server
+        :param password: password to log into SMTP server
+        :param host: string - SMTP server host
+        :param port:  SMTP server port
+        :param use_tls: whether to use TLS
+        :param use_ssl: whether to use SSL
+        :param debug: whether to switch smtplib into debug mode.
+        :param timeout: timeout to establish s connection.
 
         """
         import smtplib
@@ -52,7 +66,7 @@ class SMTPMessenger(MessengerBase):
         self.use_ssl = use_ssl or getattr(settings, 'EMAIL_USE_SSL')
         self.timeout = timeout or getattr(settings, 'EMAIL_TIMEOUT')
 
-    def _test_message(self, to, text):
+    def _test_message(self, to: str, text: str):
         return self._send_message(self._build_message(to, text, mtype='html'))
 
     def before_send(self):
@@ -89,9 +103,8 @@ class SMTPMessenger(MessengerBase):
     def after_send(self):
         self.smtp.quit()
 
-    def _build_message(self, to, text, subject=None, mtype=None, unsubscribe_url=None):
+    def _build_message(self, to: str, text: str, subject: str = None, mtype: str = None, unsubscribe_url: str = None):
         """Constructs a MIME message from message and dispatch models."""
-        # TODO Maybe file attachments handling through `files` message_model context var.
 
         if subject is None:
             subject = '%s' % _('No Subject')
@@ -118,7 +131,7 @@ class SMTPMessenger(MessengerBase):
     def _send_message(self, msg):
         return self.smtp.sendmail(msg['From'], msg['To'], msg.as_string())
 
-    def send(self, message_cls, message_model, dispatch_models):
+    def send(self, message_cls: Type['MessageBase'], message_model: Message, dispatch_models: List[Dispatch]):
 
         if not self._session_started:
             return

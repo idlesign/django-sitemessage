@@ -1,7 +1,12 @@
+from typing import Type, List
+
 from django.utils.translation import gettext as _
 
-from .base import RequestsMessengerBase
+from .base import RequestsMessengerBase, TypeProxy, Message, Dispatch
 from ..exceptions import MessengerWarmupException, MessengerException
+
+if False:  # pragma: nocover
+    from ..messages.base import MessageBase  # noqa
 
 
 class TelegramMessengerException(MessengerException):
@@ -19,7 +24,7 @@ class TelegramMessenger(RequestsMessengerBase):
     _session_started = False
     _tpl_url = 'https://api.telegram.org/bot%(token)s/%(method)s'
 
-    def __init__(self, auth_token, proxy=None):
+    def __init__(self, auth_token: str, proxy: TypeProxy = None):
         """Configures messenger.
 
         Register a Telegram Bot using instructions from https://core.telegram.org/bots/api
@@ -33,20 +38,16 @@ class TelegramMessenger(RequestsMessengerBase):
         """Sends an API command to test whether bot is authorized."""
         self._send_command('getMe')
 
-    def get_updates(self):
-        """Returns new messages addressed to bot.
-
-        :rtype: list
-        """
+    def get_updates(self) -> list:
+        """Returns new messages addressed to bot."""
         with self.before_after_send_handling():
             result = self._send_command('getUpdates')
         return result
 
-    def get_chat_ids(self):
+    def get_chat_ids(self) -> list:
         """Returns unique chat IDs from `/start` command messages sent to our bot by users.
         Those chat IDs can be used to send messages to chats.
 
-        :rtype: list
         """
         updates = self.get_updates()
         chat_ids = []
@@ -68,15 +69,15 @@ class TelegramMessenger(RequestsMessengerBase):
         except TelegramMessengerException as e:
             raise MessengerWarmupException(f'Telegram Error: {e}')
 
-    def _build_message(self, text, to=None):
+    def _build_message(self, text: str, to: str = None) -> dict:
         return {'chat_id': to, 'text': text}
 
-    def _send_command(self, method_name, data=None):
+    def _send_command(self, method_name: str, data: dict = None):
         """Sends a command to API.
 
-        :param str method_name:
-        :param dict data:
-        :return:
+        :param method_name:
+        :param data:
+
         """
         json = self.post(url=self._tpl_url % {'token': self.auth_token, 'method': method_name}, data=data)
 
@@ -85,10 +86,10 @@ class TelegramMessenger(RequestsMessengerBase):
 
         return json['result']
 
-    def _send_message(self, msg, to=None):
+    def _send_message(self, msg: dict, to=None):
         return self._send_command('sendMessage', msg)
 
-    def send(self, message_cls, message_model, dispatch_models):
+    def send(self, message_cls: Type['MessageBase'], message_model: Message, dispatch_models: List[Dispatch]):
         if not self._session_started:
             return
         super().send(message_cls, message_model, dispatch_models)

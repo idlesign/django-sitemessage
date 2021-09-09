@@ -1,6 +1,6 @@
 from django.utils.translation import gettext as _
 
-from .base import RequestsMessengerBase
+from .base import RequestsMessengerBase, TypeProxy
 from ..exceptions import MessengerException
 
 
@@ -36,23 +36,22 @@ class FacebookMessenger(RequestsMessengerBase):
     _url_versioned = _url_base + '/v' + _graph_version
     _tpl_url_feed = _url_versioned + '/%(page_id)s/feed'
 
-    def __init__(self, page_access_token, proxy=None):
+    def __init__(self, page_access_token: str, proxy: TypeProxy = None):
         """Configures messenger.
 
-        :param str page_access_token: Unique authentication token of your FB page.
+        :param page_access_token: Unique authentication token of your FB page.
             One could be generated from User token using .get_page_access_token().
 
         """
         super().__init__(proxy=proxy)
         self.access_token = page_access_token
 
-    def get_page_access_token(self, app_id, app_secret, user_token):
+    def get_page_access_token(self, app_id: str, app_secret: str, user_token: str) -> dict:
         """Returns a dictionary of never expired page token indexed by page names.
 
-        :param str app_id: Application ID
-        :param str app_secret: Application secret
-        :param str user_token: User short-lived token
-        :rtype: dict
+        :param app_id: Application ID
+        :param app_secret: Application secret
+        :param user_token: User short-lived token
 
         """
         url_extend = (
@@ -68,7 +67,7 @@ class FacebookMessenger(RequestsMessengerBase):
 
         return tokens
 
-    def _send_message(self, msg, to=None):
+    def _send_message(self, msg: str, to: str = None):
 
         # Automatically deduce message type.
         message_type = 'link' if msg.startswith('http') else 'message'

@@ -1,7 +1,12 @@
+from typing import Type, List
+
 from django.utils.translation import gettext as _
 
-from .base import MessengerBase
+from .base import MessengerBase, Message, Dispatch
 from ..exceptions import MessengerWarmupException
+
+if False:  # pragma: nocover
+    from ..messages.base import MessageBase  # noqa
 
 
 class TwitterMessenger(MessengerBase):
@@ -18,7 +23,7 @@ class TwitterMessenger(MessengerBase):
 
     _session_started = False
 
-    def __init__(self, api_key, api_secret, access_token, access_token_secret):
+    def __init__(self, api_key: str, api_secret: str, access_token: str, access_token_secret: str):
         """Configures messenger.
 
         Register Twitter application here - https://apps.twitter.com/
@@ -36,19 +41,20 @@ class TwitterMessenger(MessengerBase):
         self.access_token = access_token
         self.access_token_secret = access_token_secret
 
-    def _test_message(self, to, text):
+    def _test_message(self, to: str, text: str):
         return self._send_message(self._build_message(to, text))
 
     def before_send(self):
         try:
-            self.api = self.lib.Twitter(auth=self.lib.OAuth(self.access_token, self.access_token_secret, self.api_key, self.api_secret))
+            self.api = self.lib.Twitter(
+                auth=self.lib.OAuth(self.access_token, self.access_token_secret, self.api_key, self.api_secret))
             self._session_started = True
 
         except self.lib.api.TwitterError as e:
             raise MessengerWarmupException(f'Twitter Error: {e}')
     
     @classmethod
-    def _build_message(cls, to, text):
+    def _build_message(cls, to: str, text: str):
         if to:
             if not to.startswith('@'):
                 to = f'@{to}'
@@ -60,10 +66,10 @@ class TwitterMessenger(MessengerBase):
 
         return f'{to}{text}'
 
-    def _send_message(self, msg):
+    def _send_message(self, msg: str):
         return self.api.statuses.update(status=msg)
 
-    def send(self, message_cls, message_model, dispatch_models):
+    def send(self, message_cls: Type['MessageBase'], message_model: Message, dispatch_models: List[Dispatch]):
         if self._session_started:
             for dispatch_model in dispatch_models:
                 msg = self._build_message(dispatch_model.address, dispatch_model.message_cache)

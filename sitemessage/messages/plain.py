@@ -12,5 +12,5 @@ class PlainTextMessage(MessageBase):
     alias = 'plain'
     title = _('Text notification')
 
-    def __init__(self, text):
+    def __init__(self, text: str):
         super(PlainTextMessage, self).__init__({self.SIMPLE_TEXT_ID: text})

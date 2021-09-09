@@ -1,7 +1,12 @@
+from typing import Type, List
+
 from django.utils.translation import gettext as _
 
-from .base import MessengerBase
+from .base import MessengerBase, Dispatch, Message
 from ..exceptions import MessengerWarmupException
+
+if False:  # pragma: nocover
+    from ..messages.base import MessageBase  # noqa
 
 
 class XMPPSleekMessenger(MessengerBase):
@@ -19,16 +24,24 @@ class XMPPSleekMessenger(MessengerBase):
 
     _session_started = False
 
-    def __init__(self, from_jid, password, host='localhost', port=5222, use_tls=True, use_ssl=False):
+    def __init__(
+            self,
+            from_jid: str,
+            password: str,
+            host: str = 'localhost',
+            port: int = 5222,
+            use_tls: bool = True,
+            use_ssl: bool = False
+    ):
         """Configures messenger.
 
-        :param str from_jid: Jabber ID to send messages from
-        :param str password: password to log into XMPP server
-        :param str host: XMPP server host
-        :param int port: XMPP server port
-        :param bool use_tls: whether to use TLS
-        :param bool use_ssl: whether to use SSL
-        :return:
+        :param from_jid: Jabber ID to send messages from
+        :param password: password to log into XMPP server
+        :param host: XMPP server host
+        :param port: XMPP server port
+        :param use_tls: whether to use TLS
+        :param use_ssl: whether to use SSL
+
         """
         import sleekxmpp
 
@@ -41,10 +54,10 @@ class XMPPSleekMessenger(MessengerBase):
         self.use_tls = use_tls
         self.use_ssl = use_ssl
 
-    def _test_message(self, to, text):
+    def _test_message(self, to: str, text: str):
         return self._send_message(to, text)
 
-    def _send_message(self, to, text):
+    def _send_message(self, to: str, text: str):
         return self.xmpp.send_message(mfrom=self.from_jid, mto=to, mbody=text, mtype='chat')
 
     def before_send(self):
@@ -60,7 +73,13 @@ class XMPPSleekMessenger(MessengerBase):
         self.xmpp = self.lib.ClientXMPP(self.from_jid, self.password)
         self.xmpp.add_event_handler('session_start', on_session_start)
 
-        result = self.xmpp.connect(address=(self.host, self.port), reattempt=False, use_tls=self.use_tls, use_ssl=self.use_ssl)
+        result = self.xmpp.connect(
+            address=(self.host, self.port),
+            reattempt=False,
+            use_tls=self.use_tls,
+            use_ssl=self.use_ssl
+        )
+
         if result:
             self.xmpp.process(block=False)
 
@@ -69,7 +88,7 @@ class XMPPSleekMessenger(MessengerBase):
             self.xmpp.disconnect(wait=True)  # Wait for a send queue.
             self._session_started = False
 
-    def send(self, message_cls, message_model, dispatch_models):
+    def send(self, message_cls: Type['MessageBase'], message_model: Message, dispatch_models: List[Dispatch]):
         if self._session_started:
             for dispatch_model in dispatch_models:
                 try:

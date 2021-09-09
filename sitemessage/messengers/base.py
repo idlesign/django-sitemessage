@@ -9,11 +9,11 @@ from ..exceptions import UnknownMessageTypeError, MessengerException
 from ..models import Dispatch, Message
 from ..utils import Recipient, is_iterable
 
-MessageTuple = Tuple[Message, List[Dispatch]]
-
-
 if False:  # pragma: nocover
-    from ..messages.base import MessageBase
+    from ..messages.base import MessageBase  # noqa
+
+MessageTuple = Tuple[Message, List[Dispatch]]
+TypeProxy = Optional[Union[Callable, dict]]
 
 
 class DispatchProcessingHandler:
@@ -58,16 +58,16 @@ class MessengerBase:
     mechanics, other messenger classes must inherit from this one.
 
     """
-    alias = None
+    alias: str = None
     """Messenger alias to address it from different places, Should rather be quite unique %)"""
 
-    title = None
+    title: str = None
     """Title to show to user."""
 
-    allow_user_subscription = True
+    allow_user_subscription: bool = True
     """Makes subscription for this messenger messages available for users (see get_user_preferences_for_ui())"""
 
-    address_attr = None
+    address_attr: str = None
     """User object attribute containing address."""
 
     # Dispatches by status dict will be here runtime. See init_delivery_statuses_dict().
@@ -325,7 +325,7 @@ class RequestsMessengerBase(MessengerBase):
     timeout = 10
     """Request timeout."""
 
-    def __init__(self, proxy: Optional[Union[Callable, dict]] = None, **kwargs):
+    def __init__(self, proxy: TypeProxy = None, **kwargs):
         """Configures messenger.
 
         :param dict|Callable: Dictionary of proxy settings,

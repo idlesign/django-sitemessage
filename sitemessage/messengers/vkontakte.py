@@ -1,6 +1,6 @@
 from django.utils.translation import gettext as _
 
-from .base import RequestsMessengerBase
+from .base import RequestsMessengerBase, TypeProxy
 from ..exceptions import MessengerException
 
 
@@ -35,11 +35,11 @@ class VKontakteMessenger(RequestsMessengerBase):
     _url_wall = 'https://api.vk.com/method/wall.post'
     _api_version = '5.103'
 
-    def __init__(self, access_token, proxy=None):
+    def __init__(self, access_token: str, proxy: TypeProxy = None):
         """Configures messenger.
 
-        :param str access_token: Unique authentication token to access your VK user/community page.
-        :param dict|Callable: Dictionary of proxy settings,
+        :param access_token: Unique authentication token to access your VK user/community page.
+        :param proxy: Dictionary of proxy settings,
             or a callable returning such a dictionary.
 
         """
@@ -73,7 +73,7 @@ class VKontakteMessenger(RequestsMessengerBase):
 
         return url
 
-    def _send_message(self, msg, to=None):
+    def _send_message(self, msg: str, to: str = None):
 
         # Automatically deduce message type.
         message_type = 'attachments' if msg.startswith('http') else 'message'
