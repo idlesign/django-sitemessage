@@ -12,28 +12,29 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from .exceptions import UnknownMessengerError, UnknownMessageTypeError
+# NB: Some of these unused imports are exposed as part of toolbox API.
+from .messages import register_builtin_message_types  # noqa
 from .messages.base import MessageBase
 from .messages.plain import PlainTextMessage
 from .models import Message, Dispatch, Subscription
-from .views import mark_read, unsubscribe
-
-# NB: Some of these unused imports are exposed as part of toolbox API.
-from .messages import register_builtin_message_types  # noqa
 from .utils import (  # noqa
     is_iterable, import_project_sitemessage_modules, get_site_url, recipients,
     register_messenger_objects, get_registered_messenger_object, get_registered_messenger_objects,
     register_message_types, get_registered_message_type, get_registered_message_types,
-    get_message_type_for_app, override_message_type_for_app, Recipient
+    get_message_type_for_app, override_message_type_for_app, Recipient, TypeUser
 )
+from .views import mark_read, unsubscribe
 
 _ALIAS_SEP = '|'
 _PREF_POST_KEY = 'sm_user_pref'
 
+TypeMessages = Union[str, MessageBase, List[Union[str, MessageBase]]]
+
 
 def schedule_messages(
-        messages: Union[str, MessageBase, List[Union[str, MessageBase]]],
-        recipients: Optional[Union[Iterable[Recipient], Recipient]] = None,
-        sender: Optional[AbstractBaseUser] = None,
+        messages: TypeMessages,
+        recipients: Union[Iterable[Recipient], Recipient] = None,
+        sender: TypeUser = None,
         priority: Optional[int] = None
 ) -> List[Tuple[Message, List[Dispatch]]]:
     """Schedules a message or messages.
@@ -43,10 +44,9 @@ def schedule_messages(
     :param recipients: recipients addresses or Django User model heir instances
         If `None` Dispatches should be created before send using `prepare_dispatches()`.
 
-    :param User|None sender: User model heir instance
+    :param sender: User model heir instance
 
     :param priority: number describing message priority. If set overrides priority provided with message type.
-
 
     """
     if not is_iterable(messages):

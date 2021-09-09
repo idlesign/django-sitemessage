@@ -7,7 +7,7 @@ from django.contrib.auth.base_user import AbstractBaseUser
 
 from ..exceptions import UnknownMessageTypeError, MessengerException
 from ..models import Dispatch, Message
-from ..utils import Recipient, is_iterable
+from ..utils import Recipient, is_iterable, TypeRecipients
 
 if False:  # pragma: nocover
     from ..messages.base import MessageBase  # noqa
@@ -149,10 +149,10 @@ class MessengerBase:
         return address
 
     @classmethod
-    def structure_recipients_data(cls, recipients) -> List[Recipient]:
+    def structure_recipients_data(cls, recipients: TypeRecipients) -> List[Recipient]:
         """Converts recipients data into a list of Recipient objects.
 
-        :param list recipients: list of objects
+        :param recipients: list of objects
 
         """
         if not is_iterable(recipients):

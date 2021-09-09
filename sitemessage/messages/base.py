@@ -11,7 +11,7 @@ from django.utils.translation import gettext as _
 from ..exceptions import UnknownMessengerError
 from ..models import Message, Dispatch, Subscription
 from ..signals import sig_unsubscribe_success, sig_unsubscribe_failed, sig_mark_read_success, sig_mark_read_failed
-from ..utils import Recipient, recipients, get_site_url, get_registered_messenger_object
+from ..utils import Recipient, recipients, get_site_url, get_registered_messenger_object, TypeRecipients
 
 if False:  # pragma: nocover
     from ..messengers.base import MessengerBase  # noqa
@@ -126,7 +126,7 @@ class MessageBase:
         return self._message_model, self._dispatch_models
 
     @classmethod
-    def recipients(cls, messenger: Union[str, 'MessengerBase'], addresses: Union[List[str], str]) -> List[Recipient]:
+    def recipients(cls, messenger: Union[str, 'MessengerBase'], addresses: TypeRecipients) -> List[Recipient]:
         """Shortcut method. See `recipients()`,"""
         return recipients(messenger, addresses)
 

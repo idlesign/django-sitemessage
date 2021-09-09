@@ -2,6 +2,7 @@ from collections import namedtuple, defaultdict
 from threading import local
 from typing import Union, List, Type, Dict
 
+from django.contrib.auth.base_user import AbstractBaseUser
 from etc.toolbox import get_site_url as get_site_url_, import_app_module, import_project_modules
 
 from .exceptions import UnknownMessageTypeError, UnknownMessengerError
@@ -11,11 +12,14 @@ if False:  # pragma: nocover
     from .messages.base import MessageBase  # noqa
     from .messengers.base import MessengerBase
 
+TypeUser = AbstractBaseUser
+TypeRecipient = Union[str, TypeUser]
+TypeRecipients = Union[TypeRecipient, List[TypeRecipient]]
 
-_MESSENGERS_REGISTRY = {}
-_MESSAGES_REGISTRY = {}
+_MESSENGERS_REGISTRY: Dict[str, 'MessengerBase'] = {}
+_MESSAGES_REGISTRY: Dict[str, Type['MessageBase']] = {}
 
-_MESSAGES_FOR_APPS = defaultdict(dict)
+_MESSAGES_FOR_APPS: Dict[str, Dict[str, str]] = defaultdict(dict)
 
 _THREAD_LOCAL = local()
 _THREAD_SITE_URL = 'sitemessage_site_url'
@@ -160,7 +164,7 @@ def is_iterable(v):
 Recipient = namedtuple('Recipient', ('messenger', 'user', 'address'))
 
 
-def recipients(messenger: Union[str, 'MessengerBase'], addresses: Union[List[str], str]) -> List[Recipient]:
+def recipients(messenger: Union[str, 'MessengerBase'], addresses: TypeRecipients) -> List[Recipient]:
     """Structures recipients data.
 
     Returns Recipient objects.
