@@ -6,6 +6,7 @@ Unreleased
 ----------
 ! Fixed typo in Dispatch.READ_STATUS_UNDREAD. Now READ_STATUS_UNREAD.
 ! Message.context does not use 'ensure_ascii' anymore for readability.
+* Improved admin pages performance for Subscription, Dispatch and Message (raw_id_fields).
 
 
 v1.3.3 [2021-03-14]
