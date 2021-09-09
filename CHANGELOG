@@ -2,6 +2,11 @@ django-sitemessage changelog
 ============================
 
 
+Unreleased
+----------
+! Fixed typo in Dispatch.READ_STATUS_UNDREAD. Now READ_STATUS_UNREAD.
+
+
 v1.3.3 [2021-03-14]
 -------------------
 * Added missing migration.

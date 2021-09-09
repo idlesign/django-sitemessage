@@ -173,7 +173,7 @@ class TestDispatchModel:
 
     def test_mark_read(self):
         d = Dispatch()
-        assert d.read_status == d.READ_STATUS_UNDREAD
+        assert d.read_status == d.READ_STATUS_UNREAD
         d.mark_read()
         assert d.read_status == d.READ_STATUS_READ
 

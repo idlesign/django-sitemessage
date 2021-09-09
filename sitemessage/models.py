@@ -197,11 +197,11 @@ class Dispatch(models.Model):
         (DISPATCH_STATUS_FAILED, _('Failed')),
     )
 
-    READ_STATUS_UNDREAD = 0
+    READ_STATUS_UNREAD = 0
     READ_STATUS_READ = 1
 
     READ_STATUSES = (
-        (READ_STATUS_UNDREAD, _('Unread')),
+        (READ_STATUS_UNREAD, _('Unread')),
         (READ_STATUS_READ, _('Read')),
     )
 
@@ -232,7 +232,7 @@ class Dispatch(models.Model):
     dispatch_status = models.PositiveIntegerField(
         _('Dispatch status'), choices=DISPATCH_STATUSES, default=DISPATCH_STATUS_PENDING)
 
-    read_status = models.PositiveIntegerField(_('Read status'), choices=READ_STATUSES, default=READ_STATUS_UNDREAD)
+    read_status = models.PositiveIntegerField(_('Read status'), choices=READ_STATUSES, default=READ_STATUS_UNREAD)
 
     class Meta:
         verbose_name = _('Dispatch')
@@ -361,7 +361,7 @@ class Dispatch(models.Model):
     @classmethod
     def get_unread(cls) -> Union[List['Dispatch'], QuerySet]:
         """Returns unread dispatches."""
-        return cls.objects.filter(read_status=cls.READ_STATUS_UNDREAD).prefetch_related('message').all()
+        return cls.objects.filter(read_status=cls.READ_STATUS_UNREAD).prefetch_related('message').all()
 
     @classmethod
     def create(
