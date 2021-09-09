@@ -1,23 +1,15 @@
 import pytest
-
-try:
-    from django.urls import reverse
-
-except ImportError:  # Django<2.0
-    from django.core.urlresolvers import reverse
-
+from django.urls import reverse
 
 from sitemessage.models import Dispatch
-
 from sitemessage.models import Subscription
-from sitemessage.toolbox import schedule_messages, recipients
 from sitemessage.signals import (
     sig_unsubscribe_success,
     sig_unsubscribe_failed,
     sig_mark_read_success,
     sig_mark_read_failed,
 )
-
+from sitemessage.toolbox import schedule_messages, recipients
 from .testapp.sitemessages import MessagePlainForTest, MessengerForTest
 
 

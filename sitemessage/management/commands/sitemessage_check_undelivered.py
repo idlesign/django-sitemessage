@@ -2,26 +2,17 @@ from traceback import format_exc
 
 from django.core.management.base import BaseCommand
 
-from sitemessage.compat import CommandOption, options_getter
 from sitemessage.toolbox import check_undelivered
-
-
-get_options = options_getter((
-    CommandOption(
-        '--to', action='store', dest='to', default=None,
-        help='Recipient e-mail. If not set Django ADMINS setting is used.'
-    ),
-))
 
 
 class Command(BaseCommand):
 
     help = 'Sends a notification email if any undelivered dispatches.'
 
-    option_list = get_options()
-
     def add_arguments(self, parser):
-        get_options(parser.add_argument)
+        parser.add_argument(
+            '--to', action='store', dest='to', default=None,
+            help='Recipient e-mail. If not set Django ADMINS setting is used.')
 
     def handle(self, *args, **options):
 

@@ -2,26 +2,19 @@ from typing import Union, Optional, List, Iterable, Tuple
 
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.http import HttpRequest, HttpResponse
-
-try:
-    from django.urls import reverse, NoReverseMatch
-
-except ImportError:  # Django<2.0
-    from django.core.urlresolvers import reverse, NoReverseMatch
-
-from django.utils.crypto import salted_hmac
-from django.utils.translation import gettext as _
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
+from django.urls import reverse, NoReverseMatch
+from django.utils.crypto import salted_hmac
+from django.utils.translation import gettext as _
 
-from ..utils import Recipient, recipients, get_site_url, get_registered_messenger_object
+from ..exceptions import UnknownMessengerError
 from ..models import Message, Dispatch, Subscription
 from ..signals import sig_unsubscribe_success, sig_unsubscribe_failed, sig_mark_read_success, sig_mark_read_failed
-from ..exceptions import UnknownMessengerError
-
+from ..utils import Recipient, recipients, get_site_url, get_registered_messenger_object
 
 if False:  # pragma: nocover
-    from ..messengers.base import MessengerBase
+    from ..messengers.base import MessengerBase  # noqa
 
 
 APP_URLS_ATTACHED = None

@@ -54,8 +54,7 @@ def _get_dispatches_for_update(filter_kwargs: dict) -> Optional[List['Dispatch']
 GET_DISPATCHES_ARGS = [
     _get_dispatches_for_update,
     {'skip_locked': True}
-
-]  # type: list
+]
 """This could be set runtime in Dispatch.get_unsent()"""
 
 
@@ -72,7 +71,7 @@ class ContextField(models.TextField):
                 code='invalid_context', params={'value': value})
 
     def from_db_value(self, *args):
-        value, expression, connection = args[:3]  # Django 2.0 dropped `context` arg.
+        value, expression, connection = args[:3]
 
         if value is None:
             return {}

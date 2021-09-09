@@ -1,4 +1,6 @@
 import pytest
+from django.core.mail import send_mail
+from django.template import TemplateDoesNotExist
 
 from sitemessage.messages.base import MessageBase
 from sitemessage.models import Message, Dispatch
@@ -10,15 +12,6 @@ from sitemessage.shortcuts import (
     schedule_telegram_message,
     schedule_vkontakte_message,
 )
-
-try:
-    from django.template.base import TemplateDoesNotExist, Template, TemplateSyntaxError
-except ImportError:
-    # Django 1.9+
-    from django.template import TemplateDoesNotExist, Template, TemplateSyntaxError
-
-from django.core.mail import send_mail
-
 from .testapp.sitemessages import MessagePlainForTest, MessageForTest, \
     MessengerForTest
 

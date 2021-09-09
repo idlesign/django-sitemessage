@@ -2,28 +2,21 @@ from traceback import format_exc
 
 from django.core.management.base import BaseCommand
 
-from sitemessage.compat import CommandOption, options_getter
 from sitemessage.toolbox import cleanup_sent_messages
-
-
-get_options = options_getter((
-    CommandOption(
-        '--ago', action='store', dest='ago', default=None, type=int,
-        help='Allows cleanup messages sent X days ago. Defaults to None (cleanup all sent).'
-    ),
-    CommandOption('--dispatches_only', action='store_false', dest='dispatches_only', default=False,
-                  help='Remove dispatches only (messages objects will stay intact).'),
-))
 
 
 class Command(BaseCommand):
 
     help = 'Removes sent dispatches from DB.'
 
-    option_list = get_options()
-
     def add_arguments(self, parser):
-        get_options(parser.add_argument)
+        parser.add_argument(
+            '--ago', action='store', dest='ago', default=None, type=int,
+            help='Allows cleanup messages sent X days ago. Defaults to None (cleanup all sent).')
+
+        parser.add_argument(
+            '--dispatches_only', action='store_false', dest='dispatches_only', default=False,
+            help='Remove dispatches only (messages objects will stay intact).')
 
     def handle(self, *args, **options):
 

@@ -49,8 +49,8 @@ class SMTPMessenger(MessengerBase):
         self.host = host or getattr(settings, 'EMAIL_HOST')
         self.port = port or getattr(settings, 'EMAIL_PORT')
         self.use_tls = use_tls or getattr(settings, 'EMAIL_USE_TLS')
-        self.use_ssl = use_ssl or getattr(settings, 'EMAIL_USE_SSL', False)  # False as default to support Django < 1.7
-        self.timeout = timeout or getattr(settings, 'EMAIL_TIMEOUT', None)  # None as default to support Django < 1.8
+        self.use_ssl = use_ssl or getattr(settings, 'EMAIL_USE_SSL')
+        self.timeout = timeout or getattr(settings, 'EMAIL_TIMEOUT')
 
     def _test_message(self, to, text):
         return self._send_message(self._build_message(to, text, mtype='html'))

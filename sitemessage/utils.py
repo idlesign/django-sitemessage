@@ -2,20 +2,13 @@ from collections import namedtuple, defaultdict
 from threading import local
 from typing import Union, List, Type, Dict
 
-try:
-    from django.utils.module_loading import import_module
-
-except ImportError:
-    # Django <=1.9.0
-    from django.utils.importlib import import_module
-
 from etc.toolbox import get_site_url as get_site_url_, import_app_module, import_project_modules
 
-from .settings import APP_MODULE_NAME, SITE_URL
 from .exceptions import UnknownMessageTypeError, UnknownMessengerError
+from .settings import APP_MODULE_NAME, SITE_URL
 
 if False:  # pragma: nocover
-    from .messages.base import MessageBase
+    from .messages.base import MessageBase  # noqa
     from .messengers.base import MessengerBase
 
 

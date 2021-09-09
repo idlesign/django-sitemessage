@@ -1,10 +1,5 @@
 import pytest
-
-try:
-    from django.template.base import TemplateDoesNotExist, Template, TemplateSyntaxError
-except ImportError:
-    # Django 1.9+
-    from django.template import TemplateDoesNotExist, Template, TemplateSyntaxError
+from django.template import TemplateSyntaxError
 
 from sitemessage.exceptions import UnknownMessengerError, SiteMessageConfigurationError
 from sitemessage.models import Message, Dispatch, Subscription
