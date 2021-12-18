@@ -5,9 +5,9 @@ from operator import itemgetter
 from typing import Optional, List, Tuple, Union, Iterable, Any, Callable, Dict, Mapping
 
 from django.conf import settings
-from django.conf.urls import re_path
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.http import HttpRequest
+from django.urls import re_path
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
