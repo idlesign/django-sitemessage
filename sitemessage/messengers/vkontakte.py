@@ -33,7 +33,7 @@ class VKontakteMessenger(RequestsMessengerBase):
     address_attr = 'vkontakte'
 
     _url_wall = 'https://api.vk.com/method/wall.post'
-    _api_version = '5.103'
+    _api_version = '5.131'
 
     def __init__(self, access_token: str, proxy: TypeProxy = None):
         """Configures messenger.

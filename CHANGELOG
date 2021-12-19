@@ -2,6 +2,11 @@ django-sitemessage changelog
 ============================
 
 
+Unreleased
+----------
+* Vkontakte API version bumped up.
+
+
 v1.3.4 [2021-12-18]
 -------------------
 ! Fixed typo in Dispatch.READ_STATUS_UNDREAD. Now READ_STATUS_UNREAD.
