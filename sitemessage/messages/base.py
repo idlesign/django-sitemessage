@@ -209,10 +209,10 @@ class MessageBase:
 
         if APP_URLS_ATTACHED != False:  # sic!
 
-            hashed = cls.get_dispatch_hash(dispatch_model.id, message_model.id)
+            hashed = cls.get_dispatch_hash(dispatch_model.pk, message_model.pk)
 
             try:
-                url = reverse(name, args=[message_model.id, dispatch_model.id, hashed])
+                url = reverse(name, args=[message_model.pk, dispatch_model.pk, hashed])
                 url = f'{get_site_url()}{url}'
 
             except NoReverseMatch:

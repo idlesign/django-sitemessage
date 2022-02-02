@@ -289,7 +289,7 @@ class Dispatch(models.Model):
                 }
 
                 cls.objects.filter(
-                    id__in=[d.id for d in statuses[status_name]]
+                    id__in=[dispatch.pk for dispatch in statuses[status_name]]
                 ).update(**update_kwargs)
 
     @staticmethod
@@ -439,7 +439,7 @@ class Subscription(models.Model):
         :param user:
 
         """
-        if user.id is None:
+        if user.pk is None:
             return []
 
         return cls.objects.filter(recipient=user)
@@ -456,7 +456,7 @@ class Subscription(models.Model):
         :param prefs: List of tuples (message_cls, messenger_cls)
 
         """
-        uid = user.id
+        uid = user.pk
 
         if uid is None:
             return False
@@ -509,7 +509,8 @@ class Subscription(models.Model):
 
         else:
             if not isinstance(recipient, int):
-                recipient = recipient.id
+                # user model presumed
+                recipient = recipient.pk
 
             base_kwargs['recipient_id'] = recipient
 
