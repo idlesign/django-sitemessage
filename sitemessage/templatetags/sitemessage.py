@@ -1,5 +1,7 @@
+from typing import Optional, List
+
 from django import template
-from django.template.base import FilterExpression
+from django.template.base import FilterExpression, Parser, Token
 from django.template.loader import get_template
 from django.conf import settings
 
@@ -10,7 +12,8 @@ register = template.Library()
 
 
 @register.tag
-def sitemessage_prefs_table(parser, token):
+def sitemessage_prefs_table(parser: Parser, token: Token):
+
     tokens = token.split_contents()
     use_template = detect_clause(parser, 'template', tokens)
     prefs_obj = detect_clause(parser, 'from', tokens)
@@ -19,15 +22,15 @@ def sitemessage_prefs_table(parser, token):
 
     if tokens_num in (1, 3):
         return sitemessage_prefs_tableNode(prefs_obj, use_template)
-    else:
-        raise template.TemplateSyntaxError(
-            '`sitemessage_prefs_table` tag expects the following notation: '
-            '{% sitemessage_prefs_table from user_prefs template "sitemessage/my_pref_table.html" %}.')
+
+    raise template.TemplateSyntaxError(
+        '`sitemessage_prefs_table` tag expects the following notation: '
+        '{% sitemessage_prefs_table from user_prefs template "sitemessage/my_pref_table.html" %}.')
 
 
 class sitemessage_prefs_tableNode(template.Node):
 
-    def __init__(self, prefs_obj, use_template):
+    def __init__(self, prefs_obj: FilterExpression, use_template: Optional[str]):
         self.use_template = use_template
         self.prefs_obj = prefs_obj
 
@@ -57,7 +60,7 @@ class sitemessage_prefs_tableNode(template.Node):
         return contents
 
 
-def detect_clause(parser, clause_name, tokens):
+def detect_clause(parser: Parser, clause_name: str, tokens: List[str]):
     """Helper function detects a certain clause in tag tokens list.
     Returns its value.
 
@@ -66,6 +69,8 @@ def detect_clause(parser, clause_name, tokens):
         t_index = tokens.index(clause_name)
         clause_value = parser.compile_filter(tokens[t_index + 1])
         del tokens[t_index:t_index + 2]
+
     else:
         clause_value = None
+
     return clause_value

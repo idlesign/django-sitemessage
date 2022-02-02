@@ -2,7 +2,7 @@ from traceback import format_exc
 
 from django.core.management.base import BaseCommand
 
-from sitemessage.toolbox import check_undelivered
+from ...toolbox import check_undelivered
 
 
 class Command(BaseCommand):

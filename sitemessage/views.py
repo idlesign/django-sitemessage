@@ -1,12 +1,22 @@
-from django.templatetags.static import static as get_static_url
+from django.dispatch import Signal
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect
+from django.templatetags.static import static as get_static_url
 
 from .exceptions import UnknownMessageTypeError
 from .models import Dispatch
 from .signals import sig_unsubscribe_failed, sig_mark_read_failed
 
 
-def _generic_view(message_method, fail_signal, request, message_id, dispatch_id, hashed, redirect_to=None):
+def _generic_view(
+        message_method: str,
+        fail_signal: Signal,
+        request: HttpRequest,
+        message_id: int,
+        dispatch_id: int,
+        hashed: str,
+        redirect_to: str = None
+):
 
     if redirect_to is None:
         redirect_to = '/'
@@ -44,15 +54,21 @@ def _generic_view(message_method, fail_signal, request, message_id, dispatch_id,
     return redirect(redirect_to)
 
 
-def unsubscribe(request, message_id, dispatch_id, hashed, redirect_to=None):
-    """Handles unsubscribe request.
+def unsubscribe(
+        request: HttpRequest,
+        message_id: int,
+        dispatch_id: int,
+        hashed: str,
+        redirect_to: str = None
+) -> HttpResponse:
+    """Handles an unsubscribe request.
 
-    :param Request request:
-    :param int message_id:
-    :param int dispatch_id:
-    :param str hashed:
-    :param str redirect_to:
-    :return:
+    :param request:
+    :param message_id:
+    :param dispatch_id:
+    :param hashed:
+    :param redirect_to:
+
     """
     return _generic_view(
         'handle_unsubscribe_request', sig_unsubscribe_failed,
@@ -60,15 +76,21 @@ def unsubscribe(request, message_id, dispatch_id, hashed, redirect_to=None):
     )
 
 
-def mark_read(request, message_id, dispatch_id, hashed, redirect_to=None):
+def mark_read(
+        request: HttpRequest,
+        message_id: int,
+        dispatch_id: int,
+        hashed: str,
+        redirect_to: str = None
+) -> HttpResponse:
     """Handles mark message as read request.
 
-    :param Request request:
-    :param int message_id:
-    :param int dispatch_id:
-    :param str hashed:
-    :param str redirect_to:
-    :return:
+    :param request:
+    :param message_id:
+    :param dispatch_id:
+    :param hashed:
+    :param redirect_to:
+
     """
     if redirect_to is None:
         redirect_to = get_static_url('img/sitemessage/blank.png')

@@ -2,7 +2,7 @@ from traceback import format_exc
 
 from django.core.management.base import BaseCommand
 
-from sitemessage.toolbox import send_scheduled_messages
+from ...toolbox import send_scheduled_messages
 
 
 class Command(BaseCommand):

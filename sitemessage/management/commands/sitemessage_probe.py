@@ -2,7 +2,7 @@ from traceback import format_exc
 
 from django.core.management.base import BaseCommand
 
-from sitemessage.toolbox import send_test_message
+from ...toolbox import send_test_message
 
 
 class Command(BaseCommand):

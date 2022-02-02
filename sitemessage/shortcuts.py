@@ -1,3 +1,5 @@
+from typing import Union
+
 from .messages.email import EmailHtmlMessage, EmailTextMessage
 from .settings import SHORTCUT_EMAIL_MESSENGER_TYPE, SHORTCUT_EMAIL_MESSAGE_TYPE
 from .toolbox import schedule_messages, recipients, get_registered_message_type, TypeMessages
@@ -5,7 +7,7 @@ from .utils import TypeRecipients, TypeUser
 
 
 def schedule_email(
-        message: TypeMessages,
+        message: Union[TypeMessages, dict],
         to: TypeRecipients,
         subject: str = None,
         sender: TypeUser = None,
