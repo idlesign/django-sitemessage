@@ -16,7 +16,7 @@ class _EmailMessageBase(MessageBase):
             'type': type_name,
         }
         self.update_context(context, text_or_dict)
-        super(_EmailMessageBase, self).__init__(context, template_path=template_path)
+        super().__init__(context, template_path=template_path)
 
 
 class EmailTextMessage(_EmailMessageBase):
@@ -26,7 +26,7 @@ class EmailTextMessage(_EmailMessageBase):
     template_ext = 'txt'
 
     def __init__(self, subject: str, text_or_dict: Union[dict, str], template_path: str = None):
-        super(EmailTextMessage, self).__init__(subject, text_or_dict, 'plain', template_path=template_path)
+        super().__init__(subject, text_or_dict, 'plain', template_path=template_path)
 
 
 class EmailHtmlMessage(_EmailMessageBase):
@@ -36,4 +36,4 @@ class EmailHtmlMessage(_EmailMessageBase):
     template_ext = 'html'
 
     def __init__(self, subject: str, html_or_dict: Union[str, dict], template_path: str = None):
-        super(EmailHtmlMessage, self).__init__(subject, html_or_dict, 'html', template_path=template_path)
+        super().__init__(subject, html_or_dict, 'html', template_path=template_path)

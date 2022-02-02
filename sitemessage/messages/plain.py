@@ -13,4 +13,4 @@ class PlainTextMessage(MessageBase):
     title = _('Text notification')
 
     def __init__(self, text: str):
-        super(PlainTextMessage, self).__init__({self.SIMPLE_TEXT_ID: text})
+        super().__init__({self.SIMPLE_TEXT_ID: text})
