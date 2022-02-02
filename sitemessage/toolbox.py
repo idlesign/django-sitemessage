@@ -16,7 +16,7 @@ from .exceptions import UnknownMessengerError, UnknownMessageTypeError
 from .messages import register_builtin_message_types  # noqa
 from .messages.base import MessageBase
 from .messages.plain import PlainTextMessage
-from .models import Message, Dispatch, Subscription
+from .models import Message, Dispatch, Subscription, MessageTuple
 from .utils import (  # noqa
     is_iterable, import_project_sitemessage_modules, get_site_url, recipients,
     register_messenger_objects, get_registered_messenger_object, get_registered_messenger_objects,
@@ -36,7 +36,7 @@ def schedule_messages(
         recipients: Union[Iterable[Recipient], Recipient] = None,
         sender: TypeUser = None,
         priority: Optional[int] = None
-) -> List[Tuple[Message, List[Dispatch]]]:
+) -> List[MessageTuple]:
     """Schedules a message or messages.
 
     :param messages: str or MessageBase heir or list - use str to create PlainTextMessage.
@@ -60,7 +60,12 @@ def schedule_messages(
         resulting_priority = message.priority
         if priority is not None:
             resulting_priority = priority
-        results.append(message.schedule(sender=sender, recipients=recipients, priority=resulting_priority))
+
+        results.append(message.schedule(
+            sender=sender,
+            recipients=recipients,
+            priority=resulting_priority,
+        ))
 
     return results
 

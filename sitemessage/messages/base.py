@@ -9,7 +9,7 @@ from django.utils.crypto import salted_hmac
 from django.utils.translation import gettext as _
 
 from ..exceptions import UnknownMessengerError
-from ..models import Message, Dispatch, Subscription
+from ..models import Message, Dispatch, Subscription, MessageTuple
 from ..signals import sig_unsubscribe_success, sig_unsubscribe_failed, sig_mark_read_success, sig_mark_read_failed
 from ..utils import Recipient, recipients, get_site_url, get_registered_messenger_object, TypeRecipients
 
@@ -104,7 +104,7 @@ class MessageBase:
             recipients: Optional[Union[Iterable[Recipient], Recipient]] = None,
             sender: Optional[AbstractBaseUser] = None,
             priority: Optional[int] = None
-    ) -> Tuple[Message, List[Dispatch]]:
+    ) -> MessageTuple:
         """Schedules message for a delivery.
         Puts message (and dispatches if any) data into DB.
         Returns a tuple with message model and a list of dispatch models.
@@ -123,7 +123,7 @@ class MessageBase:
         self._message_model, self._dispatch_models = Message.create(
             self.get_alias(), self.get_context(), recipients=recipients, sender=sender, priority=priority
         )
-        return self._message_model, self._dispatch_models
+        return MessageTuple(message=self._message_model, dispatches=self._dispatch_models)
 
     @classmethod
     def recipients(cls, messenger: Union[str, 'MessengerBase'], addresses: TypeRecipients) -> List[Recipient]:

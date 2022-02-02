@@ -1,5 +1,5 @@
 import json
-from typing import Type, List, Optional, Union, Tuple, Dict, Iterable
+from typing import Type, List, Optional, Union, Tuple, Dict, Iterable, NamedTuple
 
 from django.conf import settings
 from django.contrib.auth.base_user import AbstractBaseUser
@@ -9,13 +9,19 @@ from django.db.models import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from .utils import get_registered_message_type, Recipient
+from .utils import get_registered_message_type, Recipient, TypeRecipient, TypeMessage, TypeMessenger
 
 if False:  # pragma: nocover
     from .messages.base import MessageBase  # noqa
     from .messengers.base import MessengerBase
 
 USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
+
+
+class MessageTuple(NamedTuple):
+
+    message: 'Message'
+    dispatches: List['Dispatch']
 
 
 def _get_dispatches(filter_kwargs: dict) -> List['Dispatch']:
@@ -293,7 +299,7 @@ class Dispatch(models.Model):
                 ).update(**update_kwargs)
 
     @staticmethod
-    def group_by_messengers(dispatches: List['Dispatch']) -> Dict[str, Dict[int, Tuple[Message, List['Dispatch']]]]:
+    def group_by_messengers(dispatches: List['Dispatch']) -> Dict[str, Dict[int, MessageTuple]]:
         """Groups dispatches by messages.
 
         :param dispatches:
@@ -302,14 +308,10 @@ class Dispatch(models.Model):
         by_messengers = {}
 
         for dispatch in dispatches:
-
-            if dispatch.messenger not in by_messengers:
-                by_messengers[dispatch.messenger] = {}
-
-            if dispatch.message.id not in by_messengers[dispatch.messenger]:
-                by_messengers[dispatch.messenger][dispatch.message.id] = (dispatch.message, [])
-
-            by_messengers[dispatch.messenger][dispatch.message.id][1].append(dispatch)
+            message = dispatch.message
+            by_messenger = by_messengers.setdefault(dispatch.messenger, {})
+            message_data = by_messenger.setdefault(message.pk, MessageTuple(message=message, dispatches=[]))
+            message_data.dispatches.append(dispatch)
 
         return by_messengers
 
@@ -488,7 +490,7 @@ class Subscription(models.Model):
     @classmethod
     def _get_base_kwargs(
             cls,
-            recipient: Union[Recipient, int, str],
+            recipient: TypeRecipient,
             message_cls: Type['MessageBase'],
             messenger_cls: Type['MessengerBase']
     ) -> dict:
@@ -520,8 +522,8 @@ class Subscription(models.Model):
     def create(
             cls,
             uid_or_address: Union[int, str],
-            message_cls: Union[str, Type['MessageBase']],
-            messenger_cls: Union[str, Type['MessengerBase']]
+            message_cls: TypeMessage,
+            messenger_cls: TypeMessenger,
     ) -> 'Subscription':
         """Creates a subscription for a recipient.
 
@@ -538,8 +540,8 @@ class Subscription(models.Model):
     def cancel(
             cls,
             uid_or_address: Union[int, str],
-            message_cls: Union[str, Type['MessageBase']],
-            messenger_cls: Union[str, Type['MessengerBase']]
+            message_cls: TypeMessage,
+            messenger_cls: TypeMessenger,
     ):
         """Cancels a subscription for a recipient.
 

@@ -1,18 +1,17 @@
 from contextlib import contextmanager
 from functools import partial
 from itertools import chain
-from typing import List, Optional, Tuple, Dict, Any, Type, Union, Callable
+from typing import List, Optional, Dict, Any, Type, Union, Callable
 
 from django.contrib.auth.base_user import AbstractBaseUser
 
 from ..exceptions import UnknownMessageTypeError, MessengerException
-from ..models import Dispatch, Message
+from ..models import Dispatch, Message, MessageTuple
 from ..utils import Recipient, is_iterable, TypeRecipients
 
 if False:  # pragma: nocover
     from ..messages.base import MessageBase  # noqa
 
-MessageTuple = Tuple[Message, List[Dispatch]]
 TypeProxy = Optional[Union[Callable, dict]]
 
 
@@ -30,8 +29,12 @@ class DispatchProcessingHandler:
         self.messenger = messenger
 
         self.dispatches = (
-            chain.from_iterable((dispatch for dispatch in (item[1] for item in messages)))
-            if messages else None)
+            chain.from_iterable((
+                dispatch
+                for dispatch in (item.dispatches for item in messages)
+            ))
+            if messages else None
+        )
 
     def __enter__(self):
         messenger = self.messenger
@@ -127,7 +130,7 @@ class MessengerBase:
         :param text: text to send
 
         """
-        raise NotImplementedError(self.__class__.__name__ + ' must implement `test_message()`.')
+        raise NotImplementedError  # pragma: nocover
 
     @classmethod
     def get_address(cls, recipient: Any) -> Any:
@@ -313,7 +316,7 @@ class MessengerBase:
         :param dispatch_models: Dispatch models for this Message
 
         """
-        raise NotImplementedError(self.__class__.__name__ + ' must implement `send()`.')
+        raise NotImplementedError  # pragma: nocover
 
 
 class RequestsMessengerBase(MessengerBase):
@@ -322,13 +325,13 @@ class RequestsMessengerBase(MessengerBase):
     Uses `requests` module: https://pypi.python.org/pypi/requests
 
     """
-    timeout = 10
+    timeout: int = 10
     """Request timeout."""
 
     def __init__(self, proxy: TypeProxy = None, **kwargs):
         """Configures messenger.
 
-        :param dict|Callable: Dictionary of proxy settings,
+        :param proxy: Dictionary of proxy settings,
             or a callable returning such a dictionary.
 
         """

@@ -1,6 +1,6 @@
-from collections import namedtuple, defaultdict
+from collections import defaultdict
 from threading import local
-from typing import Union, List, Type, Dict
+from typing import Union, List, Type, Dict, NamedTuple
 
 from django.contrib.auth.base_user import AbstractBaseUser
 from etc.toolbox import get_site_url as get_site_url_, import_app_module, import_project_modules
@@ -13,8 +13,10 @@ if False:  # pragma: nocover
     from .messengers.base import MessengerBase
 
 TypeUser = AbstractBaseUser
-TypeRecipient = Union[str, TypeUser]
+TypeRecipient = Union[int, str, TypeUser]
 TypeRecipients = Union[TypeRecipient, List[TypeRecipient]]
+TypeMessage = Union[str, Type['MessageBase']]
+TypeMessenger = Union[str, Type['MessengerBase']]
 
 _MESSENGERS_REGISTRY: Dict[str, 'MessengerBase'] = {}
 _MESSAGES_REGISTRY: Dict[str, Type['MessageBase']] = {}
@@ -37,7 +39,7 @@ def get_site_url() -> str:
     return site_url
 
 
-def get_message_type_for_app(app_name: str, default_message_type_alias: str)-> Type['MessageBase']:
+def get_message_type_for_app(app_name: str, default_message_type_alias: str) -> Type['MessageBase']:
     """Returns a registered message type object for a given application.
 
     Supposed to be used by reusable applications authors,
@@ -160,8 +162,17 @@ def is_iterable(v):
     return hasattr(v, '__iter__') and not isinstance(v, str)
 
 
-# Class used to represent message recipients.
-Recipient = namedtuple('Recipient', ('messenger', 'user', 'address'))
+class Recipient(NamedTuple):
+    """Class is used to represent a message recipient."""
+
+    messenger: str
+    """Messenger alias."""
+
+    user: TypeUser
+    """User object."""
+
+    address: str
+    """Recipient address."""
 
 
 def recipients(messenger: Union[str, 'MessengerBase'], addresses: TypeRecipients) -> List[Recipient]:
