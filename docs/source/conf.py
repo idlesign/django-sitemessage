@@ -61,8 +61,6 @@ for mod_name in MODULES_TO_MOCK:
     sys.modules[mod_name] = ModuleMock()
 
 
-
-
 # -- General configuration -----------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -86,7 +84,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'django-sitemessage'
-copyright = u'2014-2021, Igor `idle sign` Starikov'
+copyright = u'2014-2022, Igor `idle sign` Starikov'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
