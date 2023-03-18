@@ -120,6 +120,12 @@ class MessagePlainForTest(PlainTextMessage):
     priority = 10
 
 
+class MessageGroupedForTest(PlainTextMessage):
+
+    alias = 'testgroupped'
+    group_mark = 'groupme'
+
+
 class MessagePlainDynamicForTest(PlainTextMessage):
 
     alias = 'testplain_dyn'
@@ -138,6 +144,7 @@ register_messenger_objects(
 register_message_types(
     PlainTextMessage,
     MessageForTest,
+    MessageGroupedForTest,
     MessagePlainForTest,
     MessagePlainDynamicForTest,
 )

@@ -9,13 +9,19 @@ Description
 
 *Reusable application for Django introducing a message delivery framework.*
 
-
-Schedule and send messages with several easy steps, using concepts of:
-
-* **Messengers** - clients for various protocols (smtp, jabber, etc.);
+Features:
 
 * **Message Types** - message classes exposing message composition logic (plain text, html, etc.).
-
+* **Messengers** - clients for various protocols (smtp, jabber, twitter, telegram, facebook, vkontakte, etc.);
+* Support for user defined message types.
+* Support for user defined messenger types.
+* Message prioritization.
+* Message subscription/unsubscription system.
+* Message grouping to prevent flooding.
+* Message 'read' indication.
+* Means for background message delivery and cleanup.
+* Means to debug integration: test requisites, delivery log.
+* Django Admin integration.
 
 Currently supported messengers:
 
@@ -31,7 +37,7 @@ Currently supported messengers:
 Requirements
 ------------
 
-1. Python 3.6+
+1. Python 3.7+
 2. Django 2.0+
 
 
@@ -48,6 +54,7 @@ Table of Contents
     messengers
     exceptions
     prioritizing
+    grouping
     recipients
     views
     apps

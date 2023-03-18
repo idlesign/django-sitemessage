@@ -11,15 +11,19 @@ from sitemessage.shortcuts import (
     schedule_facebook_message,
     schedule_telegram_message,
     schedule_vkontakte_message,
+    recipients
 )
-from .testapp.sitemessages import MessagePlainForTest, MessageForTest, \
-    MessengerForTest
+from .testapp.sitemessages import MessagePlainForTest, MessageForTest, MessengerForTest, MessageGroupedForTest
+
+
+def test_migrations(check_migrations):
+    check_migrations()
 
 
 class TestMessageSuite:
 
     def test_alias(self):
-        message = type('MyMessage', (MessageBase,), {'alias': 'myalias'})  # type: MessageBase
+        message: MessageBase = type('MyMessage', (MessageBase,), {'alias': 'myalias'})
         assert message.get_alias() == 'myalias'
 
         message = type('MyMessage', (MessageBase,), {})
@@ -58,6 +62,18 @@ class TestMessageSuite:
         msg = MessagePlainForTest('schedule2')
         model, _ = msg.schedule(sender=user)
         assert model.sender == user
+
+    def test_grouped(self, user):
+
+        rec = recipients('smtp', ['three', 'four'])
+        msg1 = MessageGroupedForTest('text1')
+        msg1_model, msg1_dispatches = msg1.schedule(recipients=rec)
+        assert msg1_model.context == {'tpl': None, 'use_tpl': False, 'stext_': 'text1'}
+
+        msg2 = MessageGroupedForTest('moretext')
+        msg2_model, msg2_dispatches = msg2.schedule(recipients=rec)
+        assert msg2_model.id == msg1_model.id
+        assert msg2_model.context == {'tpl': None, 'use_tpl': False, 'stext_': 'text1\nmoretext'}
 
 
 class TestCommands:

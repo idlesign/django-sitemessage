@@ -1,11 +1,12 @@
 import json
-from typing import Type, List, Optional, Union, Tuple, Dict, Iterable, NamedTuple
+from typing import Type, List, Optional, Union, Tuple, Dict, Iterable, NamedTuple, Callable
 
 from django.conf import settings
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.core import exceptions
 from django.db import models, transaction, DatabaseError, NotSupportedError
-from django.db.models import QuerySet
+from django.db.models import QuerySet, Q
+from django.db.transaction import atomic
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -108,6 +109,10 @@ class Message(models.Model):
         _('Message class'), max_length=250, db_index=True,
         help_text=_('Message logic class identifier.'))
 
+    group_mark = models.CharField(
+        _('Group mark'), max_length=128, db_index=True, db_column='gmark',
+        help_text=_('An identifier to group several messages into one.'))
+
     context = ContextField(_('Message context'))
 
     priority = models.PositiveIntegerField(
@@ -140,13 +145,16 @@ class Message(models.Model):
         return cls.objects.filter(dispatches_ready=False).all()
 
     @classmethod
+    @transaction.atomic()
     def create(
             cls,
             message_class: str,
             context: dict,
             recipients: Optional[Union[Iterable[Recipient], Recipient]] = None,
             sender: Optional[AbstractBaseUser] = None,
-            priority: Optional[int] = None
+            priority: Optional[int] = None,
+            group_mark: str = '',
+            context_merge_hook: Callable = None,
     ) -> Tuple['Message', List['Dispatch']]:
         """Creates a message (and dispatches).
 
@@ -163,6 +171,14 @@ class Message(models.Model):
 
         :param priority: number describing message priority
 
+        :param group_mark: A distinctive (grouping) string. If provided,
+            message content is added to an existing unsent message having this very mark,
+            instead of a new message creation.
+
+        :param context_merge_hook: A function performing context merge
+            for cases when 'group_mark' is set and previous message
+            is found in database.
+
         """
         dispatches_ready = False
 
@@ -173,15 +189,49 @@ class Message(models.Model):
             'cls': message_class,
             'context': context,
             'sender': sender,
-            'dispatches_ready': dispatches_ready
+            'dispatches_ready': dispatches_ready,
+            'group_mark': group_mark,
         }
 
         if priority is not None:
             msg_kwargs['priority'] = priority
 
-        message_model = cls(**msg_kwargs)
+        message_model = None
+        dispatch_models = None
+
+        if group_mark:
+            # We'll try to get an unset message and contribute into it.
+            filter_kwargs = {}
+
+            if sender is None:
+                filter_kwargs['sender__isnull'] = True
+
+            message_model = cls.objects.filter(
+                Q(dispatch__dispatch_status=Dispatch.DISPATCH_STATUS_PENDING) |
+                Q(dispatches_ready=False),
+                cls=message_class,
+                group_mark=group_mark,
+                **filter_kwargs,
+            ).first()
+
+            if message_model:
+
+                get_context = context_merge_hook or (lambda ctx, newcxt: newcxt)
+                message_model.context = get_context(message_model.context, context,)
+
+                if message_model.dispatches_ready:
+                    dispatch_models = message_model.dispatch_set.all()
+                    dispatch_models.update(message_cache='')
+                else:
+                    dispatch_models = []
+
+        if not message_model:
+            message_model = cls(**msg_kwargs)
+
         message_model.save()
-        dispatch_models = Dispatch.create(message_model, recipients)
+
+        if dispatch_models is None:
+            dispatch_models = Dispatch.create(message_model, recipients)
 
         return message_model, dispatch_models
 

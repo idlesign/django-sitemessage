@@ -16,19 +16,26 @@ Description
 
 *Reusable application for Django introducing a message delivery framework.*
 
-
-Schedule and send messages with several easy steps, using concepts of:
-
-* **Messengers** - clients for various protocols (smtp, jabber, twitter, telegram, facebook, vkontakte, etc.);
+Features:
 
 * **Message Types** - message classes exposing message composition logic (plain text, html, etc.).
+* **Messengers** - clients for various protocols (smtp, jabber, twitter, telegram, facebook, vkontakte, etc.);
+* Support for user defined message types.
+* Support for user defined messenger types.
+* Message prioritization.
+* Message subscription/unsubscription system.
+* Message grouping to prevent flooding.
+* Message 'read' indication.
+* Means for background message delivery and cleanup.
+* Means to debug integration: test requisites, delivery log.
+* Django Admin integration.
 
 
-1. Configure messengers for your project (create `sitemessages.py` in one of your apps):
+1. Configure messengers for your project (create ``sitemessages.py`` in one of your apps):
 
 .. code-block:: python
 
-    from sitemessage.toolbox import register_messenger_objects
+    from sitemessage.toolbox import register_messenger_objects, register_message_types
     from sitemessage.messengers.smtp import SMTPMessenger
 
     register_messenger_objects(
@@ -61,7 +68,7 @@ Schedule and send messages with several easy steps, using concepts of:
     ./manage.py sitemessage_send_scheduled
 
 
-And that's only the tip of `sitemessage` iceberg, read the docs %)
+And that's only the tip of ``sitemessage`` iceberg, read the docs %)
 
 
 Documentation

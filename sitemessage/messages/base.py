@@ -1,4 +1,4 @@
-from typing import Union, Optional, List, Iterable, Tuple
+from typing import Union, Optional, List, Iterable
 
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.http import HttpRequest, HttpResponse
@@ -42,6 +42,13 @@ class MessageBase:
     """This flag is used to optimize template compilation process.
     If True template will be compiled for every dispatch (and dispatch data will be available in it)
     instead of just once per message.
+
+    """
+
+    group_mark: str = ''
+    """Group marker - a distinctive (grouping) string, allowing switching to the contribution mode.
+    If provided, message content is added to an existing unsent message having this very mark,
+    instead of a new message creation.
 
     """
 
@@ -110,7 +117,8 @@ class MessageBase:
         Returns a tuple with message model and a list of dispatch models.
 
         :param recipients: recipient (or a list) or None.
-            If `None` Dispatches should be created before send using `prepare_dispatches()`.
+            If `None` Dispatches should be created later but
+            before send using `prepare_dispatches()` (e.g. in a background task).
 
         :param sender: Django User model heir instance
 
@@ -121,9 +129,37 @@ class MessageBase:
             priority = self.priority
 
         self._message_model, self._dispatch_models = Message.create(
-            self.get_alias(), self.get_context(), recipients=recipients, sender=sender, priority=priority
+            self.get_alias(),
+            self.get_context(),
+            recipients=recipients,
+            sender=sender,
+            priority=priority,
+            group_mark=self.group_mark,
+            context_merge_hook=self.merge_context,
         )
         return MessageTuple(message=self._message_model, dispatches=self._dispatch_models)
+
+    @classmethod
+    def merge_context(cls, context: dict, new_context: dict) -> dict:
+        """Performs context merge for old and new message
+        in cases when 'group_mark' is set and previous message
+        is found in database.
+
+        :param context:
+        :param new_context:
+
+        """
+        stest_id = cls.SIMPLE_TEXT_ID
+        unset = set()
+
+        merged = {**context, **new_context}
+
+        stext = context.get(stest_id, unset)
+
+        if stext is not unset:  # in case of a simple string
+            merged[stest_id] = f'{stext}\n{new_context.get(stest_id, "")}'
+
+        return merged
 
     @classmethod
     def recipients(cls, messenger: Union[str, 'MessengerBase'], addresses: TypeRecipients) -> List[Recipient]:

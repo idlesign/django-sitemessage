@@ -14,7 +14,7 @@ Quickstart
         ./manage.py migrate
 
 
-1. Configure messengers for your project (create `sitemessages.py` in one of your apps):
+1. Configure messengers for your project (create ``sitemessages.py`` in one of your apps):
 
     .. code-block:: python
 
@@ -29,12 +29,25 @@ Quickstart
             XMPPSleekMessenger('user1@jabber.host.com', 'user1password', 'jabber.host.com'),
         )
 
+        # Or you may want to define your own message type for further usage.
+        class MyMessage(MessageBase):
+
+            alias = 'myxmpp'
+            supported_messengers = ['xmppsleek']
+
+            @classmethod
+            def create(cls, message: str):
+                cls(message).schedule(cls.recipients('xmppsleek', ['a@some.tld', 'b@some.tld', ]))
+
+        register_message_types(MyMessage)
+
 
 2. Schedule messages for delivery when and where needed (e.g. in a view):
 
     .. code-block:: python
 
         from sitemessage.shortcuts import schedule_email, schedule_jabber_message
+        from .sitemessages import MyFbMessage
 
 
         def send_messages_view(request):
@@ -46,6 +59,9 @@ Quickstart
             schedule_email('Email from sitemessage.', [user1_model, 'user2@host.com'])
             schedule_jabber_message('Jabber message from sitetree', ['user1@jabber.host.com', 'user2@jabber.host.com'])
             ...
+
+            # Or if you want to send your message type:
+            MyMessage.create('Hi there!')
 
 
 3. Periodically run Django management command from wherever you like (cli, cron, Celery, uWSGI, etc.)::

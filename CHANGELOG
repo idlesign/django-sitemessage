@@ -4,6 +4,7 @@ django-sitemessage changelog
 
 Unreleased
 ----------
++ Added experimental support for message grouping.
 * Vkontakte API version bumped up.
 
 
