@@ -2,8 +2,8 @@ django-sitemessage changelog
 ============================
 
 
-Unreleased
-----------
+v1.4.0 [2023-03-18]
+-------------------
 + Added experimental support for message grouping.
 * Vkontakte API version bumped up.
 
