@@ -118,6 +118,8 @@ class MessengerBase:
         :param text: text to send
 
         """
+        result = None  # noqa
+
         with self.before_after_send_handling():
             result = self._test_message(to, text)
 
@@ -309,7 +311,7 @@ class MessengerBase:
         self._init_delivery_statuses_dict()
 
     def send(self, message_cls: Type['MessageBase'], message_model: Message, dispatch_models: List[Dispatch]):
-        """Main send method must be implement by all heirs.
+        """Main send method must be implemented by all heirs.
 
         :param message_cls: a MessageBase heir
         :param message_model: message model
