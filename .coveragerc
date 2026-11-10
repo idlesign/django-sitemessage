@@ -1,3 +1,0 @@
-[run]
-include = sitemessage/*
-omit = sitemessage/migrations/*, sitemessage/tests/*, sitemessage/admin.py, sitemessage/config.py, sitemessage/schortcuts.py
