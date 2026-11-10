@@ -6,7 +6,7 @@ from .base import MessengerBase, Dispatch, Message
 from ..exceptions import MessengerWarmupException
 
 if False:  # pragma: nocover
-    from ..messages.base import MessageBase  # noqa
+    from ..messages.base import MessageBase
 
 
 class XMPPSleekMessenger(MessengerBase):

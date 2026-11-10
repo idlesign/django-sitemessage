@@ -23,7 +23,7 @@ def test_register_message_types():
 
 
 def test_recipients(user_create):
-    user = user_create(attributes=dict(username='myuser'))
+    user = user_create(attributes={'username': 'myuser'})
     to = ['gogi', 'givi', user]
 
     r1 = recipients('test_messenger', to)
@@ -38,7 +38,7 @@ def test_recipients(user_create):
 
 
 def test_prepare_undispatched():
-    m, d = Message.create('testplain', {MessageBase.SIMPLE_TEXT_ID: 'abc'})
+    _m, _d = Message.create('testplain', {MessageBase.SIMPLE_TEXT_ID: 'abc'})
 
     Subscription.create('fred', 'testplain', 'test_messenger')
     Subscription.create('colon', 'testplain', 'test_messenger')

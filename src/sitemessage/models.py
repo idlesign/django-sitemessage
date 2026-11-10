@@ -13,7 +13,7 @@ from django.utils.translation import gettext_lazy as _
 from .utils import get_registered_message_type, Recipient, TypeRecipient, TypeMessage, TypeMessenger
 
 if False:  # pragma: nocover
-    from .messages.base import MessageBase  # noqa
+    from .messages.base import MessageBase
     from .messengers.base import MessengerBase
 
 USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
@@ -35,7 +35,7 @@ def _get_dispatches(filter_kwargs: dict) -> List['Dispatch']:
     return list(dispatches)
 
 
-def _get_dispatches_for_update(filter_kwargs: dict) -> Optional[List['Dispatch']]:
+def _get_dispatches_for_update(filter_kwargs: dict) -> List['Dispatch'] | None:
     """Distributed friendly version using ``select for update``."""
 
     dispatches = Dispatch.objects.prefetch_related('message').filter(
@@ -78,7 +78,7 @@ class ContextField(models.TextField):
                 code='invalid_context', params={'value': value})
 
     def from_db_value(self, *args):
-        value, expression, connection = args[:3]
+        value = args[0]
 
         if value is None:
             return {}
@@ -150,9 +150,9 @@ class Message(models.Model):
             cls,
             message_class: str,
             context: dict,
-            recipients: Optional[Union[Iterable[Recipient], Recipient]] = None,
-            sender: Optional[AbstractBaseUser] = None,
-            priority: Optional[int] = None,
+            recipients: Union[Iterable[Recipient], Recipient] | None = None,
+            sender: AbstractBaseUser | None = None,
+            priority: int | None = None,
             group_mark: str = '',
             context_merge_hook: Callable = None,
     ) -> Tuple['Message', List['Dispatch']]:
@@ -366,7 +366,7 @@ class Dispatch(models.Model):
         return by_messengers
 
     @classmethod
-    def get_unsent(cls, priority: Optional[int] = None) -> Union[List['Dispatch'], QuerySet]:
+    def get_unsent(cls, priority: int | None = None) -> Union[List['Dispatch'], QuerySet]:
         """Returns dispatches unsent (scheduled or with errors).
 
         .. warning:: This changes dispatch status to `Processing`.
@@ -418,7 +418,7 @@ class Dispatch(models.Model):
     def create(
             cls,
             message_model: Message,
-            recipients: Optional[Union[Iterable[Recipient], Recipient]]
+            recipients: Union[Iterable[Recipient], Recipient] | None
     ) -> List['Dispatch']:
         """Creates dispatches for given recipients.
 
@@ -434,8 +434,10 @@ class Dispatch(models.Model):
             if not isinstance(recipients, (list, set)):
                 recipients = (recipients,)
 
-            for r in recipients:
-                objects.append(cls(message=message_model, messenger=r.messenger, recipient=r.user, address=r.address))
+            objects.extend(
+                cls(message=message_model, messenger=r.messenger, recipient=r.user, address=r.address)
+                for r in recipients
+            )
 
             if objects:
                 cls.objects.bulk_create(objects)
@@ -516,12 +518,10 @@ class Subscription(models.Model):
         # Remove previous prefs.
         cls.objects.filter(recipient_id=uid).delete()
 
-        new_prefs = []
-
-        for pref in prefs:
-            new_prefs.append(
-                cls(**cls._get_base_kwargs(uid, pref[0], pref[1]))
-            )
+        new_prefs = [
+            cls(**cls._get_base_kwargs(uid, pref[0], pref[1]))
+            for pref in prefs
+        ]
 
         if new_prefs:
             cls.objects.bulk_create(new_prefs)

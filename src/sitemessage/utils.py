@@ -9,7 +9,7 @@ from .exceptions import UnknownMessageTypeError, UnknownMessengerError
 from .settings import APP_MODULE_NAME, SITE_URL
 
 if False:  # pragma: nocover
-    from .messages.base import MessageBase  # noqa
+    from .messages.base import MessageBase
     from .messengers.base import MessengerBase
 
 TypeUser = AbstractBaseUser

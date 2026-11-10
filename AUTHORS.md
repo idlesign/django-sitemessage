@@ -1,17 +1,11 @@
-django-sitemessage authors
-==========================
+# django-sitemessage authors
 
 Created by Igor `idle sign` Starikov.
 
+## Contributors
 
-Contributors
-------------
+* Stefano <https://github.com/furins>
 
-Stefano <https://github.com/furins>
+## Translators
 
-
-
-Translators
------------
-
-Russian: Igor Starikov <https://www.transifex.com/accounts/profile/idlesign/>
+* Russian: Igor Starikov <https://www.transifex.com/accounts/profile/idlesign/>

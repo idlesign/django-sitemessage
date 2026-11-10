@@ -1,5 +1,6 @@
 import pytest
 
+from sitemessage.exceptions import MessengerException
 from sitemessage.messengers.base import MessengerBase
 from sitemessage.models import Subscription, DispatchError
 from sitemessage.toolbox import recipients, schedule_messages, send_scheduled_messages
@@ -31,7 +32,7 @@ def test_alias():
 
 
 def test_get_recipients_data(user_create):
-    user = user_create(attributes=dict(username='myuser'))
+    user = user_create(attributes={'username': 'myuser'})
     to = ['gogi', 'givi', user]
 
     r1 = MessengerForTest.structure_recipients_data(to)
@@ -62,13 +63,13 @@ def test_send():
     m = BuggyMessenger()
     recipiets_ = recipients('test_messenger', ['a', 'b', 'c', 'd'])
 
-    with pytest.raises(Exception):
+    with pytest.raises(MessengerException, match='Damn it'):
         m.send('a buggy message', '', recipiets_)
 
 
 def test_subscription(user_create):
-    user1 = user_create(attributes=dict(username='first'))
-    user2 = user_create(attributes=dict(username='second'))
+    user1 = user_create(attributes={'username': 'first'})
+    user2 = user_create(attributes={'username': 'second'})
     user2.is_active = False
     user2.save()
 
@@ -80,7 +81,6 @@ def test_subscription(user_create):
 
 def assert_called_n(func, n=1):
     assert func.call_count == n
-    func.call_count = 0
 
 
 def test_exception_propagation(monkeypatch):
@@ -102,13 +102,13 @@ def test_exception_propagation(monkeypatch):
 class TestSMTPMessenger:
 
     def setup_method(self, method):
-        messenger_smtp.smtp.sendmail.call_count = 0
+        messenger_smtp.smtp.sendmail.reset_mock()
 
     def test_get_address(self):
         r = object()
         assert messenger_smtp.get_address(r) == r
 
-        r = type('r', (object,), dict(email='somewhere'))
+        r = type('r', (object,), {'email': 'somewhere'})
         assert messenger_smtp.get_address(r) == 'somewhere'
 
     def test_send(self):
@@ -145,7 +145,7 @@ class TestTwitterMessenger:
         r = object()
         assert messenger_twitter.get_address(r) == r
 
-        r = type('r', (object,), dict(twitter='somewhere'))
+        r = type('r', (object,), {'twitter': 'somewhere'})
         assert messenger_twitter.get_address(r) == 'somewhere'
 
     def test_send(self):
@@ -185,7 +185,7 @@ class TestXMPPSleekMessenger:
         r = object()
         assert messenger_xmpp.get_address(r) == r
 
-        r = type('r', (object,), dict(jabber='somewhere'))
+        r = type('r', (object,), {'jabber': 'somewhere'})
         assert messenger_xmpp.get_address(r) == 'somewhere'
 
     def test_send(self):
@@ -224,13 +224,13 @@ class TestTelegramMessenger:
 
     def setup_method(self, method):
         messenger_telegram._verify_bot()
-        messenger_telegram.lib.post.call_count = 0
+        messenger_telegram.lib.post.reset_mock()
 
     def test_get_address(self):
         r = object()
         assert messenger_telegram.get_address(r) == r
 
-        r = type('r', (object,), dict(telegram='chat_id'))
+        r = type('r', (object,), {'telegram': 'chat_id'})
         assert messenger_telegram.get_address(r) == 'chat_id'
 
     def test_send(self):
@@ -242,6 +242,8 @@ class TestTelegramMessenger:
     def test_send_test_message(self):
         messenger_telegram.send_test_message('someone', 'sometext')
         assert_called_n(messenger_telegram.lib.post)
+
+        messenger_telegram.lib.post.reset_mock()
 
         messenger_telegram.send_test_message('', 'sometext')
         assert_called_n(messenger_telegram.lib.post)
@@ -272,8 +274,8 @@ class TestTelegramMessenger:
 class TestFacebookMessenger:
 
     def setup_method(self, method):
-        messenger_fb.lib.post.call_count = 0
-        messenger_fb.lib.get.call_count = 0
+        messenger_fb.lib.post.reset_mock()
+        messenger_fb.lib.get.reset_mock()
 
     def test_send(self):
         schedule_messages('text', recipients('fb', ''))
@@ -284,6 +286,8 @@ class TestFacebookMessenger:
     def test_send_test_message(self):
         messenger_fb.send_test_message('', 'sometext')
         assert_called_n(messenger_fb.lib.post)
+
+        messenger_fb.lib.post.reset_mock()
 
         messenger_fb.send_test_message('', 'sometext')
         assert_called_n(messenger_fb.lib.post)
@@ -314,8 +318,8 @@ class TestFacebookMessenger:
 class TestVKontakteMessenger:
 
     def setup_method(self, method):
-        messenger_vk.lib.post.call_count = 0
-        messenger_vk.lib.get.call_count = 0
+        messenger_vk.lib.post.reset_mock()
+        messenger_vk.lib.get.reset_mock()
 
     def test_send(self):
         schedule_messages('text', recipients('vk', '12345'))
@@ -331,6 +335,8 @@ class TestVKontakteMessenger:
     def test_send_test_message(self):
         messenger_vk.send_test_message('12345', 'sometext')
         assert_called_n(messenger_vk.lib.post)
+
+        messenger_vk.lib.post.reset_mock()
 
         messenger_vk.send_test_message('12345', 'sometext')
         assert_called_n(messenger_vk.lib.post)

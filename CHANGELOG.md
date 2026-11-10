@@ -1,208 +1,149 @@
-django-sitemessage changelog
-============================
+# django-sitemessage changelog
 
+### Unreleased
+* ** Fixed messenger tests mocks reset to use reset_mock() (Python 3.14 compatibility).
+* ** Pinned default_auto_field to AutoField to prevent id field drift on Django 6.1.
 
-v1.4.0 [2023-03-18]
--------------------
-+ Added experimental support for message grouping.
-* Vkontakte API version bumped up.
+### v1.4.0 [2023-03-18]
+* ++ Added experimental support for message grouping.
+* ** Vkontakte API version bumped up.
 
+### v1.3.4 [2021-12-18]
+* !! Fixed typo in Dispatch.READ_STATUS_UNDREAD. Now READ_STATUS_UNREAD.
+* !! Message.context does not use 'ensure_ascii' anymore for readability.
+* ** Django 4.0 compatibility improved.
+* ** Improved admin pages performance for Subscription, Dispatch and Message (raw_id_fields).
 
-v1.3.4 [2021-12-18]
--------------------
-! Fixed typo in Dispatch.READ_STATUS_UNDREAD. Now READ_STATUS_UNREAD.
-! Message.context does not use 'ensure_ascii' anymore for readability.
-* Django 4.0 compatibility improved.
-* Improved admin pages performance for Subscription, Dispatch and Message (raw_id_fields).
+### v1.3.3 [2021-03-14]
+* ** Added missing migration.
 
+### v1.3.2 [2020-10-31]
+* ** Drop support for Python 3.5.
+* ** Dropped support for Django < 2.0.
+* ** Fixed deprecation warning.
 
-v1.3.3 [2021-03-14]
--------------------
-* Added missing migration.
+### v1.3.1 [2020-01-23]
+* ** Fixed regression in VKontakte targeted wall post.
 
+### v1.3.0 [2020-01-22]
+* ++ Added basic type annotations.
+* ++ VKontakteMessenger. Added auxiliary '.get_access_token()' method.
+* ** Fixed loosing dispatch errors in some cases.
 
-v1.3.2 [2020-10-31]
--------------------
-* Drop support for Python 3.5.
-* Dropped support for Django < 2.0.
-* Fixed deprecation warning.
+### v1.2.1 [2020-01-21]
+* ** Fixed 'proxies' parameter passing.
+* ** Fixed possible dispatches jamming in 'Processing' status.
 
+### v1.2.0 [2020-01-21]
+* !! Dropped Python 2 support.
+* ++ Messengers using 'requests' ('vk', 'fb', 'telegram') now support proxies.
 
-v1.3.1 [2020-01-23]
--------------------
-* Fixed regression in VKontakte targeted wall post.
+### v1.1.0 [2019-12-08]
+* !! Dropped QA for Django 1.7.
+* !! Dropped QA for Python 2.
+* ++ Add Django 3.0, removed 1.8 compatibility. Effectively deprecates Py2 support.
 
+### v1.0.0
+* !! Dropped QA for Python 3.4.
+* ** No functional changes. Celebrating 1.0.0.
 
-v1.3.0 [2020-01-22]
--------------------
-+ Added basic type annotations.
-+ VKontakteMessenger. Added auxiliary '.get_access_token()' method.
-* Fixed loosing dispatch errors in some cases.
+### v0.11.1
+* ** Fixed 'NotSupportedError' on some old DBMSs.
 
+### v0.11.0
+* !! Renamed bogus 'SITEMESSAGE_DEFAULT_SHORTCUT_EMAIL_MESSAGES_TYPE' setting into 'SITEMESSAGE_SHORTCUT_EMAIL_MESSENGER_TYPE'.
+* ++ Added 'sitemessage_check_undelivered' command and 'check_undelivered()' function (closes #7).
+* ++ Added 'SITEMESSAGE_SHORTCUT_EMAIL_MESSAGE_TYPE' to replace 'SITEMESSAGE_DEFAULT_SHORTCUT_EMAIL_MESSAGES_TYPE'.
+* ++ Added dispaches delivery retry in admin (closes #8).
+* ++ SMTPMessenger. Added SSL support (closes #10).
+* ++ SMTPMessenger. Added timeout support (closes #9).
 
-v1.2.1 [2020-01-21]
--------------------
-* Fixed 'proxies' parameter passing.
-* Fixed possible dispatches jamming in 'Processing' status.
+### v0.10.0
+* ++ Added 'sitemessage_cleanup' command and 'cleanup_sent_messages()' function (closes #5).
+* ++ Added 'sitemessage_probe' command and 'send_test_message()' function (closes #6).
+* ++ Sending became distributed system friendlier (closes #4).
 
+### v0.9.1
+* ** Updated VKontakte messenger to conform to new rules.
 
-v1.2.0 [2020-01-21]
--------------------
-! Dropped Python 2 support.
-+ Messengers using 'requests' ('vk', 'fb', 'telegram') now support proxies.
+### v0.9.0
+* ++ Django 2.0 basic compatibility.
+* ** Dropped support for Python<3.4 and Django<1.7.
 
+### v0.8.4
+* ** Django 1.11 compatibility improvements.
 
-v1.1.0 [2019-12-08]
--------------------
-! Dropped QA for Django 1.7.
-! Dropped QA for Python 2.
-+ Add Django 3.0, removed 1.8 compatibility. Effectively deprecates Py2 support.
+### v0.8.3
+* ** Package distribution fix.
 
+### v0.8.2
+* ** `Message.get_subscribers()` now returns only active users by default.
 
-v1.0.0
-------
-! Dropped QA for Python 3.4.
-* No functional changes. Celebrating 1.0.0.
+### v0.8.1
+* ** Django 1.10 compatibility improved.
 
+### v0.8.0
+* ++ Implemented VKontakte messenger.
+* ++ Implemented Facebook messenger.
 
-v0.11.1
--------
-* Fixed 'NotSupportedError' on some old DBMSs.
+### v0.7.2
+* ** Template compilation errors are now considered dispatch errors and properly logged.
 
+### v0.7.1
+* ** Django 1.9 compatibility improvements.
 
-v0.11.0
--------
-! Renamed bogus 'SITEMESSAGE_DEFAULT_SHORTCUT_EMAIL_MESSAGES_TYPE' setting into 'SITEMESSAGE_SHORTCUT_EMAIL_MESSENGER_TYPE'.
-+ Added 'sitemessage_check_undelivered' command and 'check_undelivered()' function (closes #7).
-+ Added 'SITEMESSAGE_SHORTCUT_EMAIL_MESSAGE_TYPE' to replace 'SITEMESSAGE_DEFAULT_SHORTCUT_EMAIL_MESSAGES_TYPE'.
-+ Added dispaches delivery retry in admin (closes #8).
-+ SMTPMessenger. Added SSL support (closes #10).
-+ SMTPMessenger. Added timeout support (closes #9).
+### v0.7.0
+* ++ Implemented Telegram messenger.
+* ++ Added `allow_user_subscription` attr to base message and messenger classes.
+* ++ Added schedule_tweet() shortcut.
+* ++ Added schedule_telegram_message() shortcut.
+* ++ Added Messenger.before_after_send_handling() context manager.
+* ** Fixed `get_user_preferences_for_ui()` producing buggy result.
 
+### v0.6.0
+* ++ Adapted for Django 1.8.
+* ** Russian locale is updated.
 
-v0.10.0
--------
-+ Added 'sitemessage_cleanup' command and 'cleanup_sent_messages()' function (closes #5).
-+ Added 'sitemessage_probe' command and 'send_test_message()' function (closes #6).
-+ Sending became distributed system friendlier (closes #4).
+### v0.5.1
+* ** Message.schedule() now respects message type priority attribute.
+* ** `SITEMESSAGE_EMAIL_BACKEND_MESSAGES_PRIORITY` now defaults to None.
 
+### v0.5.0
+* ** IMPORTANT: Package layout changed (messages, messengers locations changed).
+* ** IMPORTANT: Changed default templates search path.
+* ++ Implemented subscriptions handling.
+* ++ Implemented Django email backend.
+* ++ Implemented experimental `mark read` functionality for e-mails.
+* ++ Implemented `List-Unsubscribe` e-mail header support for SMTP messenger.
+* ++ Added Django 1.7+ migrations.
+* ++ Added basic messages templates.
+* ++ Added `INIT_BUILTIN_MESSAGE_TYPES` setting.
+* ++ Added `EMAIL_BACKEND_MESSAGES_PRIORITY` setting.
+* ++ Added `DEFAULT_SHORTCUT_EMAIL_MESSAGES_TYPE` setting.
+* ++ Added `SITE_URL` setting.
+* ** Fixed delivery errors logging.
+* ** Dispatch model is now always passed into `compile()`.
+* ** Exception handling scope broadened for Twitter.
 
-v0.9.1
-------
-* Updated VKontakte messenger to conform to new rules.
+### v0.4.1
+* ** Fixed `sitemessage_send_scheduled` command failure on Django 1.7.
+* ** Now `time_dispatched` field value is timezone-aware.
 
+### v0.4.0
+* ++ Django 1.7 ready.
+* ++ Added Russian loco.
+* ++ Implemented get_message_type_for_app() and override_message_type_for_app().
 
-v0.9.0
-------
-+ Django 2.0 basic compatibility.
-* Dropped support for Python<3.4 and Django<1.7.
+### v0.3.0
+* ++ Added Twitter messenger.
+* ** Messengers are moved into a separate module.
 
+### v0.2.0
+* ++ Added message priorities support.
+* ++ Added support for sending test messages.
+* ++ Now dispatches creation updates `dispatches_ready` message property.
+* ++ Now message templates may use data from 'message_model' and 'dispatch_model' variables.
+* ++ Now message is cached for dispatches with errors.
 
-v0.8.4
-------
-* Django 1.11 compatibility improvements.
-
-
-v0.8.3
-------
-* Package distribution fix.
-
-
-v0.8.2
-------
-* `Message.get_subscribers()` now returns only active users by default.
-
-
-v0.8.1
-------
-* Django 1.10 compatibility improved.
-
-
-v0.8.0
-------
-+ Implemented VKontakte messenger.
-+ Implemented Facebook messenger.
-
-
-v0.7.2
-----------
-* Template compilation errors are now considered dispatch errors and properly logged.
-
-
-v0.7.1
-------
-* Django 1.9 compatibility improvements.
-
-
-v0.7.0
-------
-+ Implemented Telegram messenger.
-+ Added `allow_user_subscription` attr to base message and messenger classes.
-+ Added schedule_tweet() shortcut.
-+ Added schedule_telegram_message() shortcut.
-+ Added Messenger.before_after_send_handling() context manager.
-* Fixed `get_user_preferences_for_ui()` producing buggy result.
-
-
-v0.6.0
-------
-+ Adapted for Django 1.8.
-* Russian locale is updated.
-
-
-v0.5.1
-------
-* Message.schedule() now respects message type priority attribute.
-* `SITEMESSAGE_EMAIL_BACKEND_MESSAGES_PRIORITY` now defaults to None.
-
-
-v0.5.0
-------
-* IMPORTANT: Package layout changed (messages, messengers locations changed).
-* IMPORTANT: Changed default templates search path.
-+ Implemented subscriptions handling.
-+ Implemented Django email backend.
-+ Implemented experimental `mark read` functionality for e-mails.
-+ Implemented `List-Unsubscribe` e-mail header support for SMTP messenger.
-+ Added Django 1.7+ migrations.
-+ Added basic messages templates.
-+ Added `INIT_BUILTIN_MESSAGE_TYPES` setting.
-+ Added `EMAIL_BACKEND_MESSAGES_PRIORITY` setting.
-+ Added `DEFAULT_SHORTCUT_EMAIL_MESSAGES_TYPE` setting.
-+ Added `SITE_URL` setting.
-* Fixed delivery errors logging.
-* Dispatch model is now always passed into `compile()`.
-* Exception handling scope broadened for Twitter.
-
-
-v0.4.1
-------
-* Fixed `sitemessage_send_scheduled` command failure on Django 1.7.
-* Now `time_dispatched` field value is timezone-aware.
-
-
-v0.4.0
-------
-+ Django 1.7 ready.
-+ Added Russian loco.
-+ Implemented get_message_type_for_app() and override_message_type_for_app().
-
-
-v0.3.0
-------
-+ Added Twitter messenger.
-* Messengers are moved into a separate module.
-
-
-v0.2.0
-------
-+ Added message priorities support.
-+ Added support for sending test messages.
-+ Now dispatches creation updates `dispatches_ready` message property.
-+ Now message templates may use data from 'message_model' and 'dispatch_model' variables.
-+ Now message is cached for dispatches with errors.
-
-
-v0.1.0
-------
-+ Basic functionality.
+### v0.1.0
+* ++ Basic functionality.

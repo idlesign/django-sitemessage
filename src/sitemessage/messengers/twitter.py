@@ -6,7 +6,7 @@ from .base import MessengerBase, Message, Dispatch
 from ..exceptions import MessengerWarmupException
 
 if False:  # pragma: nocover
-    from ..messages.base import MessageBase  # noqa
+    from ..messages.base import MessageBase
 
 
 class TwitterMessenger(MessengerBase):

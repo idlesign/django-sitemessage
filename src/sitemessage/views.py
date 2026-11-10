@@ -25,7 +25,7 @@ def _generic_view(
         dispatch = Dispatch.objects.select_related('message').get(pk=dispatch_id)
 
         if int(message_id) != dispatch.message_id:
-            raise ValueError()
+            raise ValueError
 
         message = dispatch.message
 

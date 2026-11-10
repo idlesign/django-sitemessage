@@ -1,32 +1,25 @@
-Bundled views
-=============
+# Bundled views
 
-.. _bundled_views:
 
 **sitemessage** bundles some views, and one of those allows users to unsubscribe from certain message types,
 or mark messages read just by visiting pages linked to those views. So let's configure your project to use those views:
 
 
-.. code-block:: python
+```python
+from sitemessage.toolbox import get_sitemessage_urls
 
-    from sitemessage.toolbox import get_sitemessage_urls
+...
 
-    ...
+# Somewhere in your urls.py.
 
-    # Somewhere in your urls.py.
+urlpatterns += get_sitemessage_urls()  # Attaching sitemessage URLs.
+```
+## Unsubscribe
 
-    urlpatterns += get_sitemessage_urls()  # Attaching sitemessage URLs.
-
-
-
-Unsubscribe
------------
-
-Read :ref:`Handling unsubscriptions <handle_unsubscriptions>` to get some information on how unsubscription works.
+Read Handling unsubscriptions  to get some information on how unsubscription works.
 
 
-Mark read
----------
+## Mark read
 
 When bundled views are attached to your app you can mark messages as read.
 

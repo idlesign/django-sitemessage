@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock, patch
 
+from sitemessage.exceptions import MessengerException
 from sitemessage.messages.base import MessageBase
 from sitemessage.messages.plain import PlainTextMessage
 from sitemessage.messengers.base import MessengerBase
@@ -103,7 +104,7 @@ class BuggyMessenger(MessengerBase):
     alias = 'buggy'
 
     def send(self, message_cls, message_model, dispatch_models):
-        raise Exception('Damn it.')
+        raise MessengerException('Damn it.')
 
 
 class MessageForTest(MessageBase):

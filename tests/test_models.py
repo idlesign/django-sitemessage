@@ -155,12 +155,12 @@ class TestDispatchModel:
         d = Dispatch(message_id=m.id)
         d.save()
 
-        Dispatch.set_dispatches_statuses(**{'sent': [d]})
+        Dispatch.set_dispatches_statuses(sent=[d])
         d_ = Dispatch.objects.get(pk=d.id)
         assert d_.dispatch_status == Dispatch.DISPATCH_STATUS_SENT
         assert d_.retry_count == 1
 
-        Dispatch.set_dispatches_statuses(**{'error': [d]})
+        Dispatch.set_dispatches_statuses(error=[d])
         d_ = Dispatch.objects.get(pk=d.id)
         assert d_.dispatch_status == Dispatch.DISPATCH_STATUS_ERROR
         assert d_.retry_count == 2

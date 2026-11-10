@@ -10,9 +10,9 @@ from ..models import Dispatch, Message, MessageTuple
 from ..utils import Recipient, is_iterable, TypeRecipients
 
 if False:  # pragma: nocover
-    from ..messages.base import MessageBase  # noqa
+    from ..messages.base import MessageBase
 
-TypeProxy = Optional[Union[Callable, dict]]
+TypeProxy = Union[Callable, dict, None]
 
 
 class DispatchProcessingHandler:
@@ -24,15 +24,15 @@ class DispatchProcessingHandler:
         self,
         *,
         messenger: 'MessengerBase',
-        messages: Optional[List[MessageTuple]] = None
+        messages: List[MessageTuple] | None = None
     ):
         self.messenger = messenger
 
         self.dispatches = (
-            chain.from_iterable((
+            chain.from_iterable(
                 dispatch
                 for dispatch in (item.dispatches for item in messages)
-            ))
+            )
             if messages else None
         )
 
@@ -89,7 +89,7 @@ class MessengerBase:
         return self.__class__.get_alias()
 
     @contextmanager
-    def before_after_send_handling(self, messages: Optional[List[MessageTuple]] = None):
+    def before_after_send_handling(self, messages: List[MessageTuple] | None = None):
         """Context manager that allows to execute send wrapped
         in before_send() and after_send().
 
@@ -98,7 +98,7 @@ class MessengerBase:
             yield
 
     @contextmanager
-    def _exception_handling(self, dispatches: Optional[List[Dispatch]]):
+    def _exception_handling(self, dispatches: List[Dispatch] | None):
         """Propagates unhandled exceptions to dispatches log.
 
         :param dispatches:
@@ -118,7 +118,7 @@ class MessengerBase:
         :param text: text to send
 
         """
-        result = None  # noqa
+        result = None
 
         with self.before_after_send_handling():
             result = self._test_message(to, text)
@@ -209,7 +209,7 @@ class MessengerBase:
             self,
             dispatch: Dispatch,
             error_log: Union[str, Exception],
-            message_cls: Optional[Type['MessageBase']] = None
+            message_cls: Type['MessageBase'] | None = None
     ):
         """Marks a dispatch as having error or consequently as failed
         if send retry limit for that message type is exhausted.
@@ -394,7 +394,7 @@ class RequestsMessengerBase(MessengerBase):
     def _test_message(self, to: str, text: str):
         return self._send_message(self._build_message(text, to=to))
 
-    def _build_message(self, text: str, to: Optional[str] = None) -> str:
+    def _build_message(self, text: str, to: str | None = None) -> str:
         """Builds a message before send.
 
         :param text: Contents to add to message.
@@ -403,7 +403,7 @@ class RequestsMessengerBase(MessengerBase):
         """
         return text
 
-    def _send_message(self, msg: str, to: Optional[str] = None):
+    def _send_message(self, msg: str, to: str | None = None):
         """Should implement actual sending.
 
         :param msg: Contents to add to message.

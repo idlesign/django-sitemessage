@@ -12,10 +12,7 @@ def test_sitemessage_cleanup(capsys, command_run, user_create):
         message = Message(cls='test_message')
         message.save()
 
-        users = []
-
-        for _ in range(dispatches_count):
-            users.append(user_create())
+        users = [user_create() for _ in range(dispatches_count)]
 
         Dispatch.create(message, recipients('test_messenger', users))
 
@@ -35,15 +32,15 @@ def test_sitemessage_cleanup(capsys, command_run, user_create):
         assert len(msg_) == msg
         assert len(dsp_) == dsp
 
-    msg1, dsp1 = create_message(dispatches_count=2)
+    _msg1, dsp1 = create_message(dispatches_count=2)
     dsp1[0].time_dispatched = timezone.now() - timedelta(days=3)
     dsp1[0].save()
 
-    msg2, dsp2 = create_message(dispatches_count=1)
+    _msg2, dsp2 = create_message(dispatches_count=1)
     dsp2[0].time_dispatched = timezone.now() - timedelta(days=2)
     dsp2[0].save()
 
-    msg3, dsp3 = create_message(dispatches_count=3)
+    _msg3, _dsp3 = create_message(dispatches_count=3)
     assert_len(3, 6)
 
     command_run('sitemessage_cleanup', options={'ago': '4'})

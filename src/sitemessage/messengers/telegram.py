@@ -6,7 +6,7 @@ from .base import RequestsMessengerBase, TypeProxy, Message, Dispatch
 from ..exceptions import MessengerWarmupException, MessengerException
 
 if False:  # pragma: nocover
-    from ..messages.base import MessageBase  # noqa
+    from ..messages.base import MessageBase
 
 
 class TelegramMessengerException(MessengerException):

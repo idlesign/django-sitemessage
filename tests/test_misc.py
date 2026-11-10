@@ -67,11 +67,11 @@ class TestMessageSuite:
 
         rec = recipients('smtp', ['three', 'four'])
         msg1 = MessageGroupedForTest('text1')
-        msg1_model, msg1_dispatches = msg1.schedule(recipients=rec)
+        msg1_model, _msg1_dispatches = msg1.schedule(recipients=rec)
         assert msg1_model.context == {'tpl': None, 'use_tpl': False, 'stext_': 'text1'}
 
         msg2 = MessageGroupedForTest('moretext')
-        msg2_model, msg2_dispatches = msg2.schedule(recipients=rec)
+        msg2_model, _msg2_dispatches = msg2.schedule(recipients=rec)
         assert msg2_model.id == msg1_model.id
         assert msg2_model.context == {'tpl': None, 'use_tpl': False, 'stext_': 'text1\nmoretext'}
 
@@ -79,7 +79,7 @@ class TestMessageSuite:
 class TestCommands:
 
     def test_send_scheduled(self, command_run):
-        command_run('sitemessage_send_scheduled', options=dict(priority=1))
+        command_run('sitemessage_send_scheduled', options={'priority': 1})
 
 
 class TestBackends:

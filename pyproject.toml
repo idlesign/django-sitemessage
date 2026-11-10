@@ -1,0 +1,90 @@
+[project]
+name = "django-sitemessage"
+dynamic = ["version"]
+description = "Reusable application for Django introducing a message delivery framework"
+authors = [
+    { name = "Igor Starikov", email = "idlesign@yandex.ru" },
+]
+readme = "README.md"
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+keywords = ["Django", "messaging", "notifications"]
+dependencies = [
+    "django-etc>=1.2.0",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Framework :: Django",
+    "Environment :: Web Environment",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "License :: OSI Approved :: BSD License",
+]
+
+[project.urls]
+Homepage = "https://github.com/idlesign/django-sitemessage"
+Documentation = "https://django-sitemessage.readthedocs.io/"
+
+[dependency-groups]
+dev = [
+    { include-group = "docs" },
+    { include-group = "linters" },
+    { include-group = "tests" },
+    { include-group = "runtime" },
+]
+docs = [
+    "mkdocs-apidescribed-plugin",
+    "mkdocs-material",
+    "mkdocs-navsorted-plugin",
+]
+linters = [
+    "ruff==0.13.1",
+]
+tests = [
+    "coverage",
+    "pytest",
+    "pytest-djangoapp>=1.6.0",
+]
+runtime = [
+    "Django>=3.2.9",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "src/sitemessage/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sitemessage"]
+
+[tool.hatch.build.targets.sdist]
+packages = ["src/"]
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+]
+addopts = "--pyargs"
+
+[tool.coverage.run]
+source = [
+    "src/sitemessage",
+]
+omit = [
+    "src/sitemessage/migrations/*",
+]
+
+[tool.makeapp.tests]
+deps = [
+    "django~=${{ django-version }}.0",
+]

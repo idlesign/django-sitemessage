@@ -13,11 +13,11 @@ from django.utils.translation import gettext as _
 
 from .exceptions import UnknownMessengerError, UnknownMessageTypeError
 # NB: Some of these unused imports are exposed as part of toolbox API.
-from .messages import register_builtin_message_types  # noqa
+from .messages import register_builtin_message_types
 from .messages.base import MessageBase
 from .messages.plain import PlainTextMessage
 from .models import Message, Dispatch, Subscription, MessageTuple
-from .utils import (  # noqa
+from .utils import (
     is_iterable, import_project_sitemessage_modules, get_site_url, recipients,
     register_messenger_objects, get_registered_messenger_object, get_registered_messenger_objects,
     register_message_types, get_registered_message_type, get_registered_message_types,
@@ -35,7 +35,7 @@ def schedule_messages(
         messages: TypeMessages,
         recipients: Union[Iterable[Recipient], Recipient] = None,
         sender: TypeUser = None,
-        priority: Optional[int] = None
+        priority: int | None = None
 ) -> List[MessageTuple]:
     """Schedules a message or messages.
 
@@ -71,7 +71,7 @@ def schedule_messages(
 
 
 def send_scheduled_messages(
-        priority: Optional[int] = None,
+        priority: int | None = None,
         ignore_unknown_messengers: bool = False,
         ignore_unknown_message_types: bool = False
 ):
@@ -100,7 +100,7 @@ def send_scheduled_messages(
             raise
 
 
-def send_test_message(messenger_id: str, to: Optional[str] = None) -> Any:
+def send_test_message(messenger_id: str, to: str | None = None) -> Any:
     """Sends a test message using the given messenger.
 
     :param messenger_id: Messenger alias.
@@ -111,7 +111,7 @@ def send_test_message(messenger_id: str, to: Optional[str] = None) -> Any:
     return messenger_obj.send_test_message(to=to, text='Test message from sitemessages.')
 
 
-def check_undelivered(to: Optional[str] = None) -> int:
+def check_undelivered(to: str | None = None) -> int:
     """Sends a notification email if any undelivered dispatches.
 
     Returns undelivered (failed) dispatches count.
@@ -149,7 +149,7 @@ def check_undelivered(to: Optional[str] = None) -> int:
     return failed_count
 
 
-def cleanup_sent_messages(ago: Optional[int] = None, dispatches_only: bool = False):
+def cleanup_sent_messages(ago: int | None = None, dispatches_only: bool = False):
     """Cleans up DB : removes delivered dispatches (and messages).
 
     :param ago: Days. Allows cleanup messages sent X days ago. Defaults to None (cleanup all sent).
@@ -208,9 +208,9 @@ def prepare_dispatches() -> List[Dispatch]:
 
 def get_user_preferences_for_ui(
         user: AbstractBaseUser,
-        message_filter: Optional[Callable] = None,
-        messenger_filter: Optional[Callable] = None,
-        new_messengers_titles: Optional[Dict[str, str]] = None
+        message_filter: Callable | None = None,
+        messenger_filter: Callable | None = None,
+        new_messengers_titles: Dict[str, str] | None = None
 ) -> Tuple[List[str], Mapping]:
     """Returns a two element tuple with user subscription preferences to render in UI.
 
@@ -279,7 +279,7 @@ def get_user_preferences_for_ui(
 
     for msg_title, msg_aliases in sort_titles(msg_titles).items():
 
-        for __, msgr_alias in msgr_titles.items():
+        for msgr_alias in msgr_titles.values():
             msg_candidates = msgr_to_msg[msgr_alias].intersection(msg_aliases)
 
             alias = ''

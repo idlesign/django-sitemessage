@@ -1,31 +1,25 @@
-django-sitemessage installation
-===============================
+# django-sitemessage installation
 
+Python `pip` package is required to install `django-sitemessage`.
 
-Python ``pip`` package is required to install ``django-sitemessage``.
+## From sources
 
+Use the following command line to install `django-sitemessage` from sources directory (containing `pyproject.toml`):
 
-From sources
-------------
+```shell
+pip install .
+```
 
-Use the following command line to install ``django-sitemessage`` from sources directory (containing setup.py):
+## From PyPI
 
-    pip install .
+Alternatively you can install `django-sitemessage` from PyPI:
 
-or
-
-    python setup.py install
-
-
-From PyPI
----------
-
-Alternatively you can install ``django-sitemessage`` from PyPI:
-
-    pip install django-sitemessage
-
+```shell
+pip install django-sitemessage
+```
 
 Use `-U` flag for upgrade:
 
-    pip install -U django-sitemessage
-
+```shell
+pip install -U django-sitemessage
+```

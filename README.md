@@ -1,25 +1,19 @@
-django-sitemessage
-==================
-https://github.com/idlesign/django-sitemessage
+# django-sitemessage
 
-.. image:: https://img.shields.io/pypi/v/django-sitemessage.svg
-    :target: https://pypi.python.org/pypi/django-sitemessage
+<https://github.com/idlesign/django-sitemessage>
 
-.. image:: https://img.shields.io/pypi/l/django-sitemessage.svg
-    :target: https://pypi.python.org/pypi/django-sitemessage
+[![release](https://img.shields.io/pypi/v/django-sitemessage.svg)](https://pypi.python.org/pypi/django-sitemessage)
+[![lic](https://img.shields.io/pypi/l/django-sitemessage.svg)](https://pypi.python.org/pypi/django-sitemessage)
+[![coverage](https://img.shields.io/coveralls/idlesign/django-sitemessage/master.svg)](https://coveralls.io/r/idlesign/django-sitemessage)
 
-.. image:: https://img.shields.io/coveralls/idlesign/django-sitemessage/master.svg
-    :target: https://coveralls.io/r/idlesign/django-sitemessage
-
-Description
------------
+## Description
 
 *Reusable application for Django introducing a message delivery framework.*
 
 Features:
 
-* **Message Types** - message classes exposing message composition logic (plain text, html, etc.).
-* **Messengers** - clients for various protocols (smtp, jabber, twitter, telegram, facebook, vkontakte, etc.);
+* **Message Types** — message classes exposing message composition logic (plain text, html, etc.).
+* **Messengers** — clients for various protocols (smtp, jabber, twitter, telegram, facebook, vkontakte, etc.);
 * Support for user defined message types.
 * Support for user defined messenger types.
 * Message prioritization.
@@ -30,48 +24,42 @@ Features:
 * Means to debug integration: test requisites, delivery log.
 * Django Admin integration.
 
+1. Configure messengers for your project (create `sitemessages.py` in one of your apps):
 
-1. Configure messengers for your project (create ``sitemessages.py`` in one of your apps):
+```python
+from sitemessage.toolbox import register_messenger_objects, register_message_types
+from sitemessage.messengers.smtp import SMTPMessenger
 
-.. code-block:: python
-
-    from sitemessage.toolbox import register_messenger_objects, register_message_types
-    from sitemessage.messengers.smtp import SMTPMessenger
-
-    register_messenger_objects(
-        # Here we register one messenger to deliver emails.
-        # By default it uses mailing related settings from Django settings file.
-        SMTPMessenger()
-    )
-
+register_messenger_objects(
+    # Here we register one messenger to deliver emails.
+    # By default it uses mailing related settings from Django settings file.
+    SMTPMessenger()
+)
+```
 
 2. Schedule messages for delivery when and where needed (e.g. in a view):
 
-.. code-block:: python
+```python
+from sitemessage.shortcuts import schedule_email
 
-    from sitemessage.shortcuts import schedule_email
+def send_mail_view(request):
+    ...
 
-    def send_mail_view(request):
-        ...
+    # Suppose `user_model` is a recipient Django User model instance.
+    user1_model = ...
 
-        # Suppose `user_model` is a recipient Django User model instance.
-        user1_model = ...
+    # We pass `request.user` into `sender` to keep track of senders.
+    schedule_email('Message from sitemessage.', [user1_model, 'user2@host.com'], sender=request.user)
 
-        # We pass `request.user` into `sender` to keep track of senders.
-        schedule_email('Message from sitemessage.', [user1_model, 'user2@host.com'], sender=request.user)
-
-        ...
-
+    ...
+```
 
 3. Periodically run Django management command from wherever you like (cli, cron, Celery, uWSGI, etc.):
 
-    ./manage.py sitemessage_send_scheduled
+    `./manage.py sitemessage_send_scheduled`
 
+And that's only the tip of `sitemessage` iceberg, read the docs %)
 
-And that's only the tip of ``sitemessage`` iceberg, read the docs %)
+## Documentation
 
-
-Documentation
--------------
-
-http://django-sitemessage.readthedocs.org/
+<https://django-sitemessage.readthedocs.io/>

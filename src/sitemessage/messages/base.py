@@ -14,7 +14,7 @@ from ..signals import sig_unsubscribe_success, sig_unsubscribe_failed, sig_mark_
 from ..utils import Recipient, recipients, get_site_url, get_registered_messenger_object, TypeRecipients
 
 if False:  # pragma: nocover
-    from ..messengers.base import MessengerBase  # noqa
+    from ..messengers.base import MessengerBase
 
 
 APP_URLS_ATTACHED = None
@@ -35,7 +35,7 @@ class MessageBase:
     title: str = _('Notification')
     """Title to show to user."""
 
-    priority: Optional[int] = None
+    priority: int | None = None
     """Number describing message priority. Can be overridden by `priority` provided with schedule_messages()."""
 
     has_dynamic_context: bool = False
@@ -108,9 +108,9 @@ class MessageBase:
 
     def schedule(
             self,
-            recipients: Optional[Union[Iterable[Recipient], Recipient]] = None,
-            sender: Optional[AbstractBaseUser] = None,
-            priority: Optional[int] = None
+            recipients: Union[Iterable[Recipient], Recipient] | None = None,
+            sender: AbstractBaseUser | None = None,
+            priority: int | None = None
     ) -> MessageTuple:
         """Schedules message for a delivery.
         Puts message (and dispatches if any) data into DB.
@@ -228,7 +228,7 @@ class MessageBase:
         return cls._get_url('sitemessage_unsubscribe', message_model, dispatch_model)
 
     @classmethod
-    def _get_url(cls, name: str, message_model: Message, dispatch_model: Optional[Dispatch]) -> str:
+    def _get_url(cls, name: str, message_model: Message, dispatch_model: Dispatch | None) -> str:
         """Returns a common pattern sitemessage URL.
 
         :param name: URL name
@@ -342,7 +342,7 @@ class MessageBase:
         return cls.template
 
     @classmethod
-    def compile(cls, message: Message, messenger: 'MessengerBase', dispatch: Optional[Dispatch] = None) -> str:
+    def compile(cls, message: Message, messenger: 'MessengerBase', dispatch: Dispatch | None = None) -> str:
         """Compiles and returns a message text.
 
         Considers `use_tpl` field from message context to decide whether
@@ -410,7 +410,7 @@ class MessageBase:
         base_context['tpl'] = template_path
 
     @classmethod
-    def prepare_dispatches(cls, message: Message, recipients: Optional[List[Recipient]] = None) -> List[Dispatch]:
+    def prepare_dispatches(cls, message: Message, recipients: List[Recipient] | None = None) -> List[Dispatch]:
         """Creates Dispatch models for a given message and return them.
 
         :param message: Message model instance

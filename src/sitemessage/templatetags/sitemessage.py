@@ -30,12 +30,13 @@ def sitemessage_prefs_table(parser: Parser, token: Token):
 
 class sitemessage_prefs_tableNode(template.Node):
 
-    def __init__(self, prefs_obj: FilterExpression, use_template: Optional[str]):
+    def __init__(self, prefs_obj: FilterExpression, use_template: str | None):
         self.use_template = use_template
         self.prefs_obj = prefs_obj
 
     def render(self, context):
-        resolve = lambda arg: arg.resolve(context) if isinstance(arg, FilterExpression) else arg
+        def resolve(arg):
+            return arg.resolve(context) if isinstance(arg, FilterExpression) else arg
 
         prefs_obj = resolve(self.prefs_obj)
 

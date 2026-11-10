@@ -7,6 +7,7 @@ class SitemessageConfig(AppConfig):
 
     name = 'sitemessage'
     verbose_name = _('Messaging')
+    default_auto_field = 'django.db.models.AutoField'
 
     def ready(self):
         from sitemessage.utils import import_project_sitemessage_modules

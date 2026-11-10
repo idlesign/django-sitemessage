@@ -8,7 +8,7 @@ from .base import MessengerBase, Message, Dispatch
 from ..exceptions import MessengerWarmupException
 
 if False:  # pragma: nocover
-    from ..messages.base import MessageBase  # noqa
+    from ..messages.base import MessageBase
 
 
 class SMTPMessenger(MessengerBase):
@@ -57,14 +57,14 @@ class SMTPMessenger(MessengerBase):
         self.mime_text = MIMEText
         self.mime_multipart = MIMEMultipart
 
-        self.from_email = from_email or getattr(settings, 'SERVER_EMAIL')
-        self.login = login or getattr(settings, 'EMAIL_HOST_USER')
-        self.password = password or getattr(settings, 'EMAIL_HOST_PASSWORD')
-        self.host = host or getattr(settings, 'EMAIL_HOST')
-        self.port = port or getattr(settings, 'EMAIL_PORT')
-        self.use_tls = use_tls or getattr(settings, 'EMAIL_USE_TLS')
-        self.use_ssl = use_ssl or getattr(settings, 'EMAIL_USE_SSL')
-        self.timeout = timeout or getattr(settings, 'EMAIL_TIMEOUT')
+        self.from_email = from_email or settings.SERVER_EMAIL
+        self.login = login or settings.EMAIL_HOST_USER
+        self.password = password or settings.EMAIL_HOST_PASSWORD
+        self.host = host or settings.EMAIL_HOST
+        self.port = port or settings.EMAIL_PORT
+        self.use_tls = use_tls or settings.EMAIL_USE_TLS
+        self.use_ssl = use_ssl or settings.EMAIL_USE_SSL
+        self.timeout = timeout or settings.EMAIL_TIMEOUT
 
     def _test_message(self, to: str, text: str):
         return self._send_message(self._build_message(to, text, mtype='html'))
