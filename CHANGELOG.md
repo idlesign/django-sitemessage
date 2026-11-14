@@ -1,6 +1,6 @@
 # django-sitemessage changelog
 
-### Unreleased
+### v1.4.1 [2026-11-14]
 * ** Fixed messenger tests mocks reset to use reset_mock() (Python 3.14 compatibility).
 * ** Pinned default_auto_field to AutoField to prevent id field drift on Django 6.1.
 
